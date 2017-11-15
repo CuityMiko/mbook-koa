@@ -1,0 +1,54 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/fenlei/fenlei",
+    "pages/booklist/booklist",
+    "pages/user/user",
+    "pages/logs/logs"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#fff",
+    "navigationBarTitleText": "WeChat",
+    "navigationBarTextStyle": "black"
+  },
+  "tabBar": {
+    "color": "#676767",
+    "selectedColor": "#3399ff",
+    "borderStyle": "white",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "iconPath": "static/img/index.png",
+        "selectedIconPath": "static/img/index_active.png",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/fenlei/fenlei",
+        "iconPath": "static/img/fenlei.png",
+        "selectedIconPath": "static/img/fenlei_active.png",
+        "text": "分类"
+      },
+      {
+        "pagePath": "pages/booklist/booklist",
+        "iconPath": "static/img/book.png",
+        "selectedIconPath": "static/img/book_active.png",
+        "text": "书架"
+      },
+      {
+        "pagePath": "pages/user/user",
+        "iconPath": "static/img/user.png",
+        "selectedIconPath": "static/img/user_active.png",
+        "text": "我的"
+      }
+    ]
+  },
+  "networkTimeout": {
+    "request": 10000,
+    "connectSocket": 10000,
+    "uploadFile": 10000,
+    "downloadFile": 10000
+  },
+  "debug": true
+}
