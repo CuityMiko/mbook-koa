@@ -1,21 +1,79 @@
 /**index.wxss**/
-.userinfo {
+.index swiper{
+  width: 100%;
+  height: 220rpx;
+  overflow: hidden;
+}
+.index .slide-image{
+  height: 100%;
+}
+.index .nav{
+  display: -webkit-flex;
   display: flex;
-  flex-direction: column;
+  flex-flow: row nowrap;
+  justify-content: space-around;
   align-items: center;
+  box-sizing: border-box;
+  padding: 30rpx 20rpx;
 }
-
-.userinfo-avatar {
-  width: 128rpx;
-  height: 128rpx;
-  margin: 20rpx;
-  border-radius: 50%;
+.index .nav .nav-item{
+  width: 90rpx;
+  text-align: center;
 }
-
-.userinfo-nickname {
-  color: #aaa;
+.index .nav .nav-item icon{
+  display: block;
+  width: 90rpx;
+  height: 90rpx;
+  line-height: 90rpx;
+  font-size: 50rpx;
+  color: #fff;
+  border-radius: 30rpx;
 }
-
-.usermotto {
-  margin-top: 200px;
+.index .nav .nav-item:first-child icon{
+  background: #ffc539;
+}
+.index .nav .nav-item:nth-child(2) icon{
+  background: #ff6687;
+}
+.index .nav .nav-item:nth-child(3) icon{
+  background: #6db3f7;
+}
+.index .nav .nav-item:nth-child(4) icon{
+  background: #ff9654;
+}
+.index .nav .nav-item:last-child icon{
+  background: #1bdb9f;
+}
+.index .nav .nav-item text{
+  display: block;
+  font-size: 30rpx;
+  margin-top: 15rpx;
+  color: #333;
+}
+.index .theme .theme-title{
+  text-align: center;
+  font-size: 36rpx;
+  color: #333;
+  position: relative;
+}
+.index .theme .theme-title icon:first-child{
+  margin-right: 20rpx;
+}
+.index .theme .theme-title icon:last-child{
+  margin-left: 20rpx;
+}
+.index .theme .theme-title .flush{
+  position: absolute;
+  right: 30rpx;
+  top: 50%;
+  transform: translateY(-54%);
+  font-size: 30rpx;
+  height: 100%;
+  color: #39f;
+}
+.index .theme .theme-title .flush icon{
+  font-size: 32rpx;
+  position: relative;
+  top: 4rpx;
+  left: -6rpx;
 }

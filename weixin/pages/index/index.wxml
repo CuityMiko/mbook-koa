@@ -1,13 +1,42 @@
 <!--index.wxml-->
-<view class="container">
-  <view class="userinfo">
-    <button wx:if="{{!hasUserInfo && canIUse}}" open-type="getUserInfo" bindgetuserinfo="getUserInfo"> 获取头像昵称 </button>
-    <block wx:else>
-      <image bindtap="bindViewTap" class="userinfo-avatar" src="{{userInfo.avatarUrl}}" background-size="cover"></image>
-      <text class="userinfo-nickname">{{userInfo.nickName}}</text>
+<scroll-view class="container index" style="height:{{clientHeight}}px;" scroll-y="true">  
+  <swiper wx:if="{{is_show_banner}}" indicator-dots="1" autoplay="1" interval="4000" duration="500">
+    <block wx:for="{{banner_urls}}">
+      <swiper-item>
+        <image src="{{item.img_url}}" class="slide-image" width="355" height="150"/>
+      </swiper-item>
     </block>
+  </swiper>
+  <view class="nav">
+    <view class="nav-item">
+      <icon class="iconfont icon-paihang"></icon>
+      <text>排行</text>
+    </view>
+    <view class="nav-item">
+      <icon class="iconfont icon-nvsheng"></icon>
+      <text>女生</text>
+    </view>
+    <view class="nav-item">
+      <icon class="iconfont icon-nansheng"></icon>
+      <text>男生</text>
+    </view>
+    <view class="nav-item">
+      <icon class="iconfont icon-sousuo"></icon>
+      <text>搜索</text>
+    </view>
+    <view class="nav-item">
+      <icon class="iconfont icon-cz"></icon>
+      <text>充值</text>
+    </view>
   </view>
-  <view class="usermotto">
-    <text class="user-motto">{{motto}}</text>
+  <view class="theme" wx:for="{{themes}}">
+    <view class="theme-title">
+      <icon class="iconfont icon-hengxian"></icon>
+      {{item.name}}
+      <icon class="iconfont icon-hengxian"></icon>
+      <view class="flush" wx:if="{{item.flush}}"><text>换一批</text><icon class="iconfont icon-refresh"></icon></view>
+    </view>
+    <view class="{{'layout' + item.layout}}">
+    </view>
   </view>
-</view>
+</scroll-view>  

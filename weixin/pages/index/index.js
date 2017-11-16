@@ -1,13 +1,14 @@
 //index.js
 //获取应用实例
 const app = getApp()
+const config = require('../../config')
 
 Page({
   data: {
-    motto: 'Hello World',
-    userInfo: {},
-    hasUserInfo: false,
-    canIUse: wx.canIUse('button.open-type.getUserInfo')
+    clientHeight: '',
+    banner_urls: [],
+    is_show_banner: true,
+    themes: []
   },
   //事件处理函数
   bindViewTap: function() {
@@ -16,6 +17,7 @@ Page({
     })
   },
   onLoad: function () {
+    let self = this
     if (app.globalData.userInfo) {
       this.setData({
         userInfo: app.globalData.userInfo,
@@ -42,6 +44,53 @@ Page({
         }
       })
     }
+    // 获取屏幕高度
+    wx.getSystemInfo({
+      success: function (res) {
+        self.setData({
+          clientHeight: res.windowHeight
+        });
+      }
+    })
+    // 获取banner
+    self.getBanner()
+    self.getTheme()
+  },
+  getBanner: function(){
+    let self = this
+    // 先从本地获取缓存
+    wx.request({
+      url: config.base_url + '/api/get_banner',
+      success: function(res){
+        if(res.data.ok){
+          self.setData({ 'banner_urls': res.data.list })
+        }else{
+          // 隐藏banner
+          self.setData({is_show_banner: false})
+        }
+      },
+      fail: function(err){
+        self.setData({ is_show_banner: false })
+      }
+    })
+  },
+  getTheme: function () {
+    let self = this
+    // 先从本地获取缓存
+    wx.request({
+      url: config.base_url + '/api/theme/index_list',
+      success: function (res) {
+        if (res.data.ok) {
+          self.setData({ 'themes': res.data.list })
+        } else {
+          // 隐藏banner
+          self.setData({ 'is_show_banner': false })
+        }
+      },
+      fail: function (err) {
+        self.setData({ 'is_show_banner': false })
+      }
+    })
   },
   getUserInfo: function(e) {
     console.log(e)
