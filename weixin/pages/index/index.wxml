@@ -1,7 +1,9 @@
 <!--index.wxml-->
+<toast toast="{{toast}}"></toast>
+
 <scroll-view class="container index" style="height:{{clientHeight}}px;" scroll-y="true">  
   <swiper wx:if="{{is_show_banner}}" indicator-dots="1" autoplay="1" interval="4000" duration="500">
-    <block wx:for="{{banner_urls}}">
+    <block wx:for="{{banner_urls}}" wx:key="item._id">
       <swiper-item>
         <image src="{{item.img_url}}" class="slide-image" width="355" height="150"/>
       </swiper-item>
@@ -29,14 +31,23 @@
       <text>充值</text>
     </view>
   </view>
-  <view class="theme" wx:for="{{themes}}">
+  <view class="theme" wx:for="{{themes}}" wx:key="item._id">
     <view class="theme-title">
       <icon class="iconfont icon-hengxian"></icon>
       {{item.name}}
       <icon class="iconfont icon-hengxian"></icon>
-      <view class="flush" wx:if="{{item.flush}}"><text>换一批</text><icon class="iconfont icon-refresh"></icon></view>
+      <view class="flush" data-themeid="{{item._id}}" bindtap="changeList" wx:if="{{item.flush}}"><text>换一批</text><icon class="iconfont icon-refresh"></icon></view>
     </view>
     <view class="{{'layout' + item.layout}}">
+      <view class="{{'book-item item' + bookIndex}}" wx:for="{{item.books}}" wx:for-index="bookIndex" wx:for-item="bookItem" wx:key="bookItem._id">
+        <image class="book-img" src="{{bookItem.img_url}}"></image>
+        <view class="book-info">
+          <text class="book-name">{{bookItem.name}}</text>
+          <text class="book-des">{{bookItem.des}}</text>
+          <view class="book-author"><icon class="iconfont icon-hezuozuozhe"></icon>{{bookItem.author}}</view>
+        </view>
+      </view>
     </view>
+    <view wx:if="{{item.flush}}" class="more" data-themeid="{{item._id}}">更多新书></view>
   </view>
 </scroll-view>  

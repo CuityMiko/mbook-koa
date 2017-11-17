@@ -1,4 +1,7 @@
 /**index.wxss**/
+.index{
+  background: #eeeeee;
+}
 .index swiper{
   width: 100%;
   height: 220rpx;
@@ -15,6 +18,8 @@
   align-items: center;
   box-sizing: border-box;
   padding: 30rpx 20rpx;
+  background: #fff;
+  margin-bottom: 15rpx;
 }
 .index .nav .nav-item{
   width: 90rpx;
@@ -50,23 +55,26 @@
   margin-top: 15rpx;
   color: #333;
 }
+.index .theme{
+  padding: 0 32rpx;
+  margin-bottom: 15rpx;
+  background: #fff;
+}
 .index .theme .theme-title{
   text-align: center;
   font-size: 36rpx;
   color: #333;
   position: relative;
+  margin-bottom: 30rpx;
 }
-.index .theme .theme-title icon:first-child{
-  margin-right: 20rpx;
-}
-.index .theme .theme-title icon:last-child{
-  margin-left: 20rpx;
+.index .theme .theme-title icon{
+  margin: 0 20rpx;
 }
 .index .theme .theme-title .flush{
   position: absolute;
   right: 30rpx;
   top: 50%;
-  transform: translateY(-54%);
+  transform: translateY(-60%);
   font-size: 30rpx;
   height: 100%;
   color: #39f;
@@ -76,4 +84,149 @@
   position: relative;
   top: 4rpx;
   left: -6rpx;
+}
+.index .theme .more{
+  text-align: center;
+  font-size: 30rpx;
+  border-top: 1px solid #eeeeee;
+  padding: 30rpx 0;
+}
+.index .theme .layout1,
+.index .theme .layout2,
+.index .theme .layout3,
+.index .theme .layout4{
+  padding-bottom: 30rpx;
+}
+/* layout1: 栏目布局1 */
+.index .layout1 .book-item.item0{
+  display: -webkit-flex;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  align-items: stretch;
+  margin-bottom: 30rpx;
+}
+.index .layout1 .book-item.item0 .book-img{
+  width: 210rpx;
+  height: 270rpx;
+}
+.index .layout1 .book-item.item0 .book-info{
+  flex: 1;
+  padding-left: 20rpx;
+  color: #333;
+}
+.index .layout1 .book-item.item0 .book-name{
+  display: block;
+  font-size: 32rpx;
+}
+.index .layout1 .book-item.item0 .book-des{
+  font-size: 28rpx;
+  margin-top: 30rpx;
+  text-align: justify;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
+}
+.index .layout1 .book-item.item0 .book-author{
+  display: block;
+  font-size: 30rpx;
+  color: #999;
+}
+.index .layout1 .book-item.item0 .book-author icon{
+  font-size: 30rpx;
+  margin-right: 20rpx;
+}
+.index .layout1 .book-item.item1,
+.index .layout1 .book-item.item2,
+.index .layout1 .book-item.item3{
+  flex: 0 0 33.3333%;
+  display: inline-block;
+  width: 33.33%;
+}
+.index .layout1 .book-item.item1 .book-img,
+.index .layout1 .book-item.item2 .book-img,
+.index .layout1 .book-item.item3 .book-img{
+  display: block;
+  width: 210rpx;
+  height: 270rpx;
+}
+.index .layout1 .book-item.item1 .book-des,
+.index .layout1 .book-item.item2 .book-des,
+.index .layout1 .book-item.item3 .book-des{
+  display: none;
+}
+.index .layout1 .book-item.item1 .book-author,
+.index .layout1 .book-item.item2 .book-author,
+.index .layout1 .book-item.item3 .book-author{
+  display: none;
+}
+.index .layout1 .book-item.item1 .book-name,
+.index .layout1 .book-item.item2 .book-name,
+.index .layout1 .book-item.item3 .book-name{
+  display: block;
+  font-size: 28rpx;
+  margin-top: 4rpx;
+}
+/* layout2: 栏目布局2 */
+.index .layout2 .book-item{
+  display: -webkit-flex;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  align-items: stretch;
+  margin-bottom: 30rpx;
+}
+.index .layout2 .book-item .book-img{
+  width: 210rpx;
+  height: 270rpx;
+}
+.index .layout2 .book-item .book-info{
+  flex: 1;
+  padding-left: 20rpx;
+  color: #333;
+}
+.index .layout2 .book-item .book-name{
+  display: block;
+  font-size: 32rpx;
+}
+.index .layout2 .book-item .book-des{
+  font-size: 28rpx;
+  margin-top: 30rpx;
+  text-align: justify;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
+}
+.index .layout2 .book-item .book-author{
+  display: block;
+  font-size: 30rpx;
+  color: #999;
+}
+.index .layout2 .book-item .book-author icon{
+  font-size: 30rpx;
+  margin-right: 20rpx;
+}
+/* layout3: 栏目布局3 */
+.index .layout3 .book-item{
+  flex: 0 0 33.3333%;
+  display: inline-block;
+  width: 33.33%;
+}
+.index .layout3 .book-item .book-img{
+  display: block;
+  width: 210rpx;
+  height: 270rpx;
+}
+.index .layout3 .book-item .book-des{
+  display: none;
+}
+.index .layout3 .book-item .book-author{
+  display: none;
+}
+.index .layout3 .book-item .book-name{
+  display: block;
+  font-size: 28rpx;
+  margin-top: 4rpx;
 }

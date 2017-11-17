@@ -54,6 +54,54 @@ export default function (router) {
     ctx.body = { ok: true, msg: '获取栏目成功', list: allThemes }
   })
 
+  // 点击换一批对应的接口
+  router.get('/api/theme/change_list', async (ctx, next) => {
+    let { page, theme_id } = ctx.request.query
+    if(page){
+      page = parseInt(page)
+      if(page < 1){
+        page =1
+      }
+    }else{
+      page = 1
+    }
+    if(theme_id){
+      // 查找出所有的需要显示的栏目
+      let result = []
+      
+      let thisTheme = await Theme.findById(theme_id, 'name layout flush books')
+      let num = 3
+      switch(thisTheme.layout){
+        case 1:
+          num = 4
+          break
+        case 2:
+          num = 3
+          break
+        case 3:
+          num = 3
+          break
+        case 4:
+          num = 6
+          break
+        default:
+          break
+      }
+      let bookList = []
+      for(let i=0; i<thisTheme.books.length; i++){
+        if((i > num*(page -1)) && (i <= num*page)){
+          let tmpBook = await Book.findById(thisTheme.books[i].bookid)
+          if(tmpBook){
+            bookList.push(tmpBook)
+          }
+        }
+      }
+      ctx.body = { ok: true, msg: '获取栏目成功', list: bookList }
+    }else{
+      ctx.body = { ok: false, msg: '缺少参数theme_id'}
+    }
+  })
+
   router.post('/api/theme', async (ctx, next) => {
     let { priority, name, des, books, show, layout, flush } = ctx.request.body
     if(books){

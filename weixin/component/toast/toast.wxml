@@ -1,0 +1,7 @@
+<!-- 自定义组件--toast -->
+<view class="{{'ths-toast ' + (toast.position == 'center' ? 'position-center' : 'position-bottom') }}" wx:if="{{toast.show}}">
+  <view class="toast-txt" style="opacity: {{opacity}}">
+    {{toast.content}}
+  </view>
+</view>
+<slot></slot>
