@@ -1,7 +1,4 @@
-import { setTimeout } from 'core-js/library/web/timers';
-
 //index.js
-//获取应用实例
 const app = getApp()
 const config = require('../../config')
 
@@ -12,13 +9,9 @@ Page({
     banner_urls: [],
     is_show_banner: true,
     themes: [],
-    click_times: {} // 换一批点击次数
-  },
-  //事件处理函数
-  bindViewTap: function() {
-    wx.navigateTo({
-      url: '../logs/logs'
-    })
+    click_times: {}, // 换一批点击次数
+    isBannerOk: false,
+    isThemeOk: false
   },
   onLoad: function () {
     let self = this
@@ -57,12 +50,24 @@ Page({
       }
     })
     // 获取banner
+    wx.showLoading({ title: '数据加载中' });
+    (function(){
+      let timer = setInterval(function(){
+        if(self.data.isBannerOk && self.data.isThemeOk){
+          clearInterval(timer)
+          wx.hideLoading()
+        }
+      }, 500)
+    })();
     self.getBanner()
     self.getTheme()
+  },
+  showToast:function(content, position){
+    let self = this
+    self.setData({ 'toast': { show: true, content: content, position: position } })
     setTimeout(function(){
-      self.setData({ 'toast': { show: true, content: '这是一个测试toast', position: 'bottom' } })
+      self.setData({ 'toast': { show: false, content: '', position: 'bottom' } })
     }, 3000)
-    // self.setData({ toastContent: 'caonima' })
   },
   getBanner: function(){
     let self = this
@@ -74,10 +79,15 @@ Page({
         }else{
           // 隐藏banner
           self.setData({is_show_banner: false})
+          self.showToast('获取banner信息失败', 'bottom')
         }
       },
       fail: function(err){
         self.setData({ is_show_banner: false })
+        self.showToast('获取banner信息失败', 'bottom')
+      },
+      complete: function(){
+        self.setData({'isBannerOk': true})
       }
     })
   },
@@ -92,17 +102,20 @@ Page({
           res.data.list.forEach(item => {
             if(item.flush){
               let tmpObj = {}
-              tmpObj[item._id] = 1
+              tmpObj[item._id] = 2
               self.setData({click_times : Object.assign(self.data.click_times, tmpObj)})
             }
           })
         } else {
           // 隐藏banner
-          self.setData({ 'is_show_banner': false })
+          self.showToast('获取栏目信息失败', 'bottom')
         }
       },
       fail: function (err) {
-        self.setData({ 'is_show_banner': false })
+        self.showToast('获取栏目信息失败', 'bottom')
+      },
+      complete: function(){
+        self.setData({'isThemeOk': true})
       }
     })
   },
@@ -116,28 +129,37 @@ Page({
         url: config.base_url + '/api/theme/change_list?page=' + page + '&theme_id=' + theme_id,
         success: function (res) {
           if (res.data.ok) {
-            // 局部更新
-            let thisIndex = -1
-            self.data.themes.forEach((item, index) => {
-              if(item._id == theme_id){
-                thisIndex = index
+            if(res.data.list.length > 0){
+              // 局部更新
+              let thisIndex = -1
+              self.data.themes.forEach((item, index) => {
+                if(item._id == theme_id){
+                  thisIndex = index
+                }
+              })
+              if(thisIndex > -1){
+                let key1 = 'themes[' + thisIndex + '].books'
+                let key2 = 'click_times.' + theme_id
+                self.setData({ [key1]: res.data.list, [key2]: page + 1})
               }
-            })
-            if(thisIndex > -1){
-              let key1 = 'themes[' + thisIndex + '].books'
-              let key2 = 'click_times.' + theme_id
-              self.setData({ [key1]: res.data.list, [key2]: page + 1})
+            }else{
+              self.showToast('暂无更多', 'bottom')
             }
           } else {
             // 隐藏banner
-            self.setData({ 'is_show_banner': false })
+            self.showToast('更新栏目失败', 'bottom')
           }
         },
         fail: function (err) {
-          self.setData({ 'is_show_banner': false })
+          self.showToast('更新栏目失败', 'bottom')
         }
       })
     }
+  },
+  gotoDetail: function(event){
+    let bookid = event.currentTarget.dataset.bookid
+    let name = event.currentTarget.dataset.name
+    wx.navigateTo({ url: '../bookdetail/bookdetail?id=' + bookid + '&name=' + name})
   },
   getUserInfo: function(e) {
     console.log(e)

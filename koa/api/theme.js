@@ -1,5 +1,5 @@
 import { Theme, Book } from '../models'
-import { Array } from 'core-js/library/web/timers';
+import sleep from 'sleep'
 
 function unique(arr){
   var res=[];
@@ -59,17 +59,18 @@ export default function (router) {
     let { page, theme_id } = ctx.request.query
     if(page){
       page = parseInt(page)
-      if(page < 1){
-        page =1
+      if(page < 2){
+        page = 2
       }
     }else{
-      page = 1
+      page = 2
     }
     if(theme_id){
       // 查找出所有的需要显示的栏目
       let result = []
       
       let thisTheme = await Theme.findById(theme_id, 'name layout flush books')
+      console.log(thisTheme)
       let num = 3
       switch(thisTheme.layout){
         case 1:

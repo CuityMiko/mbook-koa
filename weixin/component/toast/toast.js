@@ -6,16 +6,15 @@ Component({
     }
   },
   data: {
-    opacity: 0,
+    animation: ''
   },
   ready: function(){
-    let self = this
-    self.setData({ 'opacity': .96, 'toast.show': false})
-    setTimeout(function(){
-      self.setData({ 'opacity': 0 })
-      setTimeout(function(){
-        self.setData({ 'toast.show': false })
-      }, 1000)
-    }, 3000)
+    let animation = wx.createAnimation({
+      duration: 1000,
+      timingFunction: 'linear'
+    })
+    animation.opacity(.96).step()
+    animation.opacity(0).step()
+    this.setData({ 'animation': animation.export() })
   }
 })

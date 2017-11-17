@@ -3,6 +3,7 @@
     "pages/index/index",
     "pages/fenlei/fenlei",
     "pages/booklist/booklist",
+    "pages/bookdetail/bookdetail",
     "pages/user/user",
     "pages/logs/logs"
   ],

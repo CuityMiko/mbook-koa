@@ -31,7 +31,7 @@
       <text>充值</text>
     </view>
   </view>
-  <view class="theme" wx:for="{{themes}}" wx:key="item._id">
+  <view class="theme" wx:if="{{themes.length > 0 ? true : false}}" wx:for="{{themes}}" wx:key="item._id">
     <view class="theme-title">
       <icon class="iconfont icon-hengxian"></icon>
       {{item.name}}
@@ -39,7 +39,7 @@
       <view class="flush" data-themeid="{{item._id}}" bindtap="changeList" wx:if="{{item.flush}}"><text>换一批</text><icon class="iconfont icon-refresh"></icon></view>
     </view>
     <view class="{{'layout' + item.layout}}">
-      <view class="{{'book-item item' + bookIndex}}" wx:for="{{item.books}}" wx:for-index="bookIndex" wx:for-item="bookItem" wx:key="bookItem._id">
+      <view class="{{'book-item item' + bookIndex}}" wx:for="{{item.books}}" wx:for-index="bookIndex" wx:for-item="bookItem" wx:key="bookItem._id" data-bookid="{{bookItem._id}}" data-name="{{bookItem.name}}" bindtap="gotoDetail">
         <image class="book-img" src="{{bookItem.img_url}}"></image>
         <view class="book-info">
           <text class="book-name">{{bookItem.name}}</text>
@@ -50,4 +50,8 @@
     </view>
     <view wx:if="{{item.flush}}" class="more" data-themeid="{{item._id}}">更多新书></view>
   </view>
+  <!-- 暂无数据 -->
+  <no-data wx:if="{{themes.length == 0 ? true : false}}" text="暂无栏目信息" sub-text="可能是加载失败了，点击重新获取" btn-text="重新获取" show-btn="true" bindbtnclick="getTheme">
+      <icon class="iconfont icon-zanwushuju"></icon>
+  </no-data>
 </scroll-view>  

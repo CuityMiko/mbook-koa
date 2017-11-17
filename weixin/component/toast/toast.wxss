@@ -18,7 +18,6 @@
   vertical-align: middle;
   display: inline-block;
   opacity: 0;
-  transition: opacity 1s;
 }
 .position-center{
   top:50%;
@@ -27,7 +26,4 @@
 }
 .position-bottom{
   bottom:15%;
-}
-.hide{
-  display: none !important;
 }
