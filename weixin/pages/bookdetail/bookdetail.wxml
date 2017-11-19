@@ -13,6 +13,7 @@
         <view class="bookName">{{detail.name}}</view>
         <view class="author">作者：{{detail.author}}</view>
         <view class="wordsNum">字数：{{detail.total_words}}</view>
+        <view class="status">状态：{{detail.update_status}}</view>
         <view class="source">最新章节：{{detail.newest_chapter}}</view>
         <view class="updatetime">更新时间：{{detail.update_time}}</view>
       </view>
@@ -20,15 +21,19 @@
     <view class="clearfix"></view>
     <view class="btn-group">
       <view class="addToList" bindtap="addOrRemove">
-        <view class="true" hidden="{{isInList == 1}}">
-          <icon class="addList-icon" />加入书架
+        <view class="true" hidden="{{isInList}}">
+          <icon class="iconfont icon-add" />
+          <text>加入书架</text>
         </view>
-        <view class="false" hidden="{{isInList == 0}}">
-          <icon type="success_no_circle" color="#fd9941" size="20" />从书架中移除
+        <view class="false" hidden="{{!isInList}}">
+          <icon type="success_no_circle" color="#ffffff" size="20" />
+          <text>从书架中移除</text>
         </view>
       </view>
       <view class="read" bindtap="goToReader">
-        <icon class="iconfont icon-yuedu"></icon>立即阅读</view>
+        <icon class="iconfont icon-yuedu"></icon>
+        <text>立即阅读</text>
+      </view>
     </view>
   </view>
   <view class="book-des">

@@ -1,24 +1,13 @@
 import { Theme, Book } from '../models'
 import sleep from 'sleep'
-
-function unique(arr){
-  var res=[];
-  for(var i=0,len=arr.length;i<len;i++){
-      var obj = arr[i];
-      for(var j=0,jlen = res.length;j<jlen;j++){
-          if(res[j]===obj) break;            
-      }
-      if(jlen===j)res.push(obj);
-  }
-  return res;
-}
+import { tool } from '../utils/index'
 
 export default function (router) {
   // 首页获取栏目数据的接口
   router.get('/api/theme/index_list', async (ctx, next) => {
     // 查找出所有的需要显示的栏目
+    let allThemes = await Theme.find({ show: true }, 'name layout flush books').sort({priority: -1})
     let result = []
-    let allThemes = await Theme.find({show: true}, 'name layout flush books').sort({priority: -1})
     for(let i=0; i<allThemes.length; i++){
       let bookList = []
       let num = 3
@@ -49,9 +38,15 @@ export default function (router) {
           }
         }
       }
-      allThemes[i].books = bookList
+      result.push({
+        '_id': allThemes[i]._id,
+        'name': allThemes[i].name,
+        'layout': allThemes[i].layout,
+        'flush': allThemes[i].flush,
+        'books': bookList
+      })
     }
-    ctx.body = { ok: true, msg: '获取栏目成功', list: allThemes }
+    ctx.body = { ok: true, msg: '获取栏目成功', list: result }
   })
 
   // 点击换一批对应的接口
@@ -70,7 +65,6 @@ export default function (router) {
       let result = []
       
       let thisTheme = await Theme.findById(theme_id, 'name layout flush books')
-      console.log(thisTheme)
       let num = 3
       switch(thisTheme.layout){
         case 1:
@@ -105,29 +99,34 @@ export default function (router) {
 
   router.post('/api/theme', async (ctx, next) => {
     let { priority, name, des, books, show, layout, flush } = ctx.request.body
+    let finalBooks = []
     if(books){
       books = books.split('|')
-      books = books.map((item, index) => {
-        item = {
-          bookid: item,
-          index: index
+      let count = 0
+      for(let i=0; i<books.length; i++){
+        let thisBook = await Book.findById(books[i])
+        if(thisBook){
+          finalBooks.push({
+            bookid: thisBook.id,
+            index: count
+          })
+          count ++
         }
-        return item
-      })
+      }
     }else{
       books = []
     }
-    let theme = new Theme({
+    let theme = await Theme.create({
       priority: priority,
       name: name,
       des: des,
-      books: books,
+      books: finalBooks,
       show: show,
       layout: layout,
       flush: flush,
       create_time: new Date()
     })
-    ctx.body = await Theme.add(ctx, theme)
+    ctx.body = { ok: true, msg: '创建主题成功！', data: theme }
   })
 
   router.get('/api/theme/list_book', async (ctx, next) => {
@@ -135,8 +134,11 @@ export default function (router) {
     let result = await Theme.findById(id)
     if(result){
       let list = []
+      result.books.sort((book1, book2) => {
+        return parseInt(book1.index) - parseInt(book2.index)
+      })
       for(let i=0; i<result.books.length; i++){
-        let tmpBook = await Book.findById(result.books[i])
+        let tmpBook = await Book.findById(result.books[i].bookid)
         if(tmpBook){
           list.push(tmpBook)
         }
@@ -149,27 +151,31 @@ export default function (router) {
 
   router.post('/api/theme/add_book', async (ctx, next) => {
     let { id, books } = ctx.request.body
-    let thisTheme = await Theme.findById(id)
-    let allbooks = []
-    thisTheme.books.forEach(item => {
-      allbooks.push(item.bookid)
-    })
-    allbooks = allbooks.concat(books ? books.split('|') : [])
-    // let set = new Set(allbooks)
-    // allbooks = Array.from(set)
-    allbooks = unique(allbooks)
-    allbooks = allbooks.map((item, index) => {
-      item = {
-        bookid: item,
-        index: index
+    if(id){
+      let thisTheme = await Theme.findById(id)
+      let allbooks = []
+      thisTheme.books.forEach(item => {
+        allbooks.push(item.bookid.toString())
+      })
+      allbooks = allbooks.concat(books ? books.split('|') : [])
+      // let set = new Set(allbooks)
+      // allbooks = Array.from(set)
+      allbooks = tool.unique(allbooks)
+      let finalBooks = []
+      for(let i=0; i<allbooks.length; i++){
+        finalBooks.push({
+          bookid: await Theme.transId(allbooks[i]),
+          index: i
+        })
       }
-      return item
-    })
-    let result = await Theme.update({_id: id}, { '$addToSet': { 'books': { '$each': allbooks }}})
-    if (result.ok === 1) {
-      ctx.body = { ok: true, msg: '栏目添加书籍成功' }
-    } else {
-      ctx.body = { ok: false, msg: '栏目添加书籍失败', data: result }
+      let result = await Theme.update({_id: id}, { '$set': { 'books': finalBooks}})
+      if (result.ok === 1) {
+        ctx.body = { ok: true, msg: '栏目添加书籍成功' }
+      } else {
+        ctx.body = { ok: false, msg: '栏目添加书籍失败', data: result }
+      }
+    }else{
+      ctx.body = { ok: false, msg: '缺乏id参数' }
     }
   })
 }

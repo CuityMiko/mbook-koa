@@ -37,7 +37,7 @@ Page({
     self.getBanner()
     self.getTheme()
   },
-  showToast:function(content, position){
+  showToast: function(content, position){
     let self = this
     self.setData({ 'toast': { show: true, content: content, position: position } })
     setTimeout(function(){

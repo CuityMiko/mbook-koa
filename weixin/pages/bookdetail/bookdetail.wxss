@@ -57,26 +57,14 @@
 .detail .head .btn-group {
   line-height: 0rpx;
   font-size: 0;
+  display: -webkit-flex;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  align-items: center;
 }
 
 /*两个图标*/
-
-.detail .addList-icon {
-  background-size: 220rpx 220rpx;
-  background-position: -181rpx 0rpx;
-  display: inline-block;
-  height: 40rpx;
-  width: 40rpx;
-  vertical-align: middle;
-  position: relative;
-  top: -4rpx;
-  margin-right: 10rpx;
-}
-
-.detail .readNow-icon {
-  background-size: 400rpx 400rpx;
-  background-position: 6rpx -76rpx;
-}
 
 .detail .head .btn-group .addToList, .read {
   font-size: 28rpx;
@@ -90,15 +78,26 @@
   height: 72rpx;
 }
 
-.detail .head .btn-group .read {
-  margin-left: 40rpx;
+.detail .head .btn-group  icon {
+  display: inline-block;
+  height: 32rpx;
+  line-height: 32rpx;
+  vertical-align: middle;
+  position:relative;
+  top:-22rpx;
+  margin-right:10rpx;
+  font-size:45rpx;
 }
 
-.detail .head .btn-group .addToList .false icon {
+.detail .head .btn-group .false icon{
+  top: -10rpx;
+}
+
+.detail .head .btn-group text{
+  display: inline-block;
+  height: 32rpx;
+  line-height: 32rpx;
   vertical-align: middle;
-  position: relative;
-  top: -5rpx;
-  margin-right: 10rpx;
 }
 
 .detail .head .btn-group image {

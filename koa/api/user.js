@@ -3,10 +3,13 @@ import request from 'request'
 import querystring from 'querystring'
 import Promise from 'bluebird'
 import config from '../config'
-import { User } from '../models'
+import { User, BookList } from '../models'
 import { resolve } from 'url';
 
 const secret = 'mbook' // token秘钥
+// console.log(jwt.sign({ userid: '5a11abe36d0e7a0e92a858c6'}, secret, { expiresIn: '2h' }))
+// console.log(jwt.sign({ userid: '5a11aeb06d0e7a0e92a858c7'}, secret, { expiresIn: '2h' }))
+
 
 function doRequest(url){
     return new Promise((resolve, reject) => {
@@ -41,15 +44,11 @@ export default function(router) {
                 if(user){
                     // 已注册，生成token并返回
                     let userToken = {
-                        _id: user._id,
-                        username: user.username,
-                        password: user.password,
-                        avatar: user.avatar,
-                        openid: user.openid,
-                        create_time: user.create_time
+                        userid: user._id
                     }
                     const token = jwt.sign(userToken, secret, { expiresIn: '2h' }) //token签名 有效期为2小时 
-                    ctx.body = { ok: true, msg: '登录成功', token: token, userinfo: userToken }
+                    console.log('用户 ' + user._id + ' 于 ' + user.create_time.toDateString() + ' 登录')
+                    ctx.body = { ok: true, msg: '登录成功', token: token, userinfo: user }
                 }else{
                     // 未注册，重定向到注册页面
                     ctx.body = { ok: false, msg: '尚未注册', token: null, registe: false }
@@ -89,16 +88,13 @@ export default function(router) {
                 })
                 // 已注册，生成token并返回
                 let userToken = {
-                    _id: user._id,
-                    username: user.username,
-                    password: user.password,
-                    avatar: user.avatar,
-                    openid: user.openid,
-                    create_time: user.create_time
+                    userid: user._id
                 }
                 const token = jwt.sign(userToken, secret, { expiresIn: '2h' }) //token签名 有效期为2小时 
-                ctx.body = { ok: true, msg: '注册成功', token: token, userinfo: userToken }
-                
+                // 初始化书架
+                let booklist = await BookList.create({ userid: user.id, books: [] })
+                console.log('用户 ' + user._id + ' 于 ' + user.create_time.toDateString() + ' 注册, 并初始化书架')
+                ctx.body = { ok: true, msg: '注册成功', token: token, userinfo: user }
             }else{
                 ctx.body = { ok: false, msg: '微信认证失败' }
             }
