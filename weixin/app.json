@@ -4,13 +4,12 @@
     "pages/fenlei/fenlei",
     "pages/booklist/booklist",
     "pages/bookdetail/bookdetail",
-    "pages/user/user",
-    "pages/logs/logs"
+    "pages/user/user"
   ],
   "window": {
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#fff",
-    "navigationBarTitleText": "WeChat",
+    "navigationBarTitleText": "微书",
     "navigationBarTextStyle": "black"
   },
   "tabBar": {

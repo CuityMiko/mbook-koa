@@ -1,13 +1,20 @@
 /**index.wxss**/
-.index swiper{
+
+.index {
+  background: #eee;
+}
+
+.index swiper {
   width: 100%;
   height: 220rpx;
   overflow: hidden;
 }
-.index .slide-image{
+
+.index .slide-image {
   height: 100%;
 }
-.index .nav{
+
+.index .nav {
   display: -webkit-flex;
   display: flex;
   flex-flow: row nowrap;
@@ -18,11 +25,13 @@
   background: #fff;
   margin-bottom: 15rpx;
 }
-.index .nav .nav-item{
+
+.index .nav .nav-item {
   width: 90rpx;
   text-align: center;
 }
-.index .nav .nav-item icon{
+
+.index .nav .nav-item icon {
   display: block;
   width: 90rpx;
   height: 90rpx;
@@ -31,43 +40,53 @@
   color: #fff;
   border-radius: 30rpx;
 }
-.index .nav .nav-item:first-child icon{
+
+.index .nav .nav-item:first-child icon {
   background: #ffc539;
 }
-.index .nav .nav-item:nth-child(2) icon{
+
+.index .nav .nav-item:nth-child(2) icon {
   background: #ff6687;
 }
-.index .nav .nav-item:nth-child(3) icon{
+
+.index .nav .nav-item:nth-child(3) icon {
   background: #6db3f7;
 }
-.index .nav .nav-item:nth-child(4) icon{
+
+.index .nav .nav-item:nth-child(4) icon {
   background: #ff9654;
 }
-.index .nav .nav-item:last-child icon{
+
+.index .nav .nav-item:last-child icon {
   background: #1bdb9f;
 }
-.index .nav .nav-item text{
+
+.index .nav .nav-item text {
   display: block;
   font-size: 30rpx;
   margin-top: 15rpx;
   color: #333;
 }
-.index .theme{
+
+.index .theme {
   padding: 0 32rpx;
   margin-bottom: 15rpx;
   background: #fff;
 }
-.index .theme .theme-title{
+
+.index .theme .theme-title {
   text-align: center;
   font-size: 36rpx;
   color: #333;
   position: relative;
   margin-bottom: 30rpx;
 }
-.index .theme .theme-title icon{
-  margin-left:15rpx;
+
+.index .theme .theme-title icon {
+  margin-left: 15rpx;
 }
-.index .theme .theme-title .flush{
+
+.index .theme .theme-title .flush {
   position: absolute;
   right: 0;
   top: 50%;
@@ -77,26 +96,29 @@
   color: #3299ff;
   text-align: right;
 }
-.index .theme .theme-title .flush icon{
+
+.index .theme .theme-title .flush icon {
   font-size: 32rpx;
   position: relative;
   top: 4rpx;
   left: -6rpx;
 }
-.index .theme .more{
+
+.index .theme .more {
   text-align: center;
   font-size: 30rpx;
-  border-top: 1px solid #eeeeee;
+  border-top: 1px solid #eee;
   padding: 30rpx 0;
 }
-.index .theme .layout1,
-.index .theme .layout2,
-.index .theme .layout3,
-.index .theme .layout4{
+
+.index .theme .layout1, .index .theme .layout2, .index .theme .layout3,
+.index .theme .layout4 {
   padding-bottom: 30rpx;
 }
+
 /* layout1: 栏目布局1 */
-.index .layout1 .book-item.item0{
+
+.index .layout1 .book-item.item0 {
   display: -webkit-flex;
   display: flex;
   flex-flow: row nowrap;
@@ -104,20 +126,24 @@
   align-items: stretch;
   margin-bottom: 30rpx;
 }
-.index .layout1 .book-item.item0 .book-img{
+
+.index .layout1 .book-item.item0 .book-img {
   width: 210rpx;
   height: 270rpx;
 }
-.index .layout1 .book-item.item0 .book-info{
+
+.index .layout1 .book-item.item0 .book-info {
   flex: 1;
   padding-left: 20rpx;
   color: #333;
 }
-.index .layout1 .book-item.item0 .book-name{
+
+.index .layout1 .book-item.item0 .book-name {
   display: block;
   font-size: 32rpx;
 }
-.index .layout1 .book-item.item0 .book-des{
+
+.index .layout1 .book-item.item0 .book-des {
   font-size: 28rpx;
   margin-top: 30rpx;
   text-align: justify;
@@ -126,48 +152,56 @@
   -webkit-line-clamp: 4;
   overflow: hidden;
 }
-.index .layout1 .book-item.item0 .book-author{
+
+.index .layout1 .book-item.item0 .book-author {
   display: block;
   font-size: 30rpx;
   color: #999;
 }
-.index .layout1 .book-item.item0 .book-author icon{
+
+.index .layout1 .book-item.item0 .book-author icon {
   font-size: 30rpx;
   margin-right: 20rpx;
 }
-.index .layout1 .book-item.item1,
-.index .layout1 .book-item.item2,
-.index .layout1 .book-item.item3{
+
+.index .layout1 .book-item.item1, .index .layout1 .book-item.item2,
+.index .layout1 .book-item.item3 {
   flex: 0 0 33.3333%;
   display: inline-block;
   width: 33.33%;
 }
+
 .index .layout1 .book-item.item1 .book-img,
 .index .layout1 .book-item.item2 .book-img,
-.index .layout1 .book-item.item3 .book-img{
+.index .layout1 .book-item.item3 .book-img {
   display: block;
   width: 210rpx;
   height: 270rpx;
 }
+
 .index .layout1 .book-item.item1 .book-des,
 .index .layout1 .book-item.item2 .book-des,
-.index .layout1 .book-item.item3 .book-des{
+.index .layout1 .book-item.item3 .book-des {
   display: none;
 }
+
 .index .layout1 .book-item.item1 .book-author,
 .index .layout1 .book-item.item2 .book-author,
-.index .layout1 .book-item.item3 .book-author{
+.index .layout1 .book-item.item3 .book-author {
   display: none;
 }
+
 .index .layout1 .book-item.item1 .book-name,
 .index .layout1 .book-item.item2 .book-name,
-.index .layout1 .book-item.item3 .book-name{
+.index .layout1 .book-item.item3 .book-name {
   display: block;
   font-size: 28rpx;
   margin-top: 4rpx;
 }
+
 /* layout2: 栏目布局2 */
-.index .layout2 .book-item{
+
+.index .layout2 .book-item {
   display: -webkit-flex;
   display: flex;
   flex-flow: row nowrap;
@@ -175,20 +209,24 @@
   align-items: stretch;
   margin-bottom: 30rpx;
 }
-.index .layout2 .book-item .book-img{
+
+.index .layout2 .book-item .book-img {
   width: 210rpx;
   height: 270rpx;
 }
-.index .layout2 .book-item .book-info{
+
+.index .layout2 .book-item .book-info {
   flex: 1;
   padding-left: 20rpx;
   color: #333;
 }
-.index .layout2 .book-item .book-name{
+
+.index .layout2 .book-item .book-name {
   display: block;
   font-size: 32rpx;
 }
-.index .layout2 .book-item .book-des{
+
+.index .layout2 .book-item .book-des {
   font-size: 28rpx;
   margin-top: 30rpx;
   text-align: justify;
@@ -197,33 +235,41 @@
   -webkit-line-clamp: 4;
   overflow: hidden;
 }
-.index .layout2 .book-item .book-author{
+
+.index .layout2 .book-item .book-author {
   display: block;
   font-size: 30rpx;
   color: #999;
 }
-.index .layout2 .book-item .book-author icon{
+
+.index .layout2 .book-item .book-author icon {
   font-size: 30rpx;
   margin-right: 20rpx;
 }
+
 /* layout3: 栏目布局3 */
-.index .layout3 .book-item{
+
+.index .layout3 .book-item {
   flex: 0 0 33.3333%;
   display: inline-block;
   width: 33.33%;
 }
-.index .layout3 .book-item .book-img{
+
+.index .layout3 .book-item .book-img {
   display: block;
   width: 210rpx;
   height: 270rpx;
 }
-.index .layout3 .book-item .book-des{
+
+.index .layout3 .book-item .book-des {
   display: none;
 }
-.index .layout3 .book-item .book-author{
+
+.index .layout3 .book-item .book-author {
   display: none;
 }
-.index .layout3 .book-item .book-name{
+
+.index .layout3 .book-item .book-name {
   display: block;
   font-size: 28rpx;
   margin-top: 4rpx;

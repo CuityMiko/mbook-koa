@@ -27,8 +27,6 @@ Component({
       this.triggerEvent('btnclick', btnClickDetail, btnClickOption)
     }
   },
-  ready: function(){
-    console.log(this.data.subText)
-  }
+  ready: function(){}
 })
   

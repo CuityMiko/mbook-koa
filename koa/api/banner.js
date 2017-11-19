@@ -1,7 +1,7 @@
 import { Banner } from '../models'
 
 export default function (router) {
-    router.get('/api/get_banner', async (ctx, next) => {
+    router.get('/api/banner/list', async (ctx, next) => {
         // 获取url参数
         let result = await Banner.getBanner()
         ctx.body = { ok: true, msg: '获取banner成功', list: result }
