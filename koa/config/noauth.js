@@ -3,7 +3,6 @@ const paths = [
   '/api/banner/list',
   '/api/theme/index_list',
   '/api/theme/change_list',
-  '/api/comment/list',
   '/api/user/login',
   '/api/user/registe'
 ]

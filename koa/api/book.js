@@ -23,7 +23,7 @@ export default function (router) {
                     'author': book.author,
                     'des': book.des,
                     'classification': book.classification,
-                    'update_status': book.update_status,
+                    'update_status': book.update_status === '已完结' ? '已完结' : '第' + book.newest_chapter + '章', // 这里日后最好加上章节名
                     'newest_chapter': book.newest_chapter,
                     'total_words': book.total_words,
                     'hot_value': book.hot_value,

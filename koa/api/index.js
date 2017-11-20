@@ -10,5 +10,6 @@ export default function(router) {
     theme(router)
     book(router)
     user(router)
+    booklist(router)
     comment(router)
 }

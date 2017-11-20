@@ -1,5 +1,4 @@
 import { Theme, Book } from '../models'
-import sleep from 'sleep'
 import { tool } from '../utils/index'
 
 export default function (router) {

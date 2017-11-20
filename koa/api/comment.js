@@ -19,51 +19,98 @@ export default function (router) {
     ctx.body = { ok: true, msg: '发表书评成功!', data: thisComent }
   })
 
+  router.get('/api/comment/like', async (ctx, next) => {
+    // 解析jwt，取出userid查询booklist表，判断是否已经加入了书架
+    let token = ctx.header.authorization.split(' ')[1]
+    let payload = await jwtVerify(token)
+    let { commentid, op } = ctx.request.query
+
+    if(op == 'add'){
+      let updateResult = await Comment.update({_id: commentid}, {'$addToSet': {like_persons: await Comment.transId(payload.userid)}})
+      let currentComment = await Comment.findById(commentid)
+      if(updateResult.ok == 1 && updateResult.nModified == 1){
+        ctx.body = { ok: true, msg: '点赞成功', current: currentComment.like_persons.length }
+      }else{
+        ctx.body = { ok: false, msg: '点赞失败~', current: currentComment.like_persons.length }
+      }
+    }else if(op == 'remove'){
+      let oldComment = await Comment.findById(commentid)
+      let comments = oldComment.like_persons.filter(item => {
+        return item.toString() != payload.userid
+      })
+      if(comments.length < oldComment.like_persons.length){
+        let updateResult = await Comment.update({_id: commentid}, {'$set': {like_persons: comments}})
+        let currentComment = await Comment.findById(commentid)
+        if(updateResult.ok == 1 && updateResult.nModified == 1){
+          ctx.body = { ok: true, msg: '取消点赞成功', current: currentComment.like_persons.length }
+        }else{
+          ctx.body = { ok: false, msg: '取消点赞失败~', current: currentComment.like_persons.length }
+        }
+      }else{
+        ctx.body = { ok: false, msg: '取消点赞失败~' }
+      }
+    }else{
+      ctx.body = { ok: false, msg: '点赞失败, 缺少op参数~'}
+    }
+  })
+
   router.get('/api/comment/list', async (ctx, next) => {
     let { bookid } = ctx.request.query
+    // 解析jwt，取出userid查询booklist表，判断是否已经加入了书架
+    let token = ctx.header.authorization.split(' ')[1]
+    let payload = await jwtVerify(token)
     let result = []
     if(bookid){
       // 先查询所有的根评论
       let rootComments = await Comment.find({ bookid: bookid, father: null }).populate('userid').sort({create_time: -1})
-      let findChildComment = async function(fatherId){
-        let childs = []
-        let childComments = await Comment.find({ father: fatherId }).populate('userid').populate('father').sort({create_time: 1})
-        if(childComments.length == 0){
-          return
-        }else{
-          for(let i=0; i<childComments.length; i++){
-            // 查找回复人
-            let replyPerson = await User.findById(childComments[i].father.userid)
-            // 查找所有的子评论
-            childs.push({
-              userid: childComments[i].userid._id,
-              username: childComments[i].userid.username,
-              reply: {
-                userid: childComments[i].father.userid,
-                username: replyPerson.username
-              },
-              content: childComments[i].content,
-              create_time: tool.formatTime2(childComments[i].create_time)
-            })
-            console.log('________', await findChildComment(childComments[i]._id))
-            childs.concat(await findChildComment(childComments[i]._id))
-          }
-        }
-        console.log('&&&&', childs)
-        return childs
-      }
       for(let i=0; i<rootComments.length; i++){
+        let isLike = rootComments[i].like_persons.some(item => {
+          return item.toString() == payload.userid
+        })
         // 查找所有的子评论
         result.push({
+          id: rootComments[i]._id,
           userid: rootComments[i].userid._id,
           avatar: rootComments[i].userid.avatar,
           username: rootComments[i].userid.username,
           content: rootComments[i].content,
-          childs: await findChildComment(rootComments[i]._id),
+          like_num: rootComments[i].like_persons.length,
+          is_like: isLike,
+          childs: [],
           create_time: tool.formatTime2(rootComments[i].create_time)
         })
       }
-      ctx.body = { ok: true, msg: '获取评论成功!', data: result }
+      // 对于每个根评论去获取他的子评论
+      for(let i=0; i<result.length; i++){
+        let allChildComments = []
+        let findChildAndSon = async function (commentid, username, userid) {
+          let childComments = await Comment.find({ bookid: bookid, father: commentid }).populate('userid').sort({create_time: 1})
+          let childCommentsToSave = []
+          childComments.forEach(function (childItem) {
+            childCommentsToSave.push({
+              userid: childItem.userid._id,
+              username: childItem.userid.username,
+              reply: {
+                userid: userid,
+                username: username
+              },
+              content: childItem.content,
+              like_num: childItem.like_persons.length,
+              create_time: tool.formatTime2(childItem.create_time)
+            })
+          })
+          allChildComments = allChildComments.concat(childCommentsToSave)
+          // when this comment has child
+          if (childComments.length > 0) {
+            for(let k=0; k<childComments.length; k++){
+              await findChildAndSon(childComments[k]._id, childComments[k].userid.username, childComments[k].userid._id)
+            }
+          }
+        }
+        await findChildAndSon(result[i].id, result[i].username, result[i].userid)
+        result[i].childs = allChildComments
+      }
+      ctx.body = { ok: true, msg: '获取评论成功!', list: result }
     }else{
       ctx.body = { ok: false, msg: '缺少bookid参数' }
     }

@@ -7,8 +7,8 @@ import { User, BookList } from '../models'
 import { resolve } from 'url';
 
 const secret = 'mbook' // token秘钥
-// console.log(jwt.sign({ userid: '5a11abe36d0e7a0e92a858c6'}, secret, { expiresIn: '2h' }))
-// console.log(jwt.sign({ userid: '5a11aeb06d0e7a0e92a858c7'}, secret, { expiresIn: '2h' }))
+// console.log(jwt.sign({ userid: '5a1272549f292c17118aba62'}, secret, { expiresIn: '2h' }))
+// console.log(jwt.sign({ userid: '5a12728f9f292c17118aba74'}, secret, { expiresIn: '2h' }))
 
 
 function doRequest(url){
@@ -38,6 +38,7 @@ export default function(router) {
             }
             let content = querystring.stringify(qsdata)
             let wxdata = await doRequest('https://api.weixin.qq.com/sns/jscode2session?' + content)
+            console.log(wxdata)
             if(wxdata.session_key && wxdata.openid){
                 // 判断用户是否注册
                 let user = await User.findOne({ openid: wxdata.openid })

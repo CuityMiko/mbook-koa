@@ -6,7 +6,9 @@ const CommentSchema = new mongoose.Schema({
   father: { type: mongoose.Schema.Types.ObjectId, ref: 'Comment' },
   userid: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 是否展示,
   content: String, // 展示时的布局方式
-  like_num: Number,
+  like_persons: [
+    { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+  ],
   create_time: Date
 }, { versionKey: false })
 

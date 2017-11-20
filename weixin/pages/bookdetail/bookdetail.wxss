@@ -123,6 +123,10 @@
   text-align: justify;
 }
 
+.detail .comments{
+  margin-bottom: 120rpx;
+}
+
 .detail .comments .title {
   border-bottom: 1rpx solid #dcdcdc;
   padding: 0 30rpx;
@@ -206,28 +210,33 @@
   top: 0;
 }
 
-.detail .comment-right .toolbar icon {
-  display: inline-block;
-  height: 36rpx;
-  width: 36rpx;
-  background-size: 180rpx 180rpx;
-}
-
-.detail .like-icon {
-  background-position: -107rpx 0rpx;
-  margin-right: 10rpx;
-}
-
-.detail .like-selected-icon {
-  background-position: -37rpx 1rpx;
-  margin-right: 10rpx;
-}
-
 .detail .likeNum {
   position: relative;
-  top: -8rpx;
-  color: #808080;
+  top: 9rpx;
+  color: #cccccc;
+  vertical-align: middle;
   margin-right: 26rpx;
+  margin-left: 3rpx;
+}
+
+.detail .icon-zan1{
+  color: #cccccc;
+  font-size: 36rpx;
+  vertical-align: middle;
+}
+
+.detail .icon-comment{
+  color: #cccccc;
+  font-size: 32rpx;
+  vertical-align: middle;
+}
+
+.detail .likeNum.selected {
+  color: #3399ff;
+}
+
+.detail .icon-zan1.selected{
+  color: #3399ff;
 }
 
 .detail .comment-icon {

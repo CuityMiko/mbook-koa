@@ -9,13 +9,17 @@ Page({
     detail: {},
     isInList: false,
     bookid: '',
-    showAllDes: false
+    showAllDes: false,
+    comments: [],
+    commentInputHide: true,
+    commentType: null // 评论类型，是回复别人还是评论书籍
   },
   onLoad: function (options) {
     let self = this
     wx.setNavigationBarTitle({ title: options.name })
     wx.showNavigationBarLoading()
     self.getBookDetail(options.id)
+    self.getCommentList(options.id)
     self.setData({ bookid: options.id })
   },
   getBookDetail: function(id){
@@ -23,9 +27,7 @@ Page({
     if(id){
       wx.request({
         url: config.base_url + '/api/book/get_detail?id=' + id,
-        header: {
-          'Authorization': 'Bearer ' + wx.getStorageSync('token')
-        },
+        header: { 'Authorization': 'Bearer ' + wx.getStorageSync('token') },
         success: function(res){
           if(res.data.ok){
             // devide des into shortDes and des;
@@ -36,20 +38,42 @@ Page({
             if (des.length > 95) {
               shortDes = des.substring(0, 70) + '...';
             }
-            console.log(des.length, shortDes)
             res.data.data.shortDes = shortDes;
             self.setData({ 'detail': res.data.data, isInList: res.data.isInList })     
             wx.showNavigationBarLoading()
           }else{
-            self.showToast('获取书籍信息失败', 'bottom')
+            self.showToast('获取书籍信息失败~', 'bottom')
           }
         },
         fail: function(err){
-          self.showToast('获取书籍信息失败', 'bottom')
+          self.showToast('获取书籍信息失败~', 'bottom')
         }
       })
     }else{
-      self.showToast('获取书籍信息失败', 'bottom')
+      self.showToast('获取书籍信息失败~', 'bottom')
+    }
+  },
+  getCommentList: function(id){
+    let self = this
+    if(id){
+      wx.request({
+        url: config.base_url + '/api/comment/list?bookid=' + id,
+        header: { 'Authorization': 'Bearer ' + wx.getStorageSync('token') },
+        success: res => {
+          if(res.data.ok){
+            res.data.list = res.data.list.map(item => {
+              item.isOpenMoreComment = false
+              return item
+            })
+            self.setData({ 'comments': res.data.list })
+          }else{
+            self.showToast(res.data.msg || '获取评论失败~', 'bottom')
+          }
+        },
+        fail: err => {
+          self.showToast('获取评论失败~', 'bottom')
+        }
+      })
     }
   },
   showAllDes: function () {
@@ -74,11 +98,11 @@ Page({
             self.showToast('从书架中移除成功', 'bottom')
             self.setData({isInList: false})
           }else{
-            self.showToast(res.data.msg, 'bottom')
+            self.showToast(res.data.msg || '从书架中移除失败，请重新尝试~', 'bottom')
           }
         },
         fail: function(err){
-          self.showToast('从书架中移除失败，请重新尝试', 'bottom')
+          self.showToast('从书架中移除失败，请重新尝试~', 'bottom')
         }
       })
     }else{
@@ -92,13 +116,54 @@ Page({
             wx.showToast({title: '加入书架成功', icon: 'success'})
             self.setData({isInList: true})
           }else{
-            self.showToast(res.data.msg, 'bottom')
+            self.showToast(res.data.msg || '加入书架失败，请重新尝试~', 'bottom')
           }
         },
         fail: function(err){
-          self.showToast('加入书架失败，请重新尝试～', 'bottom')
+          self.showToast('加入书架失败，请重新尝试~', 'bottom')
         }
       })
+    }
+  },
+  addLikeNum: function(event){
+    let self = this
+    let commentid = event.currentTarget.dataset.commentid
+    let index = event.currentTarget.dataset.index
+    wx.request({
+      url: config.base_url + '/api/comment/like?commentid=' + commentid + '&op=' + (self.data.comments[index].is_like ? 'remove' : 'add'),
+      header: { 'Authorization': 'Bearer ' + wx.getStorageSync('token') },
+      success: res => {
+        if(res.data.ok){
+          let key1 = 'comments[' + index + '].like_num'
+          let key2 = 'comments[' + index + '].is_like'
+          self.setData({[key1]: res.data.current, [key2]: (self.data.comments[index].is_like ? false : true)})
+        }else{
+          self.showToast(res.data.msg || '点赞失败~', 'bottom')
+        }
+      },
+      fail: err => {
+        self.showToast(res.data.msg || '点赞失败~', 'bottom')
+      }
+    })
+  },
+  readMoreComments: function (event) {
+    let self = this
+    let commentid = event.currentTarget.dataset.commentid
+    let index = event.currentTarget.dataset.index
+    let key = 'comments[' + index + '].isOpenMoreComment'
+    self.setData({[key]: !self.data.comments[index].isOpenMoreComment})
+  },
+  toWriteComment: function (event) {
+    let self = this
+    console.log(event)
+    if(event.currentTarget.id == 'write'){
+      console.log(1)
+      self.setData({commentInputHide: false})
+      console.log(2)
+    }else{
+      let commentid = event.currentTarget.dataset.commentid
+      let username = event.currentTarget.dataset.username
+      self.setData({commentInputHide: false, commentType: {id: commentid, username: username}});
     }
   },
   showToast: function(content, position){

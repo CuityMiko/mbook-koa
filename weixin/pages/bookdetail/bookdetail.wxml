@@ -14,7 +14,6 @@
         <view class="author">作者：{{detail.author}}</view>
         <view class="wordsNum">字数：{{detail.total_words}}</view>
         <view class="status">状态：{{detail.update_status}}</view>
-        <view class="source">最新章节：{{detail.newest_chapter}}</view>
         <view class="updatetime">更新时间：{{detail.update_time}}</view>
       </view>
     </view>
@@ -44,36 +43,36 @@
   <view class="splitor"></view>
   <view class="comments">
     <view class="title">精彩评论
-      <text class="add-comment" bindtap="toWriteComment">写评论</text>
+      <text class="add-comment" id="write" bindtap="toWriteComment">写评论</text>
     </view>
     <view class="comment-list">
-      <view wx:if="{{comments.length > 0}}" class="comment-item" wx:for="{{comments}}" data-commentid="{{item.rootComment.commentid}}" wx:key="{{item.rootComment.commentid}}">
-        <image class="headImg" src="{{item.rootComment.avatar}}" mode="scaleToFill"></image>
+      <view wx:if="{{comments.length > 0}}" class="comment-item" wx:for="{{comments}}" data-commentid="{{item.id}}" wx:key="{{item.id}}">
+        <image class="headImg" src="{{item.avatar}}" mode="scaleToFill"></image>
         <view class="comment-right">
-          <view class="reader-name" data-userid="{{item.rootComment.userid}}">{{item.rootComment.nickname}}</view>
-          <view class="create-time">{{item.rootComment.time}}</view>
-          <view class="comment">{{item.rootComment.content}}</view>
-          <view class="comment-more" wx:if="{{item.child.length > 0}}" bindtap="readMoreComments" data-commentid="{{item.rootComment.commentid}}">{{'查看' + item.child.length + '回复 >'}}</view>
-          <view class="childComments" wx:if="{{item.child.length > 0}}" hidden="{{!item.rootComment.isOpenMoreComment}}">
-            <view class="child-item" wx:for="{{item.child}}" wx:for-item="childItem" wx:key="{{childItem.commentid}}" data-commentid="{{childItem.commentid}}" data-nickname="{{childItem.nickname}}" data-userid="{{childItem.userid}}" bindtap="toWriteComment">{{childItem.nickname + ' 回复 ' + childItem.reply + ' ：' + childItem.content}}
-              <text class="childItem-time">{{childItem.time}}</text>
+          <view class="reader-name" data-userid="{{item.userid}}">{{item.username}}</view>
+          <view class="create-time">{{item.create_time}}</view>
+          <view class="comment">{{item.content}}</view>
+          <view class="comment-more" wx:if="{{item.childs.length > 0}}" bindtap="readMoreComments" data-commentid="{{item.id}}" data-index="{{index}}">{{ item.isOpenMoreComment ? '收起回复' : ('查看' + item.childs.length + '条回复 >') }}</view>
+          <view class="childComments" wx:if="{{item.childs.length > 0 && item.isOpenMoreComment}}">
+            <view class="child-item" wx:for="{{item.childs}}" wx:for-item="childItem" wx:key="{{childItem.id}}" data-commentid="{{childItem.id}}" data-username="{{childItem.username}}" bindtap="toWriteComment">{{childItem.username + ' 回复 ' + childItem.reply.username + ' ：' + childItem.content}}
+              <text class="childItem-time">{{childItem.create_time}}</text>
             </view>
           </view>
           <view class="toolbar">
-            <icon class="{{item.rootComment.isLike ? 'like-selected-icon' : 'like-icon'}}" bindtap="addLikeNum" data-commentid="{{item.rootComment.commentid}}" />
-            <text class="likeNum">{{item.rootComment.likenum || 0}}</text>
-            <icon class="comment-icon" data-commentid="{{item.rootComment.commentid}}" data-nickname="{{item.rootComment.nickname}}" data-userid="{{item.rootComment.userid}}" bindtap="toWriteComment" />
+            <icon class="iconfont icon-zan1 {{item.is_like ? ' selected' : ''}}" bindtap="addLikeNum" data-commentid="{{item.id}}" data-index="{{index}}" />
+            <text class="likeNum  {{item.is_like ? ' selected' : ''}}">{{item.like_num || 0}}</text>
+            <icon class="iconfont icon-comment" data-commentid="{{item.id}}" data-username="{{item.username}}" bindtap="toWriteComment" />
           </view>
         </view>
       </view>
       <view class="no-comments" wx:if="{{comments.length == 0}}">
-        <image src="https://olpkwt43d.qnssl.com/myapp/softPlace.png"></image>
+        <icon class="iconfont icon-zanwupinglun"></icon>
         暂无评论，快去抢沙发...
       </view>
     </view>
   </view>
   <view class="commnet-input-bar" hidden="{{commentInputHide}}">
-    <input class="comment-input" value="{{currentCommentValue}}" placeholder="发表评论" placeholder-class="commentInputP" focus="{{!commentInputHide}}" maxlength="100" bindblur="hideCommentBar" bindconfirm="sendComment" confirm-type="send"></input>
+    <input class="comment-input" value="{{currentCommentValue}}" placeholder="{{commentType.id ? '回复' + commentType.username : '写评论'}}" placeholder-class="commentInputP" focus="{{!commentInputHide}}" maxlength="100" bindblur="hideCommentBar" bindconfirm="sendComment" confirm-type="send"></input>
     <view class="cancle" bindtap="hideCommentBar">取消</view>
   </view>
   <!-- 暂无数据 -->

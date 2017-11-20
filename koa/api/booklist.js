@@ -35,6 +35,7 @@ export default function(router) {
     })
 
     router.get('/api/booklist/add_book', async(ctx, next) => {
+      console.log(ctx)
       let id = ctx.request.query.id
       if (id) {
           let token = ctx.header.authorization.split(' ')[1]
