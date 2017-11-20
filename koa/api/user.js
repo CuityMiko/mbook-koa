@@ -38,7 +38,6 @@ export default function(router) {
             }
             let content = querystring.stringify(qsdata)
             let wxdata = await doRequest('https://api.weixin.qq.com/sns/jscode2session?' + content)
-            console.log(wxdata)
             if(wxdata.session_key && wxdata.openid){
                 // 判断用户是否注册
                 let user = await User.findOne({ openid: wxdata.openid })

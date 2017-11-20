@@ -7,16 +7,41 @@ export default function (router) {
     let token = ctx.header.authorization.split(' ')[1]
     let payload = await jwtVerify(token)
     let { bookid, content, father } = ctx.request.body
-
-    let thisComent = await Comment.create({
-      userid: await Comment.transId(payload.userid),
-      bookid: await Comment.transId(bookid),
-      father: father ? (await Comment.transId(father)) : null,
-      content: content,
-      like_num: 0,
-      create_time: new Date()
-    })
-    ctx.body = { ok: true, msg: '发表书评成功!', data: thisComent }
+    if(bookid){
+      if(content){
+        let thisComent = await Comment.create({
+          userid: await Comment.transId(payload.userid),
+          bookid: await Comment.transId(bookid),
+          father: father ? (await Comment.transId(father)) : null,
+          content: content,
+          like_num: 0,
+          create_time: new Date()
+        })
+        let thisUser = await User.findById(payload.userid)
+        if(thisUser){
+          let result = {
+            id: thisComent._id,
+            username: thisUser.username,
+            avatar: thisUser.avatar,
+            userid: thisUser._id,
+            father: thisComent.father,
+            content: thisComent.content,
+            is_like: false,
+            like_num: 0,
+            childs: [],
+            create_time: tool.formatTime2(thisComent.create_time)
+          }
+          console.log(result)
+          ctx.body = { ok: true, msg: '发表书评成功!', data: result }
+        }else{
+          ctx.body = { ok: false, msg: '用户信息错误' }
+        }   
+      }else{
+        ctx.body = { ok: false, msg: '评论内容不能为空' }
+      }
+    }else{
+      ctx.body = { ok: false, msg: '获取书籍信息失败' }
+    }
   })
 
   router.get('/api/comment/like', async (ctx, next) => {
@@ -88,6 +113,7 @@ export default function (router) {
           let childCommentsToSave = []
           childComments.forEach(function (childItem) {
             childCommentsToSave.push({
+              id: childItem._id,
               userid: childItem.userid._id,
               username: childItem.userid.username,
               reply: {

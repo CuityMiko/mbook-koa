@@ -12,7 +12,8 @@ Page({
     showAllDes: false,
     comments: [],
     commentInputHide: true,
-    commentType: null // 评论类型，是回复别人还是评论书籍
+    commentType: null, // 评论类型，是回复别人还是评论书籍
+    currentCommentValue: ''
   },
   onLoad: function (options) {
     let self = this
@@ -155,16 +156,48 @@ Page({
   },
   toWriteComment: function (event) {
     let self = this
-    console.log(event)
     if(event.currentTarget.id == 'write'){
-      console.log(1)
       self.setData({commentInputHide: false})
-      console.log(2)
     }else{
       let commentid = event.currentTarget.dataset.commentid
       let username = event.currentTarget.dataset.username
       self.setData({commentInputHide: false, commentType: {id: commentid, username: username}});
     }
+  },
+  hideCommentBar: function () {
+    this.setData({commentInputHide: true})
+  },
+  stageCommentValue: function (e) {
+    this.setData({currentCommentValue: e.detail.value})
+  },
+  sendComment: function(event){
+    let self = this
+    let content = event.detail.value
+    wx.request({
+      method: 'POST',
+      url: config.base_url + '/api/comment/add',
+      header: { 'Authorization': 'Bearer ' + wx.getStorageSync('token') },
+      data: {
+        bookid: self.data.bookid,
+        content: content,
+        father: self.data.commentType ? self.data.commentType.id : ''
+      },
+      success: res => {
+        if(res.data.ok){
+          wx.showToast({title: '发布书评成功', icon: 'success'})
+          let comments = self.data.comments
+          comments.unshift(res.data.data)
+          // 清空当前评论内容，并修改comments
+          self.setData({'comments': comments, 'currentCommentValue': ''})
+          
+        }else{
+          self.showToast( res.data.msg || '发布书评失败~', 'bottom')  
+        }
+      },
+      fail: err => {
+        self.showToast('发布书评失败~', 'bottom')
+      }
+    })
   },
   showToast: function(content, position){
     let self = this
