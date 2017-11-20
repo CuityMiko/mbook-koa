@@ -5,7 +5,3 @@
   height: 100%;
   box-sizing: border-box;
 }
-.icon-zanwushuju{
-  font-size: 280rpx;
-  color: #9e9e9e;
-}

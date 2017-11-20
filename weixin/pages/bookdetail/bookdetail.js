@@ -41,7 +41,7 @@ Page({
             }
             res.data.data.shortDes = shortDes;
             self.setData({ 'detail': res.data.data, isInList: res.data.isInList })     
-            wx.showNavigationBarLoading()
+            wx.hideNavigationBarLoading()
           }else{
             self.showToast('获取书籍信息失败~', 'bottom')
           }

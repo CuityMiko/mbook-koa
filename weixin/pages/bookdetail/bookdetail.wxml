@@ -41,7 +41,7 @@
     </view>
   </view>
   <view class="splitor"></view>
-  <view class="comments">
+  <view class="comments {{commentInputHide? '' : 'bottom'}}">
     <view class="title">精彩评论
       <text class="add-comment" id="write" bindtap="toWriteComment">写评论</text>
     </view>
@@ -66,8 +66,10 @@
         </view>
       </view>
       <view class="no-comments" wx:if="{{comments.length == 0}}">
-        <icon class="iconfont icon-zanwupinglun"></icon>
-        暂无评论，快去抢沙发...
+        <!-- 暂无数据 -->
+        <no-data  text="暂无评论，快去抢沙发..." sub-text="" btn-text="发表评论" show-btn="true" bindbtnclick="toWriteComment">
+            <icon class="iconfont icon-zanwupinglun"></icon>
+        </no-data>
       </view>
     </view>
   </view>

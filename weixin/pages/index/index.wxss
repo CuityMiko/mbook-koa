@@ -274,3 +274,8 @@
   font-size: 28rpx;
   margin-top: 4rpx;
 }
+
+.index .icon-zanwushuju{
+  font-size: 240rpx;
+  color: #9e9e9e;
+}

@@ -31,7 +31,6 @@ export default function (router) {
             childs: [],
             create_time: tool.formatTime2(thisComent.create_time)
           }
-          console.log(result)
           ctx.body = { ok: true, msg: '发表书评成功!', data: result }
         }else{
           ctx.body = { ok: false, msg: '用户信息错误' }

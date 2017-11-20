@@ -123,8 +123,8 @@
   text-align: justify;
 }
 
-.detail .comments{
-  margin-bottom: 120rpx;
+.detail .comments.bottom{
+  margin-bottom: 140rpx;
 }
 
 .detail .comments .title {
@@ -297,4 +297,10 @@
   display: block;
   margin: 0rpx auto;
   margin-bottom: 30rpx;
+}
+
+.detail .icon-zanwupinglun{
+  font-size:130rpx;
+  color:#9e9e9e;
+  margin-top:-52rpx;
 }
