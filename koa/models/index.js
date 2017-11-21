@@ -1,6 +1,7 @@
 export { Banner } from './banner'
 export { Theme } from './theme'
 export { Book } from './book'
+export { Chapter } from './chapter'
 export { User } from './user'
 export { BookList } from './booklist'
 export { Comment } from './comment'

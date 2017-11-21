@@ -11,6 +11,9 @@ const BookSchema = new mongoose.Schema({
     total_words: String, // 总字数
     hot_value: Number, // 热度值
     update_time: Date, // 更新时间
+    chapters: [
+        {type: mongoose.Schema.Types.ObjectId, ref: 'Chapter'}
+    ],
     create_time: Date // 创建时间
 }, { versionKey: false })
 

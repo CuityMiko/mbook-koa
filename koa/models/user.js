@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 
 const UserSchema = new mongoose.Schema({
-  username: { type: String,  unique: true },
+  username: String,
   password: String,
   avatar: String,
   identity: Number, // 区分用户是普通用户还是系统管理员

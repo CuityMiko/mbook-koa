@@ -1,0 +1,438 @@
+page {
+  height: 100%;
+}
+
+.reader {
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.reader .margin{
+  margin: 0 7px 0 13px;
+  overflow: hidden
+}
+
+.reader .content {
+  display: block;
+  overflow-x: hidden;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 20rpx 0;
+  position: relative;
+  left: -320rpx;
+}
+.reader .content text{
+  text-align: justify;
+}
+
+
+/* 底部控制条的样式 */
+
+.reader .control {
+  height: 110rpx;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  display: -webkit-flex;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-around;
+  border-top: 1px solid #d7d7d7;
+  box-sizing: border-box;
+}
+
+.reader .control-item {
+  height: 100%;
+  width: 100rpx;
+}
+
+.reader .control-item .iconfont {
+  display: inline-block;
+  width: 100%;
+  height: 100%;
+  color: #3299ff;
+  font-size: 40rpx;
+  line-height: 104rpx;
+  vertical-align: middle;
+  text-align: center;
+}
+
+.reader .control-item .iconfont.blod {
+  font-weight: bold;
+}
+
+.reader .control-item .iconfont.icon-vertical-slide,
+.reader .control-item .iconfont.icon-tubiao1diaozhengjindu {
+  font-size: 58rpx;
+}
+
+.reader .control-item .iconfont.icon-tubiao1diaozhengjindu {
+  position: relative;
+  top: 2rpx;
+}
+
+.reader .control-detail {
+  height: 200rpx;
+  width: 100%;
+  position: absolute;
+  bottom: 110rpx;
+  left: 0;
+}
+
+.reader .control-detail>view {
+  width: 100%;
+  position: absolute;
+  display: none;
+}
+
+.reader .control-detail .jingdu {
+  position: relative;
+  text-align: center;
+  font-size: 24rpx;
+  color: #999;
+  height: 110rpx;
+}
+
+.reader .faction {
+  color: #333;
+  font-size: 30rpx;
+}
+
+.rleft1-icon,
+.rleft2-icon,
+.rleft3-icon,
+.rleft4-icon {
+  position: absolute;
+  top: 25rpx;
+  left: 10rpx;
+  display: inline-block;
+  height: 60rpx;
+  width: 60rpx;
+}
+
+.rright1-icon,
+.rright2-icon,
+.rright3-icon,
+.rright4-icon {
+  position: absolute;
+  top: 25rpx;
+  right: 10rpx;
+  display: inline-block;
+  height: 60rpx;
+  width: 60rpx;
+}
+
+.reader .nameAndNum {
+  text-align: center;
+  padding-top: 18rpx;
+}
+
+.reader .jingdu-num {
+  position: relative;
+  top: 8rpx;
+}
+
+.reader .brightness {
+  display: -webkit-flex;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  padding: 15rpx 20rpx 6rpx 20rpx;
+  align-items: center;
+}
+
+.reader .brightness .iconfont{
+  display: inline-block;
+  width: 72rpx;
+  text-align: center;
+  font-size: 48rpx;
+  position: relative;
+  top: -2rpx;
+}
+
+.reader .brightness .iconfont.bigger{
+  font-size: 48rpx;
+  top: -3rpx;
+}
+
+.reader .brightness .bright-slider {
+  flex: 1;
+}
+
+.reader .color-select {
+  display: -webkit-flex;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-around;
+  padding: 16rpx 10rpx 0 10rpx;
+  box-sizing: border-box;
+}
+
+.reader .color-select .color-item {
+  width: 150rpx;
+  height: 50rpx;
+  border-radius: 8rpx;
+  text-align: center;
+}
+
+.reader .color-select .icon-yueliang {
+  display: inline-block;
+  height: 100%;
+  position: relative;
+  top: -12rpx;
+  color: #3299ff
+}
+
+.white-bg {
+  background-color: #ffffff;
+}
+
+.pink-bg {
+  background-color: #f8f3e0;
+}
+
+.green-bg {
+  background-color: #ccf1d0;
+}
+
+.back-bg {
+  background-color: #202930;
+}
+
+.reader .font-detail {
+  display: -webkit-flex;
+  flex-flow: column nowrap;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.reader .fontSize {
+  display: -webkit-flex;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  padding: 15rpx 20rpx 6rpx 20rpx;
+  align-items: center;
+  height: 50%;
+}
+
+.reader .fontSize .iconfont {
+  font-size: 48rpx;
+  display: inline-block;
+  width: 72rpx;
+  text-align: center;
+  vertical-align: middle;
+  position: relative;
+  top: -6rpx;
+}
+
+.reader .fontSize .iconfont.small {
+  font-size: 36rpx;
+}
+
+.reader .fontSize .font-slider {
+  flex: 1;
+}
+
+.reader .fontSelector {
+  height: 40%;
+  text-align: center;
+  width: 100%;
+  font-size: 32rpx;
+}
+
+.reader .fontSelector>text {
+  height: 100%;
+  width: 100%;
+  line-height: 100%;
+}
+
+.reader .fontDetail {
+  position: absolute;
+  top: -120rpx;
+  z-index: 1000;
+  text-align: left;
+  width: 100%;
+  bottom: 0;
+  padding: 0 20rpx;
+  box-sizing: border-box;
+  font-size: 28rpx;
+}
+
+.reader .fontDetail .allItem {
+  overflow: auto;
+  height: 260rpx;
+}
+
+.reader .fontDetail .font-item {
+  height: 70rpx;
+  border-bottom: 1px solid #d7d7d7;
+  position: relative;
+  line-height: 70rpx;
+}
+
+.reader .fontDetail .font-item text {
+  display: inline-block;
+}
+
+.reader .fontDetail .font-item icon {
+  position: absolute;
+  top: 70%;
+  transform: translateY(-50%);
+  right: 10rpx;
+}
+
+.reader .fontDetail .font-item:last-child {
+  border-bottom: none;
+}
+
+.reader .fontDetail .font-title {
+  text-align: left;
+  height: 60rpx;
+  line-height: 60rpx;
+  position: relative;
+}
+
+.mulu-detail {
+  position: absolute;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  width: 100%;
+  top: 0;
+  left: 0;
+  display: none;
+}
+
+.mulu-detail.active {
+  display: block;
+}
+
+.mulu-detail .muluPanel {
+  width: 0%;
+  height: 100%;
+}
+
+.mulu-detail.active .muluPanel {
+  animation: slideShow 0.4s;
+  animation-fill-mode: forwards;
+}
+
+.mulu-detail .mulu-swipers {
+  height: 92%;
+  width: 100%;
+}
+
+.mulu-detail .bottomCtr {
+  height: 8%;
+  width: 100%;
+  display: -webkit-flex;
+  flex-flow: row nowarp;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 60rpx;
+  box-sizing: border-box;
+  font-size: 30rpx;
+}
+
+.mulu-detail .mulu-swiper {
+  position: relative;
+}
+
+.mulu-detail .mulu-swiper .search {
+  border: 1px solid #ccc;
+  margin: 30rpx 30rpx;
+  box-sizing: border-box;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  position: relative;
+}
+
+.mulu-detail .mulu-swiper .search>icon {
+  position: absolute;
+  left: 10rpx;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.mulu-detail .mulu-swiper .search>input {
+  margin-left: 60rpx;
+}
+
+.mulu-detail .mulu-swiper .bookInfo {
+  margin-left: 30rpx;
+  font-size: 28rpx;
+}
+
+.mulu-detail .mulu-swiper .bookInfo image {
+  height: 80rpx;
+  width: 50rpx;
+}
+
+.mulu-detail .mulu-swiper .bookInfo .book {
+  position: absolute;
+  left: 100rpx;
+}
+
+.mulu-detail .mulu-swiper .bookInfo .factionName {
+  display: block;
+}
+
+.mulu-detail .mulu-swiper .bookInfo .author {
+  display: block;
+}
+
+.mulu-detail .mulu-swiper .bookInfo .readerTime {
+  position: absolute;
+  right: 30rpx;
+  text-align: center;
+  font-size: 24rpx;
+}
+
+.mulu-detail .mulu-swiper .bookInfo .num {
+  font-size: 28rpx;
+}
+
+.mulu-detail .mulu-swiper .bookInfo .timeDes {
+  display: block;
+  font-size: 20rpx;
+}
+
+.mulu-detail .mulu-swiper .sections {
+  margin-top: 20rpx;
+  height: 86%;
+  /*border-top: 1rpx solid #dedede;*/
+  /*border-bottom: 1rpx solid #dedede;*/
+}
+
+.mulu-detail .mulu-swiper .section {
+  height: 80rpx;
+  line-height: 80rpx;
+  margin-bottom: 0;
+  border-bottom: 1rpx solid #dedede;
+  font-size: 28rpx;
+  padding-left: 30rpx;
+}
+
+.mulu-detail .mulu-swiper .section:first-child {
+  border-top: 1rpx solid #dedede;
+}
+
+.mulu-detail .mulu-swiper .section:last-child {
+  border-bottom: 1rpx solid #dedede;
+}
+
+.mulu-detail .mulu-swiper .factionNum {
+  margin-right: 40rpx;
+}
+
+@keyframes slideShow {
+  form {
+    width: 0;
+  }
+  to {
+    width: 86%;
+  }
+}

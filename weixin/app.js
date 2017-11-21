@@ -43,32 +43,25 @@ App({
                     let code = res.code
                     if(res.code){
                       // 获取用户信息后，发送registe请求
-                      wx.getSetting({
+                      wx.getUserInfo({
                         success: res => {
-                          if (res.authSetting['scope.userInfo']) {
-                            // 已经授权，可以直接调用 getUserInfo 获取头像昵称，不会弹框
-                            wx.getUserInfo({
-                              success: res => {
-                                // 可以将 res 发送给后台解码出 unionId
-                                wx.request({
-                                  method: 'POST',
-                                  url: config.base_url + '/api/user/registe',
-                                  data: Object.assign({ identity: 'appuser', code: code }, res.userInfo),
-                                  success: res => {
-                                    if(res.data.ok){
-                                      wx.setStorageSync('token', res.data.token)
-                                      wx.setStorageSync('userinfo', res.data.userinfo)
-                                    }else{
-                                      wx.showToast({ title: '注册失败，' + res.data.msg, image: '/static/img/close.png' })
-                                    }
-                                  },
-                                  fail: err => {
-                                    wx.showToast({ title: '注册失败', image: '/static/img/close.png' })
-                                  }
-                                })
+                          // 可以将 res 发送给后台解码出 unionId
+                          wx.request({
+                            method: 'POST',
+                            url: config.base_url + '/api/user/registe',
+                            data: Object.assign({ identity: 'appuser', code: code }, res.userInfo),
+                            success: res => {
+                              if(res.data.ok){
+                                wx.setStorageSync('token', res.data.token)
+                                wx.setStorageSync('userinfo', res.data.userinfo)
+                              }else{
+                                wx.showToast({ title: '注册失败', image: '/static/img/close.png' })
                               }
-                            })
-                          }
+                            },
+                            fail: err => {
+                              wx.showToast({ title: '注册失败', image: '/static/img/close.png' })
+                            }
+                          })
                         }
                       })
                     }

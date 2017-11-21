@@ -10,7 +10,7 @@
 	"compileType": "miniprogram",
 	"libVersion": "1.6.4",
 	"appid": "wxc7bb707dc3f735ed",
-	"projectname": "mbook2",
+	"projectname": "mbook",
 	"condition": {
 		"search": {
 			"current": -1,
