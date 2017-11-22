@@ -1,7 +1,7 @@
 <view class="container reader" style="width: {{windows.windows_width + 'px'}};background-color: {{colorStyle.content_bg}}">
 	<view class="margin">
-		<view class="content" style="width: {{maxPageNum*(windows.windows_width-20)+'px'}}; column-count: {{maxPageNum}}; column-gap: 0; column-width: {{(windows.windows_width-20) + 'px'}}; left: {{leftValue+'px'}};font-family: {{currentFontFamily == '使用系统字体' ? 'inherit' : currentFontFamily}};font-size:{{allSliderValue.font + 'px'}}" bindtouchstart="handletouchtart" bindtouchmove="handletouchmove" bindtouchend="handletouchend">
-			<text style="color:{{colorStyle.styleNum == '4'? '#85898c': '#000800'}}">{{content}}</text>
+		<view class="content" style="width: {{maxPageNum*(windows.windows_width-20)+'px'}}; column-count: {{maxPageNum}}; column-gap: 0; column-width: {{(windows.windows_width-20) + 'px'}}; left: {{leftValue+'px'}};font-family: {{currentFontFamily == '使用系统字体' ? 'inherit' : currentFontFamily}};font-size:{{allSliderValue.font + 'rpx'}}" bindtouchstart="handletouchtart" bindtouchmove="handletouchmove" bindtouchend="handletouchend">
+			<text style="color:{{colorStyle.styleNum == '4'? '#85898c': '#000800'}}; line-height: {{lineHeight + 'rpx'}}">{{content}}</text>
 		</view>
 	</view>
 	<view class="control" style="width:{{windows.windows_width+'px'}};display:{{(control.control_tab == '1' && control.all == '1')? 'flex': 'none'}};background-color:{{colorStyle.control_bg}}">
@@ -46,7 +46,7 @@
 		<view class="font-detail" style="display:{{control.target == 'font'? 'block': 'none'}}">
 			<view class="fontSize">
 				<icon class="iconfont icon-icon-yxj-font small"></icon>
-				<slider class="font-slider" bindchange="fontSliderChange" activeColor="{{colorStyle.slider_active_bg}}" backgroundColor="{{colorStyle.slider_noactive_bg}}" min="12" max="24" step="2" value="{{allSliderValue.font}}" />
+				<slider class="font-slider" bindchange="fontSliderChange" activeColor="{{colorStyle.slider_active_bg}}" backgroundColor="{{colorStyle.slider_noactive_bg}}" min="30" max="48" step="2" value="{{allSliderValue.font}}" />
 				<icon class="iconfont icon-icon-yxj-font"></icon>
 			</view>
 			<view class="fontSelector" bindtap="selectFontFamily">

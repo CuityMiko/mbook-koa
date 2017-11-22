@@ -10,7 +10,8 @@ page {
 
 .reader .margin{
   margin: 0 7px 0 13px;
-  overflow: hidden
+  overflow: hidden;
+  height: 100%;
 }
 
 .reader .content {
@@ -18,9 +19,11 @@ page {
   overflow-x: hidden;
   height: 100%;
   box-sizing: border-box;
-  padding: 20rpx 0;
+  padding: 10px 0;
   position: relative;
-  left: -320rpx;
+  -webkit-column-span: all; /* Chrome */
+  column-span: all;
+  column-fill: auto;
 }
 .reader .content text{
   text-align: justify;

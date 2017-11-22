@@ -34,9 +34,9 @@ function countPageNum(str, fontSize, lineHeight, windowW, windowH, pixelRatio) {
   strArray.forEach(function(item, index) {
     //拒绝最后一项0
     var huanhangNum = (splitArray[index] - 1) > 0 ? (splitArray[index] - 1) > 0 : 0;
-    totalHeight += Math.ceil(item.length / Math.floor((windowW - 80 / pixelRatio) / fontSize)) * lineHeight + huanhangNum * lineHeight;
+    totalHeight += Math.ceil(item.length / Math.floor((windowW - 20) / fontSize)) * lineHeight + huanhangNum * lineHeight;
   });
-  return Math.ceil(totalHeight / windowH) + 1;
+  return Math.ceil(totalHeight / (windowH-20));
 }
 
 /**
@@ -72,14 +72,12 @@ function getMuluFun(bookid, sectionnum, obj, success, fail, preOrNext) {
           success(obj);
         }
       } catch (e) {
-        console.log(e);
         if (typeof fail == "function") {
           fail(obj);
         }
       }
     },
     fail: function(err) {
-      console.log(err);
       //处理回调
       if (typeof fail == "function") {
         fail(obj);
@@ -102,7 +100,7 @@ Page({
     pageIndex: 1,
     maxPageNum: 0,
     newestSectionNum: 1450,
-    allSliderValue: { section: 1431, bright: 1, font: 14 }, //font单位rpx
+    allSliderValue: { section: 1431, bright: 1, font: 40 }, //font单位rpx
     isShowFontSelector: 0, //是否显示选择字体详情板块
     allFontFamily: ['使用系统字体', '微软雅黑', '黑体', 'Arial', '楷体', '等线'],
     currentFontFamily: '使用系统字体',
@@ -119,7 +117,6 @@ Page({
     //获取屏幕的高度和宽度，为分栏做准备
     wx.getSystemInfo({
       success: function(res) {
-        console.log(res)
         self.setData({ windows: { windows_height: res.windowHeight, windows_width: res.windowWidth, pixelRatio: res.pixelRatio } });
       }
     });
@@ -132,12 +129,7 @@ Page({
     var factionName = options.factionName || "超品战兵";
     var bookid = options.bookid;
     self.setData({ bookid: bookid, factionName: factionName });
-    wx.setNavigationBarTitle({
-      title: factionName,
-      fail: function() {
-        //todo 显示错误页面
-      }
-    });
+    wx.setNavigationBarTitle({ title: factionName });
     // 获取系统亮度，将亮度值默认设置为系统亮度
     wx.getScreenBrightness({
       success: res => {
