@@ -307,6 +307,7 @@ page {
   top: 0;
   left: 0;
   display: none;
+  z-index: 1000;
 }
 
 .mulu-detail.active {
@@ -404,10 +405,7 @@ page {
 }
 
 .mulu-detail .mulu-swiper .sections {
-  margin-top: 20rpx;
-  height: 86%;
-  /*border-top: 1rpx solid #dedede;*/
-  /*border-bottom: 1rpx solid #dedede;*/
+  height: 80%;
 }
 
 .mulu-detail .mulu-swiper .section {

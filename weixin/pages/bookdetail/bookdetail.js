@@ -199,6 +199,9 @@ Page({
       }
     })
   },
+  goToReader: function(){
+    wx.navigateTo({ url: '../reader/reader?bookid=' + this.data.bookid})
+  },
   showToast: function(content, position){
     let self = this
     self.setData({ 'toast': { show: true, content: content, position: position } })

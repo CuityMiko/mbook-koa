@@ -4,7 +4,7 @@ const paths = [
   '/api/theme/index_list',
   '/api/theme/change_list',
   '/api/chapter/list',
-  '/api/chapter/detail',
+  '/api/chapter/add',
   '/api/user/login',
   '/api/user/registe'
 ]
