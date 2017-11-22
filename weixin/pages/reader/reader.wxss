@@ -272,7 +272,6 @@ page {
 
 .reader .fontDetail .font-item {
   height: 70rpx;
-  border-bottom: 1px solid #d7d7d7;
   position: relative;
   line-height: 70rpx;
 }
@@ -293,10 +292,15 @@ page {
 }
 
 .reader .fontDetail .font-title {
-  text-align: left;
-  height: 60rpx;
-  line-height: 60rpx;
-  position: relative;
+  text-align:left;
+  height:75rpx;
+  line-height:60rpx;
+  position:relative;
+  border-bottom:1px solid #d7d7d7;
+}
+
+.reader .fontDetail .font-title .iconfont{
+  margin-right:15rpx;
 }
 
 .mulu-detail {
@@ -378,6 +382,7 @@ page {
 .mulu-detail .mulu-swiper .bookInfo .book {
   position: absolute;
   left: 100rpx;
+  z-index: 1001;
 }
 
 .mulu-detail .mulu-swiper .bookInfo .factionName {

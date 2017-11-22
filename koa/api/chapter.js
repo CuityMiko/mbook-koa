@@ -66,19 +66,43 @@ export default function (router) {
   })
 
   router.get('/api/chapter/detail', async(ctx, next) => {
-    let { bookid, chapter_id } = ctx.request.query
+    let { bookid, chapter_id, chapter_num } = ctx.request.query
     let token = ctx.header.authorization.split(' ')[1]
     let payload = await jwtVerify(token)
     if(chapter_id){
       let thisChapter = await Chapter.findById(chapter_id)
-      let thiBook = await Book.findById(bookid, 'newest_chapter')
+      let thisBook = await Book.findById(bookid, 'name img_url author newest_chapter')
       if (thisChapter._id) {
         ctx.body = {
           ok: true,
           msg: '获取章节详情成功',
-          newest: thiBook.newest_chapter,
+          bookname: thisBook.name,
+          headimg: thisBook.img_url,
+          author: thisBook.author,
+          newest: thisBook.newest_chapter,
           page: 1,
           data: thisChapter
+        }
+      } else {
+        ctx.body = { ok: false, msg: '获取章节详情失败' }
+      }
+    }else if(chapter_num){
+      let thisBook = await Book.findById(bookid, 'id name img_url author newest_chapter').populate({
+        path: 'chapters',
+        match: {
+          num: chapter_num
+        }
+      })
+      if (thisBook.chapters[0]) {
+        ctx.body = {
+          ok: true,
+          msg: '获取章节详情成功',
+          page: 1,
+          bookname: thisBook.name,
+          headimg: thisBook.img_url,
+          author: thisBook.author,
+          newest: thisBook.newest_chapter,
+          data: thisBook.chapters[0]
         }
       } else {
         ctx.body = { ok: false, msg: '获取章节详情失败' }
@@ -94,8 +118,7 @@ export default function (router) {
           readChapterPage = item.read.page
         }
       })
-      console.log(readChapterNum, readChapterPage)
-      let thisBook = await Book.findById(bookid, 'id newest_chapter').populate({
+      let thisBook = await Book.findById(bookid, 'id name img_url author newest_chapter').populate({
         path: 'chapters',
         match: {
           num: readChapterNum
@@ -106,6 +129,9 @@ export default function (router) {
           ok: true,
           msg: '获取章节详情成功',
           page: readChapterPage,
+          bookname: thisBook.name,
+          headimg: thisBook.img_url,
+          author: thisBook.author,
           newest: thisBook.newest_chapter,
           data: thisBook.chapters[0]
         }
