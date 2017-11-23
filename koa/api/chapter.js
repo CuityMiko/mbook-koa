@@ -80,7 +80,7 @@ export default function (router) {
           headimg: thisBook.img_url,
           author: thisBook.author,
           newest: thisBook.newest_chapter,
-          page: 1,
+          top: 0,
           data: thisChapter
         }
       } else {
@@ -97,7 +97,7 @@ export default function (router) {
         ctx.body = {
           ok: true,
           msg: '获取章节详情成功',
-          page: 1,
+          top: 0,
           bookname: thisBook.name,
           headimg: thisBook.img_url,
           author: thisBook.author,
@@ -111,11 +111,11 @@ export default function (router) {
       // 去booklist里读取用户阅读进度
       let thisBookList = await BookList.findOne({userid: payload.userid})
       let readChapterNum = 1
-      let readChapterPage = 1
+      let readChapterScrollTop = 0
       thisBookList.books.forEach(item => {
         if(item.bookid.toString() == bookid){
           readChapterNum = item.read.num
-          readChapterPage = item.read.page
+          readChapterScrollTop = item.read.top
         }
       })
       let thisBook = await Book.findById(bookid, 'id name img_url author newest_chapter').populate({
@@ -128,7 +128,7 @@ export default function (router) {
         ctx.body = {
           ok: true,
           msg: '获取章节详情成功',
-          page: readChapterPage,
+          top: readChapterScrollTop,
           bookname: thisBook.name,
           headimg: thisBook.img_url,
           author: thisBook.author,

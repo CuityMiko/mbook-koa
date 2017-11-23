@@ -8,27 +8,58 @@ page {
   position: relative;
 }
 
-.reader .margin{
-  margin: 0 7px 0 13px;
-  overflow: hidden;
-  height: 100%;
-}
-
 .reader .content {
   display: block;
   overflow-x: hidden;
   height: 100%;
   box-sizing: border-box;
-  padding: 10px 0;
+  padding: 10px;
   position: relative;
-  -webkit-column-span: all; /* Chrome */
-  column-span: all;
-  column-fill: auto;
 }
+
+.reader .content text{
+  height: auto;
+  line-height: 1.4em;
+}
+
 .reader .content text{
   text-align: justify;
 }
 
+/* 提示样式 */
+.reader .tips{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, .7);
+  z-index: 2000;
+  display: -webkit-flex;
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.reader .tips text{
+  text-align: center;
+  color: #fff;
+  font-size: 32rpx;
+}
+
+.reader .tips .show-bar{
+  text-align: center;
+  color: #fff;
+  font-size: 32rpx;
+}
+
+.reader .tips .show-bar .iconfont{
+  font-size:40rpx;
+  vertical-align:middle;
+  color:#fff;
+  margin-top:-20rpx;
+}
 
 /* 底部控制条的样式 */
 
