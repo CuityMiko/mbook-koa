@@ -6,11 +6,12 @@
 
 .index swiper {
   width: 100%;
-  height: 220rpx;
+  max-height: 220rpx;
   overflow: hidden;
 }
 
 .index .slide-image {
+  width: 100%;
   height: 100%;
 }
 
