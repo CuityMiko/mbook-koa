@@ -350,13 +350,11 @@ page {
 }
 
 .mulu-detail .muluPanel {
-  width: 0%;
+  transition: width 1s;
+  -moz-transition: width 1s; /* Firefox 4 */
+  -webkit-transition: width 1s; /* Safari 和 Chrome */
+  -o-transition: width 1s; /* Opera */
   height: 100%;
-}
-
-.mulu-detail.active .muluPanel {
-  animation: slideShow 0.4s;
-  animation-fill-mode: forwards;
 }
 
 .mulu-detail .mulu-swipers {
@@ -403,6 +401,7 @@ page {
 .mulu-detail .mulu-swiper .bookInfo {
   margin-left: 30rpx;
   font-size: 28rpx;
+  padding-bottom:20rpx;
 }
 
 .mulu-detail .mulu-swiper .bookInfo image {

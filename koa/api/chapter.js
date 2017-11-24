@@ -140,4 +140,46 @@ export default function (router) {
       }
     }
   })
+
+  router.get('/api/chapter/search', async (ctx, next) => {
+    let { bookid, str } = ctx.request.query
+    let queryArr = []
+    queryArr.push({ name: new RegExp(str, 'igm') })
+    let numReg = /^\d+$/
+    if(numReg.test(str)){
+      queryArr.push({ num: str })
+    }
+    if(bookid){
+      if(str){
+        let thisBook = await Book.findById(bookid, 'id').populate({
+          path: 'chapters',
+          match: { $or: queryArr },
+          select: 'name num',
+          options: {
+            sort: {
+              num: 1
+            }
+          }
+        })
+        ctx.body = { ok: true, msg: '搜索目录成功', data: thisBook }
+      }else{
+        let thisBook = await Book.findById(bookid, 'id').populate({
+          path: 'chapters',
+          select: 'name num',
+          options: {
+            sort: {
+              num: 1
+            }
+          }
+        })
+        if (thisBook) {
+          ctx.body = { ok: true, msg: '搜索目录成功', data: thisBook }
+        } else {
+          ctx.body = { ok: false, msg: '找不到对应的书籍' }
+        }
+      }
+    }else{
+        ctx.body = { ok: false, msg: '获取书籍信息失败，bookid不存在' }
+    }
+  })
 }

@@ -73,22 +73,22 @@
 			</view>
 		</view>
 	</view>
-	<view class="mulu-detail {{isShowMulu == '1'? 'active': ''}}">
-		<view class="muluPanel" style="background-color: {{colorStyle.content_bg}}">
+	<view class="mulu-detail {{isShowMulu == 1 ? 'active': ''}}" bindtap="closeMulu">
+		<view class="muluPanel" style="background-color: {{colorStyle.content_bg}}; width: {{isShowMulu == 1 ? '86%' : '0%'}}">
 			<swiper class="mulu-swipers" current="{{muluSwiperNum}}" bindchange="muluSwiper">
 			    <swiper-item class="mulu-swiper">
-			      	<view class="search">
-						<icon type="search" size="14" color="#ccc"/>
-						<input type="text" name="muluStr" placeholder="搜索全书内容" placeholder-class="muluPl" bindconfirm="{{doContentSearch}}" />
-					</view>
-					<view class="bookInfo" style="color:{{item.sectionNum == allSliderValue.section? colorStyle.control_fontColor: (colorStyle.styleNum == '4'? '#63676a': '#655f4f')}}">
-						<image src="{{headImg}}" mode="scaleToFill"></image>
-						<text class="book"><text class="factionName">{{factionName}}</text><text class="author">{{author}}</text></text>
-						<text class="readerTime"><text class="num">25</text>时<text class="num">38</text>分<text class="timeDes">读书时长</text></text>
-					</view>
-					<scroll-view class="sections" scroll-x="false" scroll-y="true">
-						<view class="section" style="color:{{item.num == allSliderValue.section? colorStyle.control_fontColor : (colorStyle.styleNum == '4'? '#63676a': '#655f4f')}}" wx:for="{{allSectionData}}" wx:key="_id" data-chapterid="{{item._id}}" bindtap="showThisSection"><text class="factionNum">第{{item.num}}章</text><text class="factionName">{{item.name}}</text></view>
-					</scroll-view>
+						<view class="search">
+							<icon type="search" size="14" color="#ccc"/>
+							<input type="text" name="muluStr" placeholder="搜索章节" placeholder-class="muluPl" bindconfirm="searchChapter" confirm-type="search" />
+						</view>
+						<view class="bookInfo" style="color:{{item.sectionNum == allSliderValue.section? colorStyle.control_fontColor: (colorStyle.styleNum == '4'? '#63676a': '#655f4f')}}">
+							<image src="{{headImg}}" mode="scaleToFill"></image>
+							<text class="book"><text class="factionName">{{factionName}}</text><text class="author">{{author}}</text></text>
+							<text class="readerTime"><text class="num">25</text>时<text class="num">38</text>分<text class="timeDes">读书时长</text></text>
+						</view>
+						<scroll-view class="sections" scroll-x="false" scroll-y="true">
+							<view class="section" style="color:{{item.num == allSliderValue.section? colorStyle.control_fontColor : (colorStyle.styleNum == '4'? '#63676a': '#655f4f')}}" wx:for="{{allSectionData}}" wx:key="_id" data-chapterid="{{item._id}}" bindtap="showThisSection"><text class="factionNum">第{{item.num}}章</text><text class="factionName">{{item.name}}</text></view>
+						</scroll-view>
 			    </swiper-item>
 			</swiper>
 		</view>

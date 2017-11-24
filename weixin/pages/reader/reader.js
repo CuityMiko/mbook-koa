@@ -162,10 +162,8 @@ Page({
   clickPage: function(event){
     var self = this;
     var y = event.detail.y;
-    var x = event.detail.x;
     var h = self.data.windows.windows_height / 2;
-    var w = self.data.windows.windows_width / 2;
-    if (x && y && y >= (h - 100) && y <= (h + 100) && x >= (w - 100) && x <= (w + 100)) {
+    if (y && y >= (h - 75) && y <= (h + 75)) {
       // 显示控制栏
       self.setData({
         control: {
@@ -177,13 +175,13 @@ Page({
         isShowFontSelector: 0
       });
       return;
-    }else if(y && y < (h - 100)){
+    }else if(y && y < (h - 75)){
       // 向上翻页
-      let top = self.data.scrollTop - self.data.windows.windows_height
+      let top = self.data.scrollTop - (self.data.windows.windows_height - 50)
       self.setData({ 'scrollTop': top >= 0 ? top : 0 })
-    }else if(y && y > (h + 100)){
-      // 向上翻页
-      let top = self.data.scrollTop + self.data.windows.windows_height
+    }else if(y && y > (h + 75)){
+      // 向下翻页
+      let top = self.data.scrollTop + (self.data.windows.windows_height - 50)
       self.setData({ 'scrollTop': top })
     }
   },
@@ -447,6 +445,40 @@ Page({
     var self = this;
     self.setData({ showReaderTips: false })
     wx.setStorageSync('show_reader_tips', false)
+  },
+  searchChapter: function(event){
+    var self = this;
+    wx.request({
+      url: config.base_url + '/api/chapter/search?bookid=' + self.data.bookid + '&str=' + event.detail.value,
+      success:res => {
+        if(res.data.ok){
+          self.setData({ 'allSectionData': res.data.data.chapters })
+        }else{
+          self.showToast('未找到相应章节' + (res.data.msg ? '，' + res.data.msg : ''), 'bottom')
+        }
+      },
+      fail: err => {
+        self.showToast('未找到相应章节', 'bottom')
+      }
+    })
+  },
+  closeMulu: function(event){
+    var self = this;
+    var x = event.detail.x;
+    var w = self.data.windows.windows_width * 0.92;
+    if (x > w) {
+      // 显示控制栏
+      self.setData({
+        'control': {
+          all: 0,
+          control_tab: 0,
+          control_detail: 0,
+          target: self.data.control.target || 'jingdu'
+        },
+        'isShowMulu': 0
+      });
+    }
+    console.log(x, w)
   },
   showToast: function (content, position) {
     let self = this
