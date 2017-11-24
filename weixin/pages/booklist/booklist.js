@@ -1,66 +1,37 @@
-// pages/booklist/booklist.js
+//booklist.js
+const app = getApp()
+const config = require('../../config')
+const utils = require('../../utils/util')
+
 Page({
-
-  /**
-   * 页面的初始数据
-   */
   data: {
-  
+    toast: { show: false, content: '', position: 'bottom' } // 提示信息
   },
-
-  /**
-   * 生命周期函数--监听页面加载
-   */
-  onLoad: function (options) {
-  
+  onLoad: function () {
+    let self = this
+    self.getMyBookList()
   },
-
-  /**
-   * 生命周期函数--监听页面初次渲染完成
-   */
-  onReady: function () {
-  
+  getMyBookList: function(){
+    let self = this
+    wx.request({
+      url: config.base_url + '/api/booklist/mylist',
+      header: { 'Authorization': 'Bearer ' + wx.getStorageSync('token') },
+      success: res => {
+        if(res.data.ok){
+        }else{
+          self.showToast('获取我的书单失败' + (res.data.msg ? '，' + res.data.msg : ''), 'bottom')
+        }
+      },
+      fail: err => {
+        self.showToast('获取我的书单失败', 'bottom')
+      }
+    })
   },
-
-  /**
-   * 生命周期函数--监听页面显示
-   */
-  onShow: function () {
-  
-  },
-
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide: function () {
-  
-  },
-
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload: function () {
-  
-  },
-
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh: function () {
-  
-  },
-
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom: function () {
-  
-  },
-
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage: function () {
-  
+  showToast: function(content, position){
+    let self = this
+    self.setData({ 'toast': { show: true, content: content, position: position } })
+    setTimeout(function(){
+      self.setData({ 'toast': { show: false, content: '', position: 'bottom' } })
+    }, 3000)
   }
 })

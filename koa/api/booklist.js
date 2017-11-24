@@ -42,18 +42,21 @@ export default function(router) {
           let hisBookList = await BookList.findOne({ userid: payload.userid })
           let bookids = []
           for(let i=0; i<hisBookList.books.length; i++){
-            if(hisBookList.books[i].bookid.toString() === id){
-              bookids.push(hisBookList.books[i].bookid.toString())
-            }
+            bookids.push(hisBookList.books[i].bookid.toString())
           }
+          console.log('*****>', bookids)
           bookids = tool.unique(bookids.concat([id]))
-          let newBookList = []
+          console.log('*****>', bookids)
+          let newBookList = []  
           for(let i=0; i<bookids.length; i++){
             newBookList.push({
               bookid: await BookList.transId(bookids[i]),
-              index: i
+              index: i,
+              read: { num: 1, top: 0 }
             })
           }
+          console.log('=====>', newBookList)
+          console.log('----->', hisBookList)
           if(newBookList.length === hisBookList.books.length){
             ctx.body = { ok: false, msg: '书籍已经在书架中' }
           }else if(newBookList.length > hisBookList.books.length){
@@ -106,5 +109,19 @@ export default function(router) {
     }else{
       ctx.body = { ok: false, msg: '更新阅读进度失败，用户信息错误' }
     }
+  })
+
+  router.get('/api/booklist/mylist', async(ctx, next) => {
+    let token = ctx.header.authorization.split(' ')[1]
+    let payload = await jwtVerify(token)
+    let thisBookList = await BookList.find({ userid: payload.userid }).populate({
+      path: "books",
+      options: {
+        sort: {
+          index: 1
+        }
+      }
+    })
+    console.log(thisBookList)
   })
 }
