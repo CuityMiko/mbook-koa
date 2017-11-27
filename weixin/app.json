@@ -1,7 +1,7 @@
 {
   "pages": [
-    "pages/booklist/booklist",
     "pages/index/index",
+    "pages/booklist/booklist",
     "pages/fenlei/fenlei",
     "pages/bookdetail/bookdetail",
     "pages/reader/reader",
@@ -15,7 +15,7 @@
   },
   "tabBar": {
     "color": "#676767",
-    "selectedColor": "#3399ff",
+    "selectedColor": "#4990e2",
     "borderStyle": "white",
     "backgroundColor": "#ffffff",
     "list": [
