@@ -1,11 +1,11 @@
 {
   "pages": [
+    "pages/user/user",
     "pages/index/index",
     "pages/booklist/booklist",
     "pages/fenlei/fenlei",
     "pages/bookdetail/bookdetail",
-    "pages/reader/reader",
-    "pages/user/user"
+    "pages/reader/reader"
   ],
   "window": {
     "backgroundTextStyle": "light",
