@@ -5,7 +5,9 @@ const utils = require('../../utils/util')
 
 Page({
   data: {
-    toast: { show: false, content: '', position: 'bottom' } // 提示信息
+    toast: { show: false, content: '', position: 'bottom' }, // 提示信息
+    spriteArr: [],
+    myBooks: []
   },
   onLoad: function () {
     let self = this
@@ -18,6 +20,13 @@ Page({
       header: { 'Authorization': 'Bearer ' + wx.getStorageSync('token') },
       success: res => {
         if(res.data.ok){
+          let spriteNum = Math.ceil(res.data.books / 3)
+          let spriteArr = []
+          for(let i=0; i<spriteNum; i++){
+            spriteArr.push(0)
+          }
+          console.log(self)
+          self.setData({ 'spriteArr': spriteArr, 'myBooks': res.data.books })
         }else{
           self.showToast('获取我的书单失败' + (res.data.msg ? '，' + res.data.msg : ''), 'bottom')
         }

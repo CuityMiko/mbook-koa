@@ -1,4 +1,4 @@
-import { BookList } from '../models'
+import { BookList, Book } from '../models'
 import { jwtVerify, tool } from '../utils'
 
 export default function(router) {
@@ -41,33 +41,25 @@ export default function(router) {
           let payload = await jwtVerify(token)
           let hisBookList = await BookList.findOne({ userid: payload.userid })
           let bookids = []
+          let isExisted = false
           for(let i=0; i<hisBookList.books.length; i++){
-            bookids.push(hisBookList.books[i].bookid.toString())
-          }
-          console.log('*****>', bookids)
-          bookids = tool.unique(bookids.concat([id]))
-          console.log('*****>', bookids)
-          let newBookList = []  
-          for(let i=0; i<bookids.length; i++){
-            newBookList.push({
-              bookid: await BookList.transId(bookids[i]),
-              index: i,
-              read: { num: 1, top: 0 }
-            })
-          }
-          console.log('=====>', newBookList)
-          console.log('----->', hisBookList)
-          if(newBookList.length === hisBookList.books.length){
-            ctx.body = { ok: false, msg: '书籍已经在书架中' }
-          }else if(newBookList.length > hisBookList.books.length){
-            let updateResult = await BookList.update({userid: payload.userid}, {'$set': {'books': newBookList}})
-            if(updateResult.ok === 1){
-              ctx.body = { ok: true, msg: '添加书籍成功' }
-            }else{
-              ctx.body = { ok: false, msg: '添加书籍失败' }
+            if(hisBookList.books[i].bookid.toString() == id){
+              isExisted = true
             }
+          }
+          if(isExisted){
+            ctx.body = { ok: false, msg: '书籍已经在书架中' }
           }else{
-            ctx.body = { ok: false, msg: '添加书籍失败' }
+            let updateResult = await BookList.update({userid: payload.userid}, {'$addToSet': {'books': {
+              index: hisBookList.books.length,
+              bookid: await BookList.transId(id),
+              read: { num: 1, top: 0 }
+            }}})
+            if(updateResult.ok === 1){
+              ctx.body = { ok: true, msg: '添加书籍到书架成功' }
+            }else{
+              ctx.body = { ok: false, msg: '添加书籍到书架失败' }
+            }
           }
       } else {
           ctx.body = { ok: false, msg: '缺少id参数' }
@@ -114,7 +106,7 @@ export default function(router) {
   router.get('/api/booklist/mylist', async(ctx, next) => {
     let token = ctx.header.authorization.split(' ')[1]
     let payload = await jwtVerify(token)
-    let thisBookList = await BookList.find({ userid: payload.userid }).populate({
+    let thisBookList = await BookList.findOne({ userid: payload.userid }).populate({
       path: "books",
       options: {
         sort: {
@@ -122,6 +114,24 @@ export default function(router) {
         }
       }
     })
-    console.log(thisBookList)
+    let newThisBook = []
+    // 获取书籍详情
+    for(let i=0; i < thisBookList.books.length; i++){
+      let bookInfo = await Book.findById(thisBookList.books[i].bookid, 'name img_url author')
+      newThisBook.push({
+        bookid: thisBookList.books[i].bookid,
+        index: thisBookList.books[i].index,
+        read_num: thisBookList.books[i].read.num,
+        read_top: thisBookList.books[i].read.top,
+        name: bookInfo.name,
+        author: bookInfo.author,
+        img_url: bookInfo.img_url
+      })
+    }
+    if(thisBookList){
+      ctx.body = { ok: true, msg: '获取书单信息成功', data: newThisBook }
+    }else{
+      ctx.body = { ok: false, msg: '获取书单信息失败' }
+    }
   })
 }
