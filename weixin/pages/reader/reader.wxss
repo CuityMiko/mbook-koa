@@ -212,7 +212,6 @@ page {
 
 .reader .color-select .icon-yueliang {
   display: inline-block;
-  height: 100%;
   position: relative;
   top: -12rpx;
   color: #4990e2

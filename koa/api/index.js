@@ -5,6 +5,7 @@ import chapter from './chapter'
 import user from './user'
 import booklist from './booklist'
 import comment from './comment'
+import other from './other'
 
 export default function(router) {
     banner(router)
@@ -14,4 +15,5 @@ export default function(router) {
     user(router)
     booklist(router)
     comment(router)
+    other(router)
 }

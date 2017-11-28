@@ -5,4 +5,5 @@
   height: 100%;
   box-sizing: border-box;
   font-family: PingFangSC-Light,helvetica,'Heiti SC';
+  font-size: 30rpx;
 }

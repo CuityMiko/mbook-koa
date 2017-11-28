@@ -1,4 +1,4 @@
-// pages/user/user.js
+// pages/setting/setting.js
 const app = getApp()
 const config = require('../../config')
 const utils = require('../../utils/util')
@@ -6,25 +6,16 @@ const utils = require('../../utils/util')
 Page({
   data: {
     toast: { show: false, content: '', position: 'bottom' }, // 提示信息
-    userInfo: null,
-    text: ''
+    url: ''
   },
-  onLoad: function () {
+  onLoad: function (options) {
     let self = this
     // 获取屏幕高度
-    self.setData({ 'userInfo': wx.getStorageSync('userinfo') })
-    self.getText()
-  },
-  getText: function(){
-    let self = this
-    wx.request({
-      url: config.base_url + '/api/get_text',
-      success: res => {
-        if(res.data.ok){
-          self.setData({ 'text': res.data.text })
-        }
-      }
-    })
+    if(options.url){
+      self.setData({ 'url': options.url })
+    }else{
+      self.showToast('地址为空', 'bottom')
+    }
   },
   showToast: function(content, position){
     let self = this

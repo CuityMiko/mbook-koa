@@ -5,6 +5,7 @@ import Promise from 'bluebird'
 import config from '../config'
 import { User, BookList } from '../models'
 import { resolve } from 'url';
+import { jwtVerify } from '../utils'
 
 const secret = 'mbook' // token秘钥
 // console.log(jwt.sign({ userid: '5a1272549f292c17118aba62'}, secret, { expiresIn: '2h' }))
@@ -84,6 +85,16 @@ export default function(router) {
                     avatar: avatarUrl,
                     identity: 1, // 区分用户是普通用户还是系统管理员
                     openid: wxdata.openid, // 小程序openid
+                    amount: 0, //
+                    setting: {
+                      updateNotice: true,
+                      reader: {
+                        fontSize: 14,
+                        fontFamily: '使用系统字体',
+                        bright: 1,
+                        mode: 0, // 模式
+                      }
+                    },
                     create_time: new Date()
                 })
                 // 已注册，生成token并返回
@@ -106,19 +117,34 @@ export default function(router) {
     })
 
     // 获取用户信息
-    router.get('/api/user/info', async(ctx) => {
-        const token = ctx.header.authorization // 获取jwt
-        let payload
-        if (token) {
-            payload = await verify(token.split(' ')[1], secret) // // 解密，获取payload
-            ctx.body = {
-                payload
-            }
-        } else {
-            ctx.body = {
-                message: 'token 错误',
-                code: -1
-            }
+    router.get('/api/user/get_user_info', async(ctx) => {
+      let token = ctx.header.authorization.split(' ')[1]
+      let payload = await jwtVerify(token)
+      if (payload.userid) {
+          let thisUser = await User.findById(payload.userid)
+          ctx.body = { ok: true, msg: '获取个人信息成功', data: thisUser }
+      } else {
+          ctx.body = { ok: false, msg: 'token不合法'}
+      }
+    })
+
+    router.get('/api/user/get_user_setting', async(ctx) => {
+      let token = ctx.header.authorization.split(' ')[1]
+      let payload = await jwtVerify(token)
+      if (payload.userid) {
+        let thisUser = await User.findById(payload.userid)
+        let result = {
+          updateNotice: thisUser.setting.updateNotice,
+          reader: {
+            fontSize: thisUser.setting.reader.fontSize,
+            fontFamily: thisUser.setting.reader.fontFamily,
+            bright: thisUser.setting.reader.bright,
+            mode: thisUser.setting.reader.mode, // 模式
+          }
         }
+        ctx.body = { ok: true, msg: '获取个人信息成功', data: result }
+      } else {
+        ctx.body = { ok: false, msg: 'token不合法'}
+      }
     })
 }

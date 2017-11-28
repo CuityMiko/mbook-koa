@@ -5,7 +5,9 @@
     "pages/booklist/booklist",
     "pages/fenlei/fenlei",
     "pages/bookdetail/bookdetail",
-    "pages/reader/reader"
+    "pages/reader/reader",
+    "pages/setting/setting",
+    "pages/webpage/webpage"
   ],
   "window": {
     "backgroundTextStyle": "light",

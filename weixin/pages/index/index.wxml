@@ -6,7 +6,7 @@
     <block wx:for="{{banner_urls}}" wx:key="item._id">
       <swiper-item>
         <navigator url="{{item.img_url}}">
-          <image src="{{item.img_url}}" class="slide-image"></image>
+          <image src="{{item.img_url}}" class="slide-image" lazy-load="1"></image>
         </navigator>
       </swiper-item>
     </block>

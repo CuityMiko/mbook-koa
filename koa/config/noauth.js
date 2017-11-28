@@ -6,6 +6,7 @@ const paths = [
   '/api/chapter/list',
   '/api/chapter/search',
   '/api/chapter/add',
+  '/api/get_text',
   '/api/user/login',
   '/api/user/registe'
 ]
