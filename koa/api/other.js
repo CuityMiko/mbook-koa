@@ -11,4 +11,10 @@ export default function (router) {
         let day = date.getDate() % 5
         ctx.body = { ok: true, text: arr[day] }
     })
+
+    router.get('/help', async(ctx, next) => {
+        await ctx.render('help', {
+            title: '帮助与反馈'
+        })
+    })
 }

@@ -1,0 +1,33 @@
+doctype html
+html(lang='en')
+  head
+    meta(charset='utf-8')
+    title jQuery Collapse Demo
+    link(rel='stylesheet', href='/css/demo.css')
+    meta(name='viewport', content='width=device-width')
+    script.
+      document.documentElement.className = "js";
+    script(src='/js/jquery-1.9.1.js')
+    script(src='/js/json2.js')
+    script(src='/js/jquery.collapse.js')
+    script(src='/js/jquery.collapse_storage.js')
+    script(src='/js/jquery.collapse_cookie_storage.js')
+  body
+    #custom-show-hide-example
+      h3 Hello
+      div
+        p Hello Sir.
+        p I'm sliding
+      h3 Anarachy in the UK
+      div I like tea
+      h3 Indeed
+      div This is some information
+    script.
+      new jQueryCollapse($("#custom-show-hide-example"), {
+      open: function() {
+      this.slideDown(150);
+      },
+      close: function() {
+      this.slideUp(150);
+      }
+      });

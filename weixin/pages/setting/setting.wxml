@@ -33,7 +33,7 @@
     <switch checked bindchange="switchChange"/>
   </view>
   <view class="title">其他</view>
-  <navigator url="/pages/webpage/webpage?url=https://mp.weixin.qq.com">
+  <navigator url="/pages/webpage/webpage?url=https://mbook.andylistudio.com/f2g1tj9cTk.txt">
     <view class="setting-item">
       <text class="text">帮助与反馈</text>
       <icon class="iconfont icon-arrow-right"></icon>
