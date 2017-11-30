@@ -1,7 +1,7 @@
 /**index.wxss**/
 
 .index {
-  background: #eee;
+  background: #f4f4f4;
 }
 
 .index .swiper-box {
