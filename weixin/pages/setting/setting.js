@@ -32,11 +32,20 @@ Page({
     if(pickerid === 'fontSize'){
       console.log(event.detail.value)
       self.setData({ 'userSetting.reader.fontSize': self.data.allFontSize[event.detail.value] })
+      // 更新缓存
+      wx.setStorageSync('user_setting', self.data.userSetting)
     }else if(pickerid === 'fontFamily'){
       self.setData({ 'userSetting.reader.fontFamily': self.data.allFontFamily[event.detail.value] })
+      wx.setStorageSync('user_setting', self.data.userSetting)
     }else if(pickerid === 'mode'){
       self.setData({ 'userSetting.reader.mode': self.data.allStyleMode[event.detail.value], 'previewBg': self.getBackGround(self.data.allStyleMode[event.detail.value]) })
+      wx.setStorageSync('user_setting', self.data.userSetting)
     }
+  },
+  switchChange: function(event){
+    let self = this
+    self.setData({ 'userSetting.updateNotice':event.detail.value })
+    wx.setStorageSync('user_setting', self.data.userSetting)
   },
   getBackGround: function(color){
     if(color == '默认'){
@@ -52,8 +61,8 @@ Page({
   getUserSetting: function(){
     let self = this
     // 判断本地缓存中是否存在设置缓存
-    let localSetting = wx.getStorageSync('reader_setting')
-    if(0 && localSetting){
+    let localSetting = wx.getStorageSync('user_setting')
+    if(localSetting){
       // 存在
       self.setData({ 'userSetting': localSetting, 'previewBg': self.getBackGround(localSetting.reader.mode) })
     }else{
@@ -63,6 +72,7 @@ Page({
         success: res => {
           if(res.data.ok){
             self.setData({ 'userSetting': res.data.data, 'previewBg': self.getBackGround(res.data.data.reader.mode) })
+            wx.setStorageSync('user_setting', self.data.userSetting)
           }else{
             self.showToast('获取设置失败', 'bottom')
           }

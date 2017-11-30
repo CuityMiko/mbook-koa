@@ -1,6 +1,6 @@
 <view class="container setting">
   <view class="title">阅读器</view>
-  <view class="preview" style="background: {{previewBg}}; font-size: {{userSetting.reader.fontSize + 'px'}}; font-family: {{userSetting.reader.fontFamily}}">
+  <view class="preview" style="background: {{previewBg}}; font-size: {{userSetting.reader.fontSize + 'px'}}; font-family: {{userSetting.reader.fontFamily}}; color: {{userSetting.reader.mode == '夜间' ? '#85898c' : '#000800'}}">
     书山有路勤为径，学海无涯苦作舟
   </view>
   <view class="setting-item">
@@ -30,7 +30,7 @@
   <view class="title">更新</view>
   <view class="setting-item">
     <text class="text">更新提醒</text>
-    <switch checked bindchange="switch1Change"/>
+    <switch checked bindchange="switchChange"/>
   </view>
   <view class="title">其他</view>
   <navigator url="/pages/webpage/webpage?url=https://mp.weixin.qq.com">
