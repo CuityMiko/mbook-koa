@@ -1,0 +1,14 @@
+<view class="container charge">
+  <view class="tab">
+    <view class="tab-item">充值</view>
+    <view class="tab-item">充值记录</view>
+    <view class="tab-item">消费记录</view>
+  </view>
+  <view class="content">
+    <view class="content-item" data-pageid="1">
+      <image class="ad" src="http://fs.andylistudio.com/mbook/charge/banner.png"></image>
+    </view>
+    <view class="content-item" data-pageid="2"></view>
+    <view class="content-item" data-pageid="3"></view>
+  </view>
+</view>

@@ -1,4 +1,4 @@
-// pages/setting/webpage.js
+// pages/setting/charge.js
 const app = getApp()
 const config = require('../../config')
 const utils = require('../../utils/util')

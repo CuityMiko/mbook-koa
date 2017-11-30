@@ -9,10 +9,12 @@
   max-height: 220rpx;
   overflow: hidden;
 }
-.index .swiper-box navigator{
+
+.index .swiper-box navigator {
   width: 100%;
   height: 100%;
 }
+
 .index .slide-image {
   width: 100%;
   height: 100%;
@@ -115,10 +117,13 @@
   padding: 30rpx 0;
 }
 
-.index .theme .layout1, .index .theme .layout2, .index .theme .layout3,
+.index .theme .layout1,
+.index .theme .layout2,
+.index .theme .layout3,
 .index .theme .layout4 {
   padding-bottom: 30rpx;
 }
+
 
 /* layout1: 栏目布局1 */
 
@@ -168,7 +173,8 @@
   margin-right: 20rpx;
 }
 
-.index .layout1 .book-item.item1, .index .layout1 .book-item.item2,
+.index .layout1 .book-item.item1,
+.index .layout1 .book-item.item2,
 .index .layout1 .book-item.item3 {
   flex: 0 0 33.3333%;
   display: inline-block;
@@ -202,6 +208,7 @@
   font-size: 28rpx;
   margin-top: 4rpx;
 }
+
 
 /* layout2: 栏目布局2 */
 
@@ -251,6 +258,7 @@
   margin-right: 20rpx;
 }
 
+
 /* layout3: 栏目布局3 */
 
 .index .layout3 .book-item {
@@ -279,31 +287,33 @@
   margin-top: 4rpx;
 }
 
-.index .icon-zanwushuju{
+.index .icon-zanwushuju {
   font-size: 240rpx;
   color: #9e9e9e;
 }
 
+
 /* 修改轮播图样式 */
-.index .swiper-box .wx-swiper-dots.wx-swiper-dots-horizontal{
+
+.index .swiper-box .wx-swiper-dots.wx-swiper-dots-horizontal {
   margin-bottom: 2rpx;
 }
 
-.index .swiper-box .wx-swiper-dot{
- width:40rpx;
- display: inline-flex;
- height: 6rpx;
- margin-left: 20rpx;
- justify-content:space-between;
+.index .swiper-box .wx-swiper-dot {
+  width: 24rpx;
+  display: inline-flex;
+  height: 3rpx;
+  margin-left: 15rpx;
+  justify-content: space-between;
 }
 
-.index .swiper-box .wx-swiper-dot::before{
- content: '';
- flex-grow: 1; 
- background: rgba(255,255,255,0.8);
- border-radius: 8rpx
+.index .swiper-box .wx-swiper-dot::before {
+  content: '';
+  flex-grow: 1;
+  background: #cccccc;
+  border-radius: 8rpx
 }
 
-.index .swiper-box .wx-swiper-dot-active::before{
- background:#a3a8f8;   
+.index .swiper-box .wx-swiper-dot-active::before {
+  background: #4990e2;
 }

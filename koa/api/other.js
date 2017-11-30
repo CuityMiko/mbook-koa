@@ -17,4 +17,10 @@ export default function (router) {
             title: '帮助与反馈'
         })
     })
+
+    router.get('/notice', async(ctx, next) => {
+        await ctx.render('notice', {
+            title: '关注公众号'
+        })
+    })
 }

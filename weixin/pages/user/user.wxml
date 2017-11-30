@@ -15,11 +15,13 @@
         <icon class="iconfont icon-arrow-right"></icon>
       </view>
     </navigator>
-    <view class="about-us">
-      <icon class="iconfont icon-guanyuwomen"></icon>
-      <text class="about-us-text">关于我们</text>
-      <icon class="iconfont icon-arrow-right"></icon>
-    </view>
+    <navigator url="/pages/webpage/webpage?url=https://mbook.andylistudio.com/aboutus" open-type="navigate">
+      <view class="about-us">
+        <icon class="iconfont icon-guanyuwomen"></icon>
+        <text class="about-us-text">关于我们</text>
+        <icon class="iconfont icon-arrow-right"></icon>
+      </view>
+    </navigator>
     <view class="main">
       <view class="main-item">
         <icon class="iconfont icon-xiaoxi"></icon>
@@ -28,7 +30,7 @@
       </view>
       <view class="main-item">
         <icon class="iconfont icon-chongzhi"></icon>
-        <text class="main-text">充值</text>
+        <text class="main-text">账户</text>
         <view class="border bottom"></view>
       </view>
       <view class="main-item">
