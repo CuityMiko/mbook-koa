@@ -5,6 +5,9 @@ import chapter from './chapter'
 import user from './user'
 import booklist from './booklist'
 import comment from './comment'
+import good from './good'
+import pay from './pay'
+import buy from './buy'
 import other from './other'
 
 export default function(router) {
@@ -15,5 +18,8 @@ export default function(router) {
     user(router)
     booklist(router)
     comment(router)
+    good(router)
+    pay(router)
+    buy(router)
     other(router)
 }
