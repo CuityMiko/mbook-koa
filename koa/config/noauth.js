@@ -8,7 +8,8 @@ const paths = [
   '/api/chapter/search',
   '/api/chapter/add',
   '/api/get_text',
-  '/api/good/add',
+  '/api/good',
+  '/api/charge',
   '/api/good/list',
   '/api/user/login',
   '/api/user/registe'

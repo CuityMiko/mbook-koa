@@ -5,7 +5,8 @@ const GoodSchema = new mongoose.Schema({
   bookid: { type: mongoose.Schema.Types.ObjectId, ref: 'Book' },
   type: Number, // mode=1书本按照章节计算，mode=2书本限时免费， mode=3书本限章节免费
   prise: Number,
-  limit_time: Date,
+  limit_start_time: Date,
+  limit_end_time: Date,
   limit_chapter: Number,
   create_time: Date
 }, { versionKey: false })

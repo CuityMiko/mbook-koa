@@ -1,8 +1,13 @@
 import { Pay, Good } from '../models'
 
 export default function (router) {
-    router.get('/api/pay/list', async (ctx, next) => {
-        // 获取url参数
-        ctx.body = { ok: true, msg: '获取banner成功', list: {} }
+    router.post('/api/pay', async (ctx, next) => {
+        let payload = await jwtVerify(ctx.header.authorization.split(' ')[1])
+        if(payload && payload.userid){
+            
+        }else{
+            ctx.throw('token过期', 401)
+            await next()
+        }
     })
 }

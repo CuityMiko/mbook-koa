@@ -55,7 +55,7 @@ export default function (router) {
               des: des,
           }
       })
-      if(result.ok === 1 && result.nModified === 1){
+      if(result.ok === 1){
           ctx.body = { ok: true, msg: '更新成功' }
       }else{
           ctx.body = { ok: false, msg: '更新失败', data: result }
