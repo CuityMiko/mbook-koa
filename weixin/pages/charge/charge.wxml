@@ -4,12 +4,12 @@
     <view class="tab-item {{currentPageNum === 2 ? 'active' : ''}}" data-page="2" bindtap="changePage">充值记录</view>
     <view class="tab-item {{currentPageNum === 3 ? 'active' : ''}}" data-page="3" bindtap="changePage">消费记录</view>
   </view>
-  <navigator url="/pages/webpage/webpage?url=https://mbook.andylistudio.com/activity01" open-type="navigate">
+  <!-- <navigator url="/pages/webpage/webpage?url=https://mbook.andylistudio.com/activity01" open-type="navigate">
     <view class="notice">
       <icon class="iconfont icon-tips"></icon>
       <text class="text">这是一段提示文件</text>
     </view>
-  </navigator>
+  </navigator> -->
   <view class="content">
     <view class="content-item" wx:if="{{currentPageNum === 1}}">
       <image class="ad" src="http://fs.andylistudio.com/mbook/charge/banner.png"></image>

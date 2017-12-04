@@ -10,21 +10,11 @@ Page({
     payNum: 0,
     willGetYuebiNum: 0,
     url: '',
-    prises: [
-      { prise: 10, yuebi: 1000, selected: false },
-      { prise: 30, yuebi: 3500, selected: false },
-      { prise: 50, yuebi: 6000, selected: false },
-      { prise: 100, yuebi: 12000, selected: false }
-    ]
+    prises: []
   },
   onLoad: function (options) {
     let self = this
-    // 获取屏幕高度
-    if(options.url){
-      self.setData({ 'url': options.url })
-    }else{
-      self.showToast('地址为空', 'bottom')
-    }
+    self.getChargeGood()
   },
   select: function(event){
     let num = parseInt(event.currentTarget.dataset.num)
@@ -43,6 +33,27 @@ Page({
   changePage: function(event){
     let page = parseInt(event.currentTarget.dataset.page)
     this.setData({ 'currentPageNum': page })
+  },
+  getChargeGood: function(){
+    let self = this
+    wx.request({
+      method: 'GET',
+      url: config.base_url + '/api/charge',
+      success: res => {
+        if(res.data.ok){
+          let prises = res.data.list.map(item => {
+            item.selected = false
+            return item
+          })
+          self.setData({ 'prises': prises })
+        }else{
+          self.showToast('获取充值商品失败' + (res.data.msg ? '，' + res.data.msg : ''), 'bottom')
+        }
+      },
+      fail: err => {
+        self.showToast('获取充值商品失败', 'bottom')
+      }
+    })
   },
   showToast: function(content, position){
     let self = this
