@@ -20,13 +20,13 @@ Page({
       header: { 'Authorization': 'Bearer ' + wx.getStorageSync('token') },
       success: res => {
         if(res.data.ok){
-          let spriteNum = Math.ceil(res.data.books / 3)
+          let spriteNum = Math.ceil(res.data.list.length / 3)
+          spriteNum = spriteNum > 3 ? spriteNum : 3
           let spriteArr = []
           for(let i=0; i<spriteNum; i++){
             spriteArr.push(0)
           }
-          console.log(self)
-          self.setData({ 'spriteArr': spriteArr, 'myBooks': res.data.books })
+          self.setData({ 'spriteArr': spriteArr, 'myBooks': res.data.list })
         }else{
           self.showToast('获取我的书单失败' + (res.data.msg ? '，' + res.data.msg : ''), 'bottom')
         }

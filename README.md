@@ -37,7 +37,7 @@ wx.checkSession({
     self.globalData.token = wx.getStorageSync('token')
   },
   fail: function(){
-    //登录态过期
+    // 登录态过期
     // 获取用户信息
     wx.getSetting({
       success: res => {

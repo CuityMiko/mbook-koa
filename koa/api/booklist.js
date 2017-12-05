@@ -129,7 +129,7 @@ export default function(router) {
       })
     }
     if(thisBookList){
-      ctx.body = { ok: true, msg: '获取书单信息成功', data: newThisBook }
+      ctx.body = { ok: true, msg: '获取书单信息成功', list: newThisBook }
     }else{
       ctx.body = { ok: false, msg: '获取书单信息失败' }
     }

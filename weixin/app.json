@@ -1,13 +1,13 @@
 {
   "pages": [
-    "pages/charge/charge",
-    "pages/user/user",
     "pages/index/index",
+    "pages/user/user",
     "pages/booklist/booklist",
     "pages/fenlei/fenlei",
     "pages/bookdetail/bookdetail",
     "pages/reader/reader",
     "pages/setting/setting",
+    "pages/charge/charge",
     "pages/webpage/webpage"
   ],
   "window": {

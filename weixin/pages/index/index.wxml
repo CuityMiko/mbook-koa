@@ -5,7 +5,7 @@
   <swiper class="swiper-box" wx:if="{{is_show_banner}}" indicator-dots="1" indicator-color="#ffffff" indicator-active-color="#a3a8f8" autoplay="1" interval="4000" duration="500">
     <block wx:for="{{banner_urls}}" wx:key="item._id">
       <swiper-item>
-        <navigator url="{{item.img_url}}">
+        <navigator url="{{item.url}}">
           <image src="{{item.img_url}}" class="slide-image" lazy-load="1"></image>
         </navigator>
       </swiper-item>
