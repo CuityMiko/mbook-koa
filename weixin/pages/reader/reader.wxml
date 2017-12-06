@@ -1,7 +1,7 @@
 <!--index.wxml-->
 <toast toast="{{toast}}"></toast>
 <view class="container reader" style="background-color: {{colorStyle.content_bg}}">
-	<scroll-view class="content" scroll-x="false" scroll-y="true" bindtap="clickPage" scroll-with-animation="true" scroll-top="{{scrollTop}}" style="font-family: {{currentFontFamily == '使用系统字体' ? 'inherit' : currentFontFamily}};font-size:{{allSliderValue.font + 'px'}};color:{{colorStyle.styleNum == '4'? '#85898c': '#000800'}}">
+	<scroll-view class="content" scroll-x="false" scroll-y="true" bindtap="clickPage" scroll-with-animation="true" bindscroll="readerScrollTop" scroll-top="{{scrollTop}}" style="height:{{windows.windows_height+'px'}};font-family: {{currentFontFamily == '使用系统字体' ? 'inherit' : currentFontFamily}};font-size:{{allSliderValue.font + 'px'}};color:{{colorStyle.styleNum == '4'? '#85898c': '#000800'}}">
 		<text>{{content}}</text>
 	</scroll-view>
 	<view class="tips" wx:if="{{showReaderTips}}" bindtap="closeReaderTips">

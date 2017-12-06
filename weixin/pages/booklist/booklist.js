@@ -9,9 +9,12 @@ Page({
     spriteArr: [],
     myBooks: []
   },
-  onLoad: function () {
+  onShow: function(){
     let self = this
     self.getMyBookList()
+  },
+  onLoad: function () {
+    let self = this
   },
   getMyBookList: function(){
     let self = this
@@ -35,6 +38,9 @@ Page({
         self.showToast('获取我的书单失败', 'bottom')
       }
     })
+  },
+  openReader: function(event){
+    wx.navigateTo({ url: '../reader/reader?bookid=' + event.currentTarget.dataset.bookid})
   },
   showToast: function(content, position){
     let self = this

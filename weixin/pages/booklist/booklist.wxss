@@ -29,11 +29,13 @@
   justify-content: flex-start;
   align-items: flex-start;
   padding: 0 60rpx;
+  margin-top: 16rpx;
 }
 
 .books .book-item{
   width: 180rpx;
   margin-right: 45rpx;
+  margin-top: 64rpx;
 }
 
 .books .book-item:nth-child(3n+0){
@@ -44,6 +46,9 @@
   width: 100%;
   height: 240rpx;
   border-radius: 6rpx;
+  box-shadow: 4rpx 4rpx 2rpx #f5f7f6;
+  position: relative;
+  top: 1rpx;
 }
 
 .booklist .shelves .sprite{

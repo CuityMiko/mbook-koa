@@ -7,10 +7,10 @@
     <icon type="search" size="16" color="#828282"/>
   </view> -->
   <view class="shelves">
-    <view class="sprite" wx:for="{{spriteArr}}" style="top: {{ (400 + index * 300 ) + 'rpx' }}"></view>
+    <view class="sprite" wx:for="{{spriteArr}}" style="top: {{ (330 + index * 320 ) + 'rpx' }}"></view>
     <view class="books">
-      <view class="book-item" wx:for="{{myBooks}}" wx:key="item.bookid" data-bookid="{{item.bookid}}">
-        <image src="{{item.img_url}}"></image>
+      <view class="book-item" wx:for="{{myBooks}}" wx:key="item.bookid">
+        <image src="{{item.img_url}}" bindtap="openReader" data-bookid="{{item.bookid}}"></image>
       </view>
     </view>
   </view>

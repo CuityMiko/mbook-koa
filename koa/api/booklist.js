@@ -71,8 +71,9 @@ export default function(router) {
     let token = ctx.header.authorization.split(' ')[1]
     let payload = await jwtVerify(token)
     let { bookid, chapter_num, chapter_page_top } = ctx.request.body
+    console.log(bookid, chapter_num, chapter_page_top)
     if(payload.userid){
-      if(bookid && chapter_num && chapter_page_top){
+      if(bookid && chapter_num && (chapter_page_top || chapter_page_top == 0) ){
         let thisBookList = await BookList.findOne({ userid: payload.userid })
         let newBooks = thisBookList.books.map(item => {
           if(item.bookid.toString() == bookid){
