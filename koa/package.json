@@ -28,6 +28,7 @@
     "pug": "^2.0.0-rc.1",
     "querystring": "^0.2.0",
     "request": "^2.83.0",
+    "restc": "^0.2.2",
     "runkoa": "^1.5.9",
     "uuid": "^3.1.0",
     "weixin-pay": "^1.1.7"

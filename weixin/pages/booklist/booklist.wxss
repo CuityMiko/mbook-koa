@@ -23,7 +23,27 @@
 }
 
 .booklist .books{
-  display: none;
+  display: -webkit-flex;
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 0 60rpx;
+}
+
+.books .book-item{
+  width: 180rpx;
+  margin-right: 45rpx;
+}
+
+.books .book-item:nth-child(3n+0){
+  margin-right: 0;
+}
+
+.books .book-item > image{
+  width: 100%;
+  height: 240rpx;
+  border-radius: 6rpx;
 }
 
 .booklist .shelves .sprite{
