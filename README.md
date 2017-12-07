@@ -74,3 +74,6 @@ wx.checkSession({
 3. 帮助与反馈
 4. 关注公众号
 5. 退出当前账号
+
+
+测试jekins
