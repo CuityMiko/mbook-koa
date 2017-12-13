@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "weixin-pay": "^1.1.7"
+  }
+}

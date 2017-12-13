@@ -55,6 +55,17 @@ Page({
       }
     })
   },
+  // 获取本地ip
+  getLocalIPAddress: function(){
+    wx.request({
+      url: 'http://ip-api.com/json',
+      success:function(e){
+        that.setData({
+          motto:e.data
+        })
+      }
+    })
+  },
   showToast: function(content, position){
     let self = this
     self.setData({ 'toast': { show: true, content: content, position: position } })
