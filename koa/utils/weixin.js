@@ -1,8 +1,8 @@
 import crypto from 'crypto'
-import md5 from 'md5'
 import fs from 'fs'
+import path from 'path'
 import config from '../config'
-
+import { tool } from '../utils'
 /**
  * 解析微信登录用户数据
  * @param sessionKey
@@ -47,7 +47,7 @@ function createUnifiedOrder(payInfo) {
     appid: config.wx_appid,
     mch_id: config.mch_id,
     partner_key: config.partner_key,
-    pfx: fs.readFileSync(config.pfx)
+    pfx: fs.readFileSync(path.join( __dirname + '/' + config.pfx))
   })
   return new Promise((resolve, reject) => {
     weixinpay.createUnifiedOrder({
@@ -57,22 +57,22 @@ function createUnifiedOrder(payInfo) {
       spbill_create_ip: payInfo.spbill_create_ip,
       notify_url: config.notify_url,
       trade_type: 'JSAPI',
+      openid: payInfo.openid,
       product_id: payInfo.chargeid
-    }, (res) => {
-      console.log(`支付参数： ${res}`)
-      if (res.return_code === 'SUCCESS' && res.result_code === 'SUCCESS') {
+    }, (error, result) => {
+      if (result.return_code === 'SUCCESS' && result.return_msg === 'OK') {
         const returnParams = {
-          'appid': res.appid,
+          'appid': result.appid,
           'timeStamp': parseInt(Date.now() / 1000) + '',
-          'nonceStr': res.nonce_str,
-          'package': 'prepay_id=' + res.prepay_id,
+          'nonceStr': result.nonce_str,
+          'package': 'prepay_id=' + result.prepay_id,
           'signType': 'MD5'
         }
-        const paramStr = `appId=${returnParams.appid}&nonceStr=${returnParams.nonceStr}&package=${returnParams.package}&signType=${returnParams.signType}&timeStamp=${returnParams.timeStamp}&key=` + think.config('weixin.partner_key')
-        returnParams.paySign = md5(paramStr).toUpperCase()
+        const paramStr = `appId=${returnParams.appid}&nonceStr=${returnParams.nonceStr}&package=${returnParams.package}&signType=${returnParams.signType}&timeStamp=${returnParams.timeStamp}&key=` + config.partner_key
+        returnParams.paySign = tool.md5(paramStr).toUpperCase()
         resolve(returnParams)
       } else {
-        reject(res)
+        reject(error)
       }
     })
   })
@@ -103,8 +103,7 @@ function buildQuery(queryObj) {
  */
 function signQuery(queryStr) {
   queryStr = queryStr + '&key=' + think.config('weixin.partner_key')
-  const md5 = require('md5')
-  const md5Sign = md5(queryStr)
+  const md5Sign = tool.md5(queryStr)
   return md5Sign.toUpperCase()
 }
 

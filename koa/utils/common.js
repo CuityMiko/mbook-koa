@@ -1,3 +1,5 @@
+import crypto from 'crypto'
+
 /**
  * 格式化日期，转变成'2017/11/19 00:00:00'
  */
@@ -38,8 +40,17 @@ const unique = arr => {
   return res;
 }
 
+/**
+ * 生成md5值
+ * @param {String} str 
+ */
+const md5 = str => {
+    return crypto.createHash('md5').update(str).digest('hex')
+}
+
 module.exports = {
   formatTime: formatTime,
   formatTime2: formatTime2,
-  unique: unique
+  unique: unique,
+  md5: md5
 }
