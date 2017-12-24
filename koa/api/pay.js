@@ -1,18 +1,19 @@
-import { Pay, Good, User } from '../models'
+import { Pay, Good, User, Charge } from '../models'
 import { createUnifiedOrder } from '../utils/weixin'
 import { jwtVerify } from '../utils'
 import moment from 'moment'
 
 export default function (router) {
   router.post('/api/pay', async (ctx, next) => {
-    let { chargeid, pay_money, yuebi_num, spbill_create_ip } = ctx.request.body
+    let { chargeids, pay_money, yuebi_num, spbill_create_ip } = ctx.request.body
+    console.log(chargeids, pay_money, yuebi_num, spbill_create_ip)
     let payload = await jwtVerify(ctx.header.authorization.split(' ')[1])
     if(payload && payload.userid){
       // 查询得到用户的openid
       let thisUser = await User.findById(payload.userid)
       // 参数验证
-      if(!chargeid){
-        ctx.body = { ok: false, msg: '缺乏chargeid参数' }
+      if(!(chargeids instanceof Array) || chargeids.length < 1){
+        ctx.body = { ok: false, msg: 'chargeids参数错误' }
         await next()
         return
       }
@@ -37,7 +38,7 @@ export default function (router) {
       }
       // 创建充值订单
       let thisPay = await Pay.create({
-        chargeid: chargeid,
+        chargeids: chargeids,
         userid: payload.userid,
         pay_money: pay_money,
         yuebi_num: yuebi_num,
@@ -51,9 +52,10 @@ export default function (router) {
         out_trade_no: thisPay.id.toString(),
         pay_money: pay_money,
         spbill_create_ip: spbill_create_ip,
-        chargeid: chargeid
+        chargeids: chargeids
       })
       // 判断生成微信订单是否成功
+      console.log('创建支付订单成功 ✔')
       if(payParams && payParams.appid){
         ctx.body = { ok: true, msg: '生成微信订单成功', params: payParams }
       }else{

@@ -2,7 +2,9 @@ import mongoose from 'mongoose'
 import { Good, User } from './index'
 
 const PaySchema = new mongoose.Schema({
-  chargeid: { type: mongoose.Schema.Types.ObjectId, ref: 'Charge' },
+  chargeids: [
+    { type: mongoose.Schema.Types.ObjectId, ref: 'Charge' }
+  ],
   userid: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   pay_money: Number, // 应支付金额
   yuebi_num: Number, // 获得阅币数

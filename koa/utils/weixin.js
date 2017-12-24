@@ -58,7 +58,7 @@ function createUnifiedOrder(payInfo) {
       notify_url: config.notify_url,
       trade_type: 'JSAPI',
       openid: payInfo.openid,
-      product_id: payInfo.chargeid
+      product_id: payInfo.chargeids.join('|')
     }, (error, result) => {
       if (result.return_code === 'SUCCESS' && result.return_msg === 'OK') {
         const returnParams = {

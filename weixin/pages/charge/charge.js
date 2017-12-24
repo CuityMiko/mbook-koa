@@ -10,11 +10,20 @@ Page({
     payNum: 0,
     willGetYuebiNum: 0,
     url: '',
-    prises: []
+    localIp: '0.0.0.0',
+    prises: [],
+    chargeResult: 'success',
   },
   onLoad: function (options) {
     let self = this
     self.getChargeGood()
+  },
+  showToast: function(content, position){
+    let self = this
+    self.setData({ 'toast': { show: true, content: content, position: position } })
+    setTimeout(function(){
+      self.setData({ 'toast': { show: false, content: '', position: 'bottom' } })
+    }, 3000)
   },
   select: function(event){
     let num = parseInt(event.currentTarget.dataset.num)
@@ -55,22 +64,48 @@ Page({
       }
     })
   },
-  // 获取本地ip
-  getLocalIPAddress: function(){
+  doPay: function(){
+    let self = this
+    // 向后端请求支付参数
+    let selectPrise = this.data.prises.filter(item => {
+      return item.selected
+    })
+    wx.showLoading({
+      title: '调用微信支付',
+    })
     wx.request({
-      url: 'http://ip-api.com/json',
-      success:function(e){
-        that.setData({
-          motto:e.data
-        })
+      method: 'POST',
+      url: config.base_url + '/api/pay',
+      header: { 'Authorization': 'Bearer ' + wx.getStorageSync('token') },
+      data: {
+        chargeids: selectPrise.map(item => { return item.id }),
+        pay_money: 1, // this.data.payNum
+        yuebi_num: this.data.willGetYuebiNum,
+        spbill_create_ip: this.data.localIp || '0.0.0.0'
+      },
+      success: res => {
+        wx.requestPayment({
+          'timeStamp': res.data.params.timeStamp,
+          'nonceStr': res.data.params.nonceStr,
+          'package': res.data.params.package,
+          'signType': res.data.params.signType,
+          'paySign': res.data.params.paySign,
+          'success': res => {
+            wx.hideLoading()
+            // 前往支付成功页面
+          },
+          'fail': err => {
+            console.log(err)
+            wx.hideLoading()
+            // 前往支付失败页面
+            console.log('支付失败了')
+          }
+       })
+      },
+      fail: err => {
+        wx.hideLoading()
+        self.showToast('请求支付参数失败', 'bottom')
       }
     })
-  },
-  showToast: function(content, position){
-    let self = this
-    self.setData({ 'toast': { show: true, content: content, position: position } })
-    setTimeout(function(){
-      self.setData({ 'toast': { show: false, content: '', position: 'bottom' } })
-    }, 3000)
   }
 })

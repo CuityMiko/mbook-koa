@@ -14,13 +14,18 @@ mongodump --host localhost --port 27017 --db mbook --out D:\PROJECT\work01_book_
 ```
 cd D:/mongo/bin
 D:
-mongorestore --host localhost --port 27017 --db mbook
+mongorestore --host localhost --port 27017 --db mbook D:\PROJECT\work01_book_read_app\dump
+``` 
+在Git bash下
+```
+cd f/mongo/bin 
+./mongorestore.exe --host localhost --port 27017 --db mbook --dir F:\work01_book_read_app\dump\mbook
 ```
 ### mongo 备份 linux命令
 ```
 sudo mongodump --host localhost --port 27017 --db mbook /home/andyliwr/文档/work/dump/mbook
 ```
-### mongo 恢复 window命令
+### mongo 恢复 linux命令
 ```
 sudo mongorestore --host localhost --port 27017 --db mbook /home/andyliwr/文档/work/dump/mbook
 ```
