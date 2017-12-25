@@ -1,5 +1,5 @@
 <view class="container charge">
-  <view class="charge-main" wx:if="{{!chargeResult}}">
+  <view class="charge-main" wx:if="{{!chargeResult.type}}">
     <view class="tab">
       <view class="tab-item {{currentPageNum === 1 ? 'active' : ''}}" data-page="1" bindtap="changePage">充值</view>
       <view class="tab-item {{currentPageNum === 2 ? 'active' : ''}}" data-page="2" bindtap="changePage">充值记录</view>
@@ -36,11 +36,11 @@
       <view class="content-item" wx:if="{{currentPageNum === 3}}">消费记录</view>
     </view>
   </view>
-  <view class="charge-result" wx:if="{{chargeResult}}">
-    <icon type="success" size="110"></icon>
-    <view class="main-text">支付成功</view>
-    <view class="main-des">支付奥术大师大所大</view>
-    <button type="primary">去阅读</button>
-    <button type="default">在来一单</button>
+  <view class="charge-result" wx:if="{{chargeResult.type}}">
+    <icon type="{{chargeResult.type}}" size="110"></icon>
+    <view class="main-text">{{chargeResult.mainText}}</view>
+    <view class="main-des">{{chargeResult.desText}}</view>
+    <button type="primary" data-type="main" bindtap="btnClick">{{chargeResult.mainBtnText}}</button>
+    <button type="default" data-type="sub" bindtap="btnClick">{{chargeResult.subBtnText}}</button>
   </view>
 </view>

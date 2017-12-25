@@ -12,7 +12,15 @@ Page({
     url: '',
     localIp: '0.0.0.0',
     prises: [],
-    chargeResult: 'success',
+    chargeResult: {
+      type: '',
+      mainText: '',
+      desText: '',
+      mainBtnText: '',
+      subBtnText: '',
+      mainCallback: null,
+      subCallback: null
+    },
   },
   onLoad: function (options) {
     let self = this
@@ -67,11 +75,11 @@ Page({
   doPay: function(){
     let self = this
     // 向后端请求支付参数
-    let selectPrise = this.data.prises.filter(item => {
+    let selectPrise = self.data.prises.filter(item => {
       return item.selected
     })
     wx.showLoading({
-      title: '调用微信支付',
+      title: '支付中...',
     })
     wx.request({
       method: 'POST',
@@ -79,9 +87,9 @@ Page({
       header: { 'Authorization': 'Bearer ' + wx.getStorageSync('token') },
       data: {
         chargeids: selectPrise.map(item => { return item.id }),
-        pay_money: 1, // this.data.payNum
-        yuebi_num: this.data.willGetYuebiNum,
-        spbill_create_ip: this.data.localIp || '0.0.0.0'
+        pay_money: 1, // self.data.payNum
+        yuebi_num: self.data.willGetYuebiNum,
+        spbill_create_ip: self.data.localIp || '0.0.0.0'
       },
       success: res => {
         wx.requestPayment({
@@ -93,12 +101,65 @@ Page({
           'success': res => {
             wx.hideLoading()
             // 前往支付成功页面
+            self.setData({
+              'chargeResult': {
+                'type': 'success',
+                'mainText': '支付成功',
+                'desText': '获得' + self.data.willGetYuebiNum + '阅币，快去阅读吧~',
+                'mainBtnText': '去阅读',
+                'subBtnText': '再来一单',
+                'mainCallback': () => {
+                  wx.switchTab({
+                    url: '../booklist/booklist'
+                  })
+                },
+                'subCallback': () => {
+                  self.setData({
+                    'chargeResult': {
+                      'type': '',
+                      'mainText': '',
+                      'desText': '',
+                      'mainBtnText': '',
+                      'subBtnText': '',
+                      'mainCallback': null,
+                      'subCallback': null
+                    }
+                  })
+                }
+              }
+            })
           },
           'fail': err => {
             console.log(err)
             wx.hideLoading()
             // 前往支付失败页面
-            console.log('支付失败了')
+            self.setData({
+              'chargeResult': {
+                'type': 'warn',
+                'mainText': '支付失败',
+                'desText': '',
+                'mainBtnText': '重新下单',
+                'subBtnText': '去阅读',
+                'mainCallback': () => {
+                  self.setData({
+                    'chargeResult': {
+                      'type': '',
+                      'mainText': '',
+                      'desText': '',
+                      'mainBtnText': '',
+                      'subBtnText': '',
+                      'mainCallback': null,
+                      'subCallback': null
+                    }
+                  })
+                },
+                'subCallback': () => {
+                  wx.switchTab({
+                    url: '../booklist/booklist'
+                  })
+                }
+              }
+            })
           }
        })
       },
@@ -107,5 +168,18 @@ Page({
         self.showToast('请求支付参数失败', 'bottom')
       }
     })
+  },
+  // 处理支付页面点击事件
+  btnClick: function(event){
+    let type = event.currentTarget.dataset.type
+    if(type === 'main'){
+      if(typeof this.data.chargeResult.mainCallback === 'function'){
+        this.data.chargeResult.mainCallback()
+      }
+    }else if(type === 'sub'){
+      if(typeof this.data.chargeResult.subCallback === 'function'){
+        this.data.chargeResult.subCallback()
+      }
+    }
   }
 })

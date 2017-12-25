@@ -1,13 +1,15 @@
-page{
+page {
   height: 100%;
 }
-.charge{
+
+.charge {
   display: -webkit-flex;
   display: flex;
   flex-flow: column nowrap;
   justify-content: flex-start;
 }
-.tab{
+
+.tab {
   height: 80rpx;
   display: -webkit-flex;
   display: flex;
@@ -16,7 +18,8 @@ page{
   align-items: center;
   background: #1472e0;
 }
-.tab-item{
+
+.tab-item {
   width: 200rpx;
   height: 80rpx;
   line-height: 80rpx;
@@ -24,11 +27,13 @@ page{
   color: #aed3f6;
   font-size: 32rpx;
 }
-.tab-item.active{
+
+.tab-item.active {
   color: #ffffff;
   border-bottom: 8rpx solid #ffffff;
 }
-.notice{
+
+.notice {
   color: #f9b14b;
   font-size: 32rpx;
   height: 70rpx;
@@ -38,36 +43,45 @@ page{
   text-overflow: ellipsis;
   padding: 0 20rpx;
 }
-.notice .icon-tips{
+
+.notice .icon-tips {
   font-size: 48rpx;
   position: relative;
   top: -2rpx;
   margin-right: 10rpx;
 }
-.notice .text{
+
+.notice .text {
   font-size: 29rpx;
 }
-.notice .iconfont, .notice .text{
+
+.notice .iconfont,
+.notice .text {
   vertical-align: middle;
   line-height: 70rpx;
 }
-.content{
+
+.content {
   flex: 1;
 }
-.content-item{
+
+.content-item {
   height: 100%;
   position: relative;
 }
-.ad{
+
+.ad {
   width: 100%;
   height: 240rpx;
 }
-.title{
+
+.title {
   color: #353535;
   font-size: 32rpx;
   padding: 20rpx 30rpx;
 }
-.selector{
+
+.selector {
   margin: 30rpx;
   display: -webkit-flex;
   display: flex;
@@ -75,7 +89,8 @@ page{
   justify-content: flex-start;
   align-content: space-between;
 }
-.selector-item{
+
+.selector-item {
   width: 200rpx;
   height: 120rpx;
   color: #888888;
@@ -84,40 +99,49 @@ page{
   margin-right: 40rpx;
   position: relative;
 }
-.selector-item:nth-child(3){
+
+.selector-item:nth-child(3) {
   margin-right: 0;
 }
-.selector-item:nth-child(4){
+
+.selector-item:nth-child(4) {
   margin-top: 40rpx;
 }
-.selector-item > text{
+
+.selector-item>text {
   display: block;
   text-align: center;
 }
-.selector-item .yuebi{
+
+.selector-item .yuebi {
   font-size: 36rpx;
   margin-top: 15rpx;
 }
-.selector-item .jiage{
+
+.selector-item .jiage {
   font-size: 30rpx;
 }
-.selector-item.active{
+
+.selector-item.active {
   border: 1rpx solid #1472e0;
 }
-.selector-item .icon-xuanzhong1{
+
+.selector-item .icon-xuanzhong1 {
   display: none;
-  position:absolute;
-  bottom:3px;
-  right:-11rpx;
-  font-size:40rpx;
-  width:50rpx;
-  height:50rpx;
-  color:#1472e0;
+  position: absolute;
+  bottom: 3px;
+  right: -11rpx;
+  font-size: 40rpx;
+  width: 50rpx;
+  height: 50rpx;
+  color: #1472e0;
 }
-.selector-item.active .icon-xuanzhong1{
+
+.selector-item.active .icon-xuanzhong1 {
   display: inline-block;
 }
-.zhifu{
+
+.zhifu {
   height: 100rpx;
   position: fixed;
   bottom: 0;
@@ -127,46 +151,62 @@ page{
   text-align: left;
   padding-right: 120rpx;
 }
-.pay-money{
+
+.pay-money {
   font-size: 32rpx;
   color: #1472e0;
   margin-top: 15rpx;
 }
-.pay-yuebi{
+
+.pay-yuebi {
   font-size: 30rpx;
   color: #888888;
 }
-.pay-money, .pay-yuebi{
+
+.pay-money,
+.pay-yuebi {
   height: 40rpx;
   line-height: 40rpx;
   padding-left: 30rpx;
 }
-.zhifu button{
-  position:absolute;
-  width:180rpx;
-  height:100rpx;
-  background:#1472e0;
-  z-index:1000;
-  right:124rpx;
-  top:0;
-  vertical-align:middle;
-  border-radius:0;
-  box-sizing:border-box;
-  font-size:32rpx;
-  line-height:100rpx;
+
+.zhifu button {
+  position: absolute;
+  width: 180rpx;
+  height: 100rpx;
+  background: #1472e0;
+  z-index: 1000;
+  right: 124rpx;
+  top: 0;
+  vertical-align: middle;
+  border-radius: 0;
+  box-sizing: border-box;
+  font-size: 32rpx;
+  line-height: 100rpx;
 }
-.charge-result{
+
+.charge-result {
   height: 100%;
   text-align: center;
 }
-.charge-result>icon{
-  margin: 60rpx 0 80rpx 0;
+
+.charge-result>icon {
+  margin: 140rpx 0 60rpx 0;
 }
-.charge-result .main-text{
+
+.charge-result .main-text {
   font-size: 38rpx;
-  color: #353535;
+  color: #000000;
+  font-weight: 400;
 }
-.charge-result .main-des{
-  font-size: 32rpx;
+
+.charge-result .main-des {
+  font-size: 30rpx;
+  margin-top: 12rpx;
+  margin-bottom: 60rpx;
   color: #888888;
+}
+
+.charge-result>button{
+  margin: 20rpx 30rpx 0 30rpx;
 }
