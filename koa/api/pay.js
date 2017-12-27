@@ -1,5 +1,5 @@
 import { Pay, Good, User, Charge } from '../models'
-import { createUnifiedOrder } from '../utils/weixin'
+import { createUnifiedOrder, weixinpay } from '../utils/weixin'
 import { jwtVerify } from '../utils'
 import moment from 'moment'
 
@@ -66,4 +66,10 @@ export default function (router) {
         await next()
     }
   })
+
+  router.all('/api/pay/notify', weixinpay.useKoaWXCallback((msg, ctx, next) => {
+    // 处理商户业务逻辑
+    console.log('回调')
+    console.log(ctx)
+  }))
 }

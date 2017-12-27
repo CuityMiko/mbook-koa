@@ -3,6 +3,15 @@ import fs from 'fs'
 import path from 'path'
 import config from '../config'
 import { tool } from '../utils'
+
+// 初始化微信支付
+const WeiXinPay = require('./weixin-pay/index');
+const weixinpay = new WeiXinPay({
+  appid: config.wx_appid,
+  mch_id: config.mch_id,
+  partner_key: config.partner_key,
+  pfx: fs.readFileSync(path.join( __dirname + '/' + config.pfx))
+})
 /**
  * 解析微信登录用户数据
  * @param sessionKey
@@ -42,13 +51,6 @@ async function decryptUserInfoData(sessionKey, encryptedData, iv) {
  * @returns {Promise}
  */
 function createUnifiedOrder(payInfo) {
-  const WeiXinPay = require('weixin-pay');
-  const weixinpay = new WeiXinPay({
-    appid: config.wx_appid,
-    mch_id: config.mch_id,
-    partner_key: config.partner_key,
-    pfx: fs.readFileSync(path.join( __dirname + '/' + config.pfx))
-  })
   return new Promise((resolve, reject) => {
     weixinpay.createUnifiedOrder({
       body: payInfo.body,
@@ -137,4 +139,4 @@ function payNotify(notifyData) {
   return notifyObj
 }
 
-export { decryptUserInfoData, createUnifiedOrder, buildQuery, signQuery, payNotify }
+export { decryptUserInfoData, createUnifiedOrder, buildQuery, signQuery, payNotify, weixinpay }

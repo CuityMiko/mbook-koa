@@ -46,6 +46,7 @@ export default function (router) {
         ctx.body = { ok: false, msg: '缺乏pay_money参数' }
       }
     })
+    
     router.get('/api/charge', async (ctx, next) => {
       let result = []
       let thisCharge = await Charge.find().sort({ 'pay_money': 1 })
