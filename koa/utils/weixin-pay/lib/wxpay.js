@@ -129,15 +129,15 @@ WXPay.mix('useWXCallback', function (fn) {
 // 适用于koa的useWxCallback
 WXPay.mix('useKoaWXCallback', function (fn) {
 	return async function (ctx, next) {
-		console.log(ctx)
 		var _this = this;
-		ctx.res.success = function () { ctx.res.end(util.buildXML({ xml: { return_code: 'SUCCESS' } })); };
-		ctx.res.fail = function () { ctx.res.end(util.buildXML({ xml: { return_code: 'FAIL' } })); };
+		ctx.success = function () { ctx.body = util.buildXML({ xml: { return_code: 'SUCCESS' } }); };
+		ctx.fail = function () { ctx.body = util.buildXML({ xml: { return_code: 'FAIL' } }); };
 
-		util.pipe(ctx.req, function (err, data) {
+		util.pipe(ctx, function (err, data) {
 			var xml = data.toString('utf8');
 			util.parseXML(xml, function (err, msg) {
-				ctx.req.wxmessage = msg;
+				console.log(msg)
+				ctx.wxmessage = msg;
 				fn.apply(_this, [msg, ctx, next]);
 			});
 		});
