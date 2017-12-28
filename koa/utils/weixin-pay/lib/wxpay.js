@@ -133,11 +133,11 @@ WXPay.mix('useKoaWXCallback', function (fn) {
 		ctx.success = function () { ctx.body = util.buildXML({ xml: { return_code: 'SUCCESS' } }); };
 		ctx.fail = function () { ctx.body = util.buildXML({ xml: { return_code: 'FAIL' } }); };
 
-		util.pipe(ctx, function (err, data) {
+		util.pipe(ctx.response, function (err, data) {
 			var xml = data.toString('utf8');
 			util.parseXML(xml, function (err, msg) {
 				console.log(msg)
-				ctx.wxmessage = msg;
+				ctx.response.wxmessage = msg;
 				fn.apply(_this, [msg, ctx, next]);
 			});
 		});
