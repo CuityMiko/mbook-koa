@@ -6,7 +6,7 @@ const config = {
 	mch_id: '1493983632', // 支付商户号
 	partner_key: 'eysEem0uvwHw1y0gQt5D1XhldCW7b78t', // 微信商户平台API密钥
 	pfx: '../config/weixin_pay_cert.p12', // 微信商户平台证书
-	notify_url: 'https://mbook.lilyplay.com/api/pay/notify' // 微信异步通知
+	notify_url: 'http://ldk.free.ngrok.cc/api/pay/notify' // 微信异步通知
 }
 
 module.exports = config

@@ -81,4 +81,6 @@ wx.checkSession({
 5. 退出当前账号
 
 
-测试jekins
+### ngrok代理本地500端口调试微信
+隧道id：2be12d1c071de987
+访问地址：http://ldk.free.ngrok.cc
