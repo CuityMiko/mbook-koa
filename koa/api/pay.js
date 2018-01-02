@@ -1,6 +1,6 @@
 import { Pay, Good, User, Charge } from '../models'
 import { createUnifiedOrder, weixinpay } from '../utils/weixin'
-import { jwtVerify } from '../utils'
+import { jwtVerify, tool } from '../utils'
 import moment from 'moment'
 
 export default function (router) {
@@ -8,30 +8,30 @@ export default function (router) {
     let { chargeids, pay_money, yuebi_num, spbill_create_ip } = ctx.request.body
     console.log(chargeids, pay_money, yuebi_num, spbill_create_ip)
     let payload = await jwtVerify(ctx.header.authorization.split(' ')[1])
-    if(payload && payload.userid){
+    if (payload && payload.userid) {
       // 查询得到用户的openid
       let thisUser = await User.findById(payload.userid)
       // 参数验证
-      if(!(chargeids instanceof Array) || chargeids.length < 1){
+      if (!(chargeids instanceof Array) || chargeids.length < 1) {
         ctx.body = { ok: false, msg: 'chargeids参数错误' }
         await next()
         return
       }
-      if(!pay_money){
+      if (!pay_money) {
         ctx.body = { ok: false, msg: '缺乏pay_money参数' }
         await next()
         return
-      }else{
+      } else {
         pay_money = parseFloat(pay_money)
       }
-      if(!yuebi_num){
+      if (!yuebi_num) {
         ctx.body = { ok: false, msg: '缺乏yuebi_num参数' }
         await next()
         return
-      }else{
+      } else {
         yuebi_num = parseInt(yuebi_num)
       }
-      if(!spbill_create_ip){
+      if (!spbill_create_ip) {
         ctx.body = { ok: false, msg: '缺乏spbill_create_ip参数' }
         await next()
         return
@@ -56,20 +56,38 @@ export default function (router) {
       })
       // 判断生成微信订单是否成功
       console.log('创建支付订单成功 ✔')
-      if(payParams && payParams.appid){
+      if (payParams && payParams.appid) {
         ctx.body = { ok: true, msg: '生成微信订单成功', params: payParams }
-      }else{
+      } else {
         ctx.body = { ok: false, msg: '生成微信订单失败', params: payParams }
       }
-    }else{
-        ctx.throw('token过期', 401)
-        await next()
+    } else {
+      ctx.throw('token过期', 401)
+      await next()
     }
   })
 
-  router.all('/api/pay/notify', weixinpay.useKoaWXCallback((msg, ctx, next) => {
+  router.all('/api/pay/notify', async (ctx, next) => {
     // 处理商户业务逻辑
-    console.log('回调')
-    console.log(ctx)
-  }))
+    let promise = new Promise(function (resolve, reject) {
+      let buf = ''
+      ctx.req.setEncoding('utf8')
+      ctx.req.on('data', (chunk) => {
+        buf += chunk
+      })
+      ctx.req.on('end', () => {
+        tool.xmlToJson(buf)
+          .then(resolve)
+          .catch(reject)
+      })
+    })
+
+    await promise.then((result) => {
+      console.log(result)
+      ctx.req.body = result
+    }).catch((e) => {
+      e.status = 400
+    })
+    next()
+  })
 }

@@ -28,11 +28,14 @@ exports.parseRaw = function(){
 };
 
 exports.pipe = function(stream, fn){
+	console.log(stream.on)
 	var buffers = [];
 	stream.on('data', function (trunk) {
+		console.log('trunk', trunk)
 		buffers.push(trunk);
 	});
 	stream.on('end', function () {
+		console.log('buffers', buffers)
 		fn(null, Buffer.concat(buffers));
 	});
 	stream.once('error', fn);
