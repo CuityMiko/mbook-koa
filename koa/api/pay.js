@@ -57,7 +57,7 @@ export default function (router) {
       // 判断生成微信订单是否成功
       console.log('创建支付订单成功 ✔')
       if (payParams && payParams.appid) {
-        ctx.body = { ok: true, msg: '生成微信订单成功', params: payParams }
+        ctx.body = { ok: true, msg: '生成微信订单成功', params: payParams, pay_id: thisPay.id.toString() }
       } else {
         ctx.body = { ok: false, msg: '生成微信订单失败', params: payParams }
       }
@@ -116,5 +116,22 @@ export default function (router) {
     }).catch((e) => {
       e.status = 400
     })
+  })
+
+  // 小程序报告取消支付
+  router.get('/api/pay/cancel', async (ctx, next) => {
+    let payId = ctx.request.query.pay_id
+    if(payId){
+      let updateResult = await Pay.updateStatus(payId, 3)
+      // 关闭订单
+      weixinpay.closeOrder({ out_trade_no: payId}, function(err, result){})
+      if(updateResult){
+        ctx.body = { ok: true, msg: '取消订单成功' }
+      }else{
+        ctx.body = { ok: false, msg: '取消订单失败，参数错误' }
+      }
+    }else{
+      ctx.body = { ok: false, msg: '取消订单失败，参数错误' }
+    }
   })
 }
