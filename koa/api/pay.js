@@ -67,7 +67,8 @@ export default function (router) {
     }
   })
 
-  router.all('/api/pay/notify', async (ctx, next) => {
+  router.post('/api/pay/notify', async (ctx, next) => {
+    console.log('微信回调...')
     // 处理商户业务逻辑
     let promise = new Promise(function (resolve, reject) {
       let buf = ''
@@ -82,12 +83,38 @@ export default function (router) {
       })
     })
 
-    await promise.then((result) => {
+    await promise.then(async (result) => {
       console.log(result)
-      ctx.req.body = result
+      ctx.type = 'xml'
+      // 判断result是否为空，为空则返回fail
+      if(tool.isEmpty(result)){
+        ctx.body = `<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[支付失败]]></return_msg></xml>`
+      }else{
+        if(result.xml && result.xml.out_trade_no && result.xml.out_trade_no[0]){
+          let thisPay = await Pay.findById(result.xml.out_trade_no[0])
+          if(thisPay){
+            if(result.xml && result.xml.result_code && result.xml.result_code[0] === 'SUCCESS'){
+              // 处理订单状态, 修改status的值
+              await Pay.updateStatus(result.xml.out_trade_no[0], 1)
+              ctx.body = `<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>`
+              console.log('支付成功')
+            }else{
+              await Pay.updateStatus(result.xml.out_trade_no[0], 2)
+              ctx.body = `<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[支付失败]]></return_msg></xml>`
+              console.log('支付失败')
+            }
+          }else{
+            ctx.body = `<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[订单不存在]]></return_msg></xml>`
+            console.log('订单不存在')
+          }
+        }else{
+          ctx.body = `<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[订单不存在]]></return_msg></xml>`
+          console.log('订单不存在')
+        }
+      }
+      await next()
     }).catch((e) => {
       e.status = 400
     })
-    next()
   })
 }

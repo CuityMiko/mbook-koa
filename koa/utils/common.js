@@ -76,11 +76,30 @@ const jsonToXml = obj => {
   return builder.buildObject(obj)
 }
 
+/**
+ * 模拟thinkjs判断对象是否为空
+ * @param {Object} obj 
+ */
+const isEmpty = obj => {
+  if(!obj){
+    return true
+  }else{
+    if(typeof(obj) === 'object' && JSON.stringify(obj) === '{}'){
+      return true
+    }
+    if(obj instanceof Array && obj.length === 0){
+      return true
+    }
+    return false
+  }
+}
+
 module.exports = {
   formatTime: formatTime,
   formatTime2: formatTime2,
   unique: unique,
   md5: md5,
   xmlToJson: xmlToJson,
-  jsonToXml: jsonToXml
+  jsonToXml: jsonToXml,
+  isEmpty: isEmpty
 }
