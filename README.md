@@ -13,7 +13,7 @@
   ```
   cd D:/mongo/bin
   D:
-  mongorestore --host localhost --port 27017 --db mbook D:\PROJECT\work01_book_read_app\dump
+  mongorestore --host localhost --port 27017 --db mbook D:\PROJECT\work01_book_read_app\dump\mbook
   ``` 
 3. linux备份
   ```

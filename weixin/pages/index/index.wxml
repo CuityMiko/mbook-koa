@@ -1,4 +1,6 @@
 <!--index.wxml-->
+<import src="../../component/imgloader/imgloader.wxml"/>
+<template is="imgloader" data="{{ imgList }}"></template>
 <toast toast="{{toast}}"></toast>
 
 <scroll-view class="container index" style="height:{{clientHeight}}px;" scroll-y="true">  
