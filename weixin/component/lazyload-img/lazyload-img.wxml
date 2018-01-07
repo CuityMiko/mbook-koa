@@ -1,1 +1,4 @@
-<image class="lazyload-img" lazy-load="false" binderror="imgError" bindload="imgLoad"></image>
+<view class="lazyload-img">
+  <image class="true-img" lazy-load="false" binderror="imgError" bindload="imgLoad" src="{{src}}"></image>
+  <image wx:if="{{!loaded}}" class="false-img" src="https://fs.andylistudio.com/mbook/book-loading.svg"></image>
+</view>

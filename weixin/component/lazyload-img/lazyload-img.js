@@ -1,20 +1,25 @@
 Component({
   properties: {
+    class: {
+      type: String,
+      value: ''
+    },
     mode: {
       type: String,
       value: 'scaleToFill'
     },
     src: {
       type: String,
-      value: '../../static/img/book-loading.svg' // 默认加载loading图片
+      value: 'https://fs.andylistudio.com/mbook/book-loading.svg' // 默认加载loading图片
     }
   },
   data: {
-    animation: ''
+    loaded: false
   },
   methods: {
     imgLoad: function (event) {
-      console.log(event)
+      // 图片加载完成,将地址改成真实地址
+      this.data.loaded = true
     },
     imgError: function(event){
       console.log(event)
