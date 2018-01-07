@@ -6,6 +6,7 @@ const BookSchema = new mongoose.Schema({
     author: String, // 作者
     des: String, // 书籍描述
     classification: String, // 所属分类
+    classify_order: Number, // 所属分类的排序值
     update_status: String, // 更新状态--连载中或者完结
     newest_chapter: Number, // 最新章节
     total_words: String, // 总字数
