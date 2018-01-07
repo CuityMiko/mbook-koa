@@ -2,7 +2,6 @@
 const app = getApp()
 const config = require('../../config')
 const utils = require('../../utils/util')
-const ImgLoader = require('../../component/imgloader/imgloader')
 
 Page({
   data: {
@@ -11,7 +10,6 @@ Page({
     banner_urls: [],
     is_show_banner: true,
     themes: [],
-    imgLoadList: [],
     click_times: {}, // 换一批点击次数
     isBannerOk: false,
     isThemeOk: false
@@ -38,8 +36,6 @@ Page({
     })();
     self.getBanner()
     self.getTheme()
-    //初始化图片预加载组件，并指定统一的加载完成回调
-    this.imgLoader = new ImgLoader(this, this.imageOnLoad.bind(this))
   },
   showToast: function (content, position) {
     let self = this
@@ -76,24 +72,15 @@ Page({
       url: config.base_url + '/api/theme/index_list',
       success: function (res) {
         if (res.data.ok) {
-          let imgList = []
           self.setData({ 'themes': res.data.list })
           // 初始化换一批的点击次数
           res.data.list.forEach(item => {
-            item.books.forEach(bookItem => {
-              imgList.push({
-                url: bookItem.img_url,
-                loaded: false
-              })
-            })
             if (item.flush) {
               let tmpObj = {}
               tmpObj[item._id] = 2
               self.setData({ click_times: Object.assign(self.data.click_times, tmpObj) })
             }
           })
-          self.setData({ 'imgList': imgList })
-          self.loadImages()
         } else {
           // 隐藏banner
           self.showToast('获取栏目信息失败', 'bottom')
@@ -142,23 +129,6 @@ Page({
         }
       })
     }
-  },
-  loadImages() {
-    //同时发起全部图片的加载
-    this.data.imgList.forEach(item => {
-        this.imgLoader.load(item.url)
-    })
-  },
-  //加载完成后的回调
-  imageOnLoad(err, data) {
-    console.log('图片加载完成', err, data.src)
-
-    const imgList = this.data.imgList.map(item => {
-      if (item.url == data.src)
-        item.loaded = true
-      return item
-    })
-    this.setData({ imgList })
   },
   gotoDetail: function (event) {
     let bookid = event.currentTarget.dataset.bookid

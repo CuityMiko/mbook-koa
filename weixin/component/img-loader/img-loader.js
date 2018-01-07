@@ -30,7 +30,6 @@ class ImgLoader {
 
     let list = this.page.data.imgLoadList,
       imgInfo = this.imgInfo[src]
-
     if (callback)
       this.callbacks[src] = callback
 
@@ -57,7 +56,6 @@ class ImgLoader {
     //记录已下载图片的尺寸信息
     this.imgInfo[src] = { width, height }
     this._removeFromLoadList(src)
-
     this._runCallback(null, { src, width, height })
   }
 
@@ -76,6 +74,7 @@ class ImgLoader {
 
   //执行回调
   _runCallback(err, data) {
+    console.log('加载成功')
     let callback = this.callbacks[data.src] || this.defaultCallback
     callback(err, data)
     delete this.callbacks[data.src]

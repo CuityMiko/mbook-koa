@@ -1,2 +1,13 @@
 <!--pages/fenlei/fenlei.wxml-->
-<text>pages/fenlei/fenlei.wxml</text>
+<toast toast="{{toast}}"></toast>
+<view class="img_list">
+    <view wx:for="{{ imgList }}" class="img_wrap">
+        <image wx:if="{{ item.loaded }}" src="{{ item.url }}" class="fade-in" />
+    </view>
+</view>
+
+<button bindtap="loadImages">Click To Load Images</button>
+
+<!-- 引入图片预加载组件 -->
+<import src="../../component/img-loader/img-loader.wxml"/>
+<template is="img-loader" data="{{ imgLoadList }}"></template>

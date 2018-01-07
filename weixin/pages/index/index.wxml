@@ -1,8 +1,5 @@
 <!--index.wxml-->
-<import src="../../component/imgloader/imgloader.wxml"/>
-<template is="imgloader" data="{{ imgList }}"></template>
 <toast toast="{{toast}}"></toast>
-
 <scroll-view class="container index" style="height:{{clientHeight}}px;" scroll-y="true">  
   <swiper class="swiper-box" wx:if="{{is_show_banner}}" indicator-dots="1" indicator-color="#ffffff" indicator-active-color="#a3a8f8" autoplay="1" interval="4000" duration="500">
     <block wx:for="{{banner_urls}}" wx:key="item._id">
@@ -14,26 +11,36 @@
     </block>
   </swiper>
   <view class="nav">
-    <view class="nav-item">
-      <icon class="iconfont icon-paihang"></icon>
-      <text>排行</text>
-    </view>
-    <view class="nav-item">
-      <icon class="iconfont icon-nvsheng"></icon>
-      <text>女生</text>
-    </view>
-    <view class="nav-item">
-      <icon class="iconfont icon-nansheng"></icon>
-      <text>男生</text>
-    </view>
-    <view class="nav-item">
-      <icon class="iconfont icon-sousuo"></icon>
-      <text>搜索</text>
-    </view>
-    <view class="nav-item">
-      <icon class="iconfont icon-cz"></icon>
-      <text>充值</text>
-    </view>
+    <navigator url="/pages/rank/rank">
+      <view class="nav-item">
+        <icon class="iconfont icon-paihang" style="background: #ffc539"></icon>
+        <text>排行</text>
+      </view>
+    </navigator>
+     <navigator url="/pages/rank/rank">
+      <view class="nav-item">
+        <icon class="iconfont icon-nvsheng" style="background: #ff6687"></icon>
+        <text>女生</text>
+      </view>
+    </navigator>
+     <navigator url="/pages/rank/rank">
+      <view class="nav-item">
+        <icon class="iconfont icon-nansheng" style="background: #6db3f7"></icon>
+        <text>男生</text>
+      </view>
+    </navigator>
+     <navigator url="/pages/search/search">
+      <view class="nav-item">
+        <icon class="iconfont icon-sousuo" style="background: #ff9654"></icon>
+        <text>搜索</text>
+      </view>
+    </navigator>
+     <navigator url="/pages/charge/charge">
+      <view class="nav-item">
+        <icon class="iconfont icon-cz" style="background: #1bdb9f"></icon>
+        <text>充值</text>
+      </view>
+    </navigator>
   </view>
   <view class="theme" wx:if="{{themes.length > 0 ? true : false}}" wx:for="{{themes}}" wx:key="item._id">
     <view class="theme-title">
@@ -44,7 +51,8 @@
     </view>
     <view class="{{'layout' + item.layout}}">
       <view class="{{'book-item item' + bookIndex}}" wx:for="{{item.books}}" wx:for-index="bookIndex" wx:for-item="bookItem" wx:key="bookItem._id" data-bookid="{{bookItem._id}}" data-name="{{bookItem.name}}" bindtap="gotoDetail">
-        <image class="book-img" src="{{bookItem.img_url}}"></image>
+        <lazyload-img class="book-img" src="{{item.img_url}}"></lazyload-img>
+        <!-- <image class="book-img fade-in" src="../../static/img/book-loading.svg"></image> -->
         <view class="book-info">
           <text class="book-name">{{bookItem.name}}</text>
           <text class="book-des">{{bookItem.des}}</text>

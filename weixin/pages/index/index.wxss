@@ -33,7 +33,7 @@
 }
 
 .index .nav .nav-item {
-  width: 90rpx;
+  width: 100rpx;
   text-align: center;
 }
 
@@ -45,26 +45,7 @@
   font-size: 50rpx;
   color: #fff;
   border-radius: 30rpx;
-}
-
-.index .nav .nav-item:first-child icon {
-  background: #ffc539;
-}
-
-.index .nav .nav-item:nth-child(2) icon {
-  background: #ff6687;
-}
-
-.index .nav .nav-item:nth-child(3) icon {
-  background: #6db3f7;
-}
-
-.index .nav .nav-item:nth-child(4) icon {
-  background: #ff9654;
-}
-
-.index .nav .nav-item:last-child icon {
-  background: #1bdb9f;
+  margin: 0 auto;
 }
 
 .index .nav .nav-item text {
@@ -139,6 +120,7 @@
 .index .layout1 .book-item.item0 .book-img {
   width: 210rpx;
   height: 270rpx;
+  background-color: #dddddd;
 }
 
 .index .layout1 .book-item.item0 .book-info {
@@ -187,6 +169,7 @@
   display: block;
   width: 210rpx;
   height: 270rpx;
+  background-color: #dddddd;
 }
 
 .index .layout1 .book-item.item1 .book-des,
@@ -224,6 +207,7 @@
 .index .layout2 .book-item .book-img {
   width: 210rpx;
   height: 270rpx;
+  background-color: #dddddd;
 }
 
 .index .layout2 .book-item .book-info {
@@ -271,6 +255,7 @@
   display: block;
   width: 210rpx;
   height: 270rpx;
+  background-color: #dddddd;  
 }
 
 .index .layout3 .book-item .book-des {

@@ -7,13 +7,15 @@
   ```
   cd D:/mongo/bin
   D:
-  mongodump --host localhost --port 27017 --db mbook --out D:\PROJECT\work01_book_read_app\dump
+  mongodump --host localhost --port 27017 --db mbook --out D:\PROJECT\work01_book_read_app\dump  (ths)
+  ./mongodump.exe --host localhost --port 27017 --db mbook E:/work01_book_read_app/dump  (home)
   ```
 2. windows恢复
   ```
   cd D:/mongo/bin
   D:
-  mongorestore --host localhost --port 27017 --db mbook D:\PROJECT\work01_book_read_app\dump\mbook
+  mongorestore --host localhost --port 27017 --db mbook D:\PROJECT\work01_book_read_app\dump\mbook  (ths)
+  ./mongorestore.exe --host localhost --port 27017 --db mbook E:/work01_book_read_app/dump/mbook  (home)
   ``` 
 3. linux备份
   ```
@@ -80,3 +82,5 @@
 访问地址: `http://ldk.free.ngrok.cc`
 linux启动方式: `./sunny clientid 2be12d1c071de987`
 windows启动方式: 双击`ngrok.bat`
+
+https://loading.io/icon/custom/95323/
