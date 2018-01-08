@@ -1,6 +1,5 @@
 //login.js
 const config = require('../../config')
-const utils = require('../../utils/util')
 
 var currentGesture = 0; //控制当一个手势进行的时候屏蔽其他的手势
 var moveTime = null; //控制左滑右滑的动画

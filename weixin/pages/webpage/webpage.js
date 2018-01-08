@@ -1,7 +1,5 @@
 // pages/setting/webpage.js
-const app = getApp()
 const config = require('../../config')
-const utils = require('../../utils/util')
 
 Page({
   data: {
