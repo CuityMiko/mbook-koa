@@ -1,6 +1,6 @@
 import { Pay, Good, User, Charge } from '../models'
 import { createUnifiedOrder, weixinpay } from '../utils/weixin'
-import { jwtVerify } from '../utils'
+import { jwtVerify, tool } from '../utils'
 import moment from 'moment'
 
 export default function (router) {
@@ -8,30 +8,30 @@ export default function (router) {
     let { chargeids, pay_money, yuebi_num, spbill_create_ip } = ctx.request.body
     console.log(chargeids, pay_money, yuebi_num, spbill_create_ip)
     let payload = await jwtVerify(ctx.header.authorization.split(' ')[1])
-    if(payload && payload.userid){
+    if (payload && payload.userid) {
       // 查询得到用户的openid
       let thisUser = await User.findById(payload.userid)
       // 参数验证
-      if(!(chargeids instanceof Array) || chargeids.length < 1){
+      if (!(chargeids instanceof Array) || chargeids.length < 1) {
         ctx.body = { ok: false, msg: 'chargeids参数错误' }
         await next()
         return
       }
-      if(!pay_money){
+      if (!pay_money) {
         ctx.body = { ok: false, msg: '缺乏pay_money参数' }
         await next()
         return
-      }else{
+      } else {
         pay_money = parseFloat(pay_money)
       }
-      if(!yuebi_num){
+      if (!yuebi_num) {
         ctx.body = { ok: false, msg: '缺乏yuebi_num参数' }
         await next()
         return
-      }else{
+      } else {
         yuebi_num = parseInt(yuebi_num)
       }
-      if(!spbill_create_ip){
+      if (!spbill_create_ip) {
         ctx.body = { ok: false, msg: '缺乏spbill_create_ip参数' }
         await next()
         return
@@ -56,20 +56,82 @@ export default function (router) {
       })
       // 判断生成微信订单是否成功
       console.log('创建支付订单成功 ✔')
-      if(payParams && payParams.appid){
-        ctx.body = { ok: true, msg: '生成微信订单成功', params: payParams }
-      }else{
+      if (payParams && payParams.appid) {
+        ctx.body = { ok: true, msg: '生成微信订单成功', params: payParams, pay_id: thisPay.id.toString() }
+      } else {
         ctx.body = { ok: false, msg: '生成微信订单失败', params: payParams }
       }
-    }else{
-        ctx.throw('token过期', 401)
-        await next()
+    } else {
+      ctx.throw('token过期', 401)
+      await next()
     }
   })
 
-  router.all('/api/pay/notify', weixinpay.useKoaWXCallback((msg, ctx, next) => {
+  router.post('/api/pay/notify', async (ctx, next) => {
+    console.log('微信回调...')
     // 处理商户业务逻辑
-    console.log('回调')
-    console.log(ctx)
-  }))
+    let promise = new Promise(function (resolve, reject) {
+      let buf = ''
+      ctx.req.setEncoding('utf8')
+      ctx.req.on('data', (chunk) => {
+        buf += chunk
+      })
+      ctx.req.on('end', () => {
+        tool.xmlToJson(buf)
+          .then(resolve)
+          .catch(reject)
+      })
+    })
+
+    await promise.then(async (result) => {
+      console.log(result)
+      ctx.type = 'xml'
+      // 判断result是否为空，为空则返回fail
+      if(tool.isEmpty(result)){
+        ctx.body = `<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[支付失败]]></return_msg></xml>`
+      }else{
+        if(result.xml && result.xml.out_trade_no && result.xml.out_trade_no[0]){
+          let thisPay = await Pay.findById(result.xml.out_trade_no[0])
+          if(thisPay){
+            if(result.xml && result.xml.result_code && result.xml.result_code[0] === 'SUCCESS'){
+              // 处理订单状态, 修改status的值
+              await Pay.updateStatus(result.xml.out_trade_no[0], 1)
+              ctx.body = `<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>`
+              console.log('支付成功')
+            }else{
+              await Pay.updateStatus(result.xml.out_trade_no[0], 2)
+              ctx.body = `<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[支付失败]]></return_msg></xml>`
+              console.log('支付失败')
+            }
+          }else{
+            ctx.body = `<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[订单不存在]]></return_msg></xml>`
+            console.log('订单不存在')
+          }
+        }else{
+          ctx.body = `<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[订单不存在]]></return_msg></xml>`
+          console.log('订单不存在')
+        }
+      }
+      await next()
+    }).catch((e) => {
+      e.status = 400
+    })
+  })
+
+  // 小程序报告取消支付
+  router.get('/api/pay/cancel', async (ctx, next) => {
+    let payId = ctx.request.query.pay_id
+    if(payId){
+      let updateResult = await Pay.updateStatus(payId, 3)
+      // 关闭订单
+      weixinpay.closeOrder({ out_trade_no: payId}, function(err, result){})
+      if(updateResult){
+        ctx.body = { ok: true, msg: '取消订单成功' }
+      }else{
+        ctx.body = { ok: false, msg: '取消订单失败，参数错误' }
+      }
+    }else{
+      ctx.body = { ok: false, msg: '取消订单失败，参数错误' }
+    }
+  })
 }

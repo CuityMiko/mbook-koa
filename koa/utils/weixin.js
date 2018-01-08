@@ -62,7 +62,7 @@ function createUnifiedOrder(payInfo) {
       openid: payInfo.openid,
       product_id: payInfo.chargeids.join('|')
     }, (error, result) => {
-      if (result.return_code === 'SUCCESS' && result.return_msg === 'OK') {
+      if (result && result.return_code === 'SUCCESS' && result.return_msg === 'OK') {
         const returnParams = {
           'appid': result.appid,
           'timeStamp': parseInt(Date.now() / 1000) + '',

@@ -21,12 +21,11 @@ Component({
     animation: ''
   },
   methods: {
-    buttonClick: function(){
+    buttonClick: function () {
       var btnClickDetail = {} // detail对象，提供给事件监听函数
       var btnClickOption = {} // 触发事件的选项
       this.triggerEvent('btnclick', btnClickDetail, btnClickOption)
     }
   },
-  ready: function(){}
+  ready: function () { }
 })
-  

@@ -1,3 +1,4 @@
+<toast toast="{{toast}}"></toast>
 <view class="container charge">
   <view class="charge-main" wx:if="{{!chargeResult.type}}">
     <view class="tab">

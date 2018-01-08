@@ -4,17 +4,19 @@
 ### mongo的备份和恢复
 由于开发都是连接的本地mongodb,所以在公司和家里的数据时常有些不同步,需要使用mongo的命令做同步.
 1. windows备份
-```
-cd D:/mongo/bin
-D:
-mongodump --host localhost --port 27017 --db mbook --out D:\PROJECT\work01_book_read_app\dump
-```
+  ```
+  cd D:/mongo/bin
+  D:
+  mongodump --host localhost --port 27017 --db mbook --out D:\PROJECT\work01_book_read_app\dump  (ths)
+  ./mongodump.exe --host localhost --port 27017 --db mbook E:/work01_book_read_app/dump  (home)
+  ```
 2. windows恢复
-```
-cd D:/mongo/bin
-D:
-mongorestore --host localhost --port 27017 --db mbook D:\PROJECT\work01_book_read_app\dump
-``` 
+  ```
+  cd D:/mongo/bin
+  D:
+  mongorestore --host localhost --port 27017 --db mbook D:\PROJECT\work01_book_read_app\dump\mbook  (ths)
+  ./mongorestore.exe --host localhost --port 27017 --db mbook E:/work01_book_read_app/dump/mbook  (home)
+  ``` 
 3. linux备份
 ```
 sudo mongodump --host localhost --port 27017 --db mbook /home/andyliwr/文档/work01_book_read_app/dump/mbook
@@ -62,7 +64,6 @@ wx.checkSession({
 ```
   分页算法，参考https://yd.baidu.com/view/72b62bb1680203d8ce2f248c
 
-
 ### setting的栏目
 1. 阅读器模式
   + 字体
@@ -73,7 +74,6 @@ wx.checkSession({
 4. 关注公众号
 5. 退出当前账号
 
-
 ### ngrok代理本地500端口调试微信
 + 隧道id: `2be12d1c071de987`
 + 访问地址: `http://ldk.free.ngrok.cc`
@@ -82,3 +82,6 @@ wx.checkSession({
 
 ### 微信支付demo
 [NideShop：基于Node.js+MySQL开发的开源商城](https://github.com/tumobi/nideshop-mini-program)
+
+### loading动画地址
+[loading](https://loading.io/icon/custom/95323/)

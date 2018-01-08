@@ -1,13 +1,13 @@
 {
   "pages": [
-    "pages/charge/charge",
     "pages/index/index",
     "pages/user/user",
     "pages/booklist/booklist",
-    "pages/fenlei/fenlei",
+    "pages/classify/classify",
     "pages/bookdetail/bookdetail",
     "pages/reader/reader",
     "pages/setting/setting",
+    "pages/charge/charge",
     "pages/webpage/webpage"
   ],
   "window": {
@@ -29,9 +29,9 @@
         "text": "首页"
       },
       {
-        "pagePath": "pages/fenlei/fenlei",
-        "iconPath": "static/img/fenlei.png",
-        "selectedIconPath": "static/img/fenlei_active.png",
+        "pagePath": "pages/classify/classify",
+        "iconPath": "static/img/classify.png",
+        "selectedIconPath": "static/img/classify_active.png",
         "text": "分类"
       },
       {

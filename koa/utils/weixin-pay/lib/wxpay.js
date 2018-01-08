@@ -126,25 +126,6 @@ WXPay.mix('useWXCallback', function (fn) {
 	};
 });
 
-// 适用于koa的useWxCallback
-WXPay.mix('useKoaWXCallback', function (fn) {
-	return async function (ctx, next) {
-		var _this = this;
-		ctx.success = function () { ctx.body = util.buildXML({ xml: { return_code: 'SUCCESS' } }); };
-		ctx.fail = function () { ctx.body = util.buildXML({ xml: { return_code: 'FAIL' } }); };
-
-		util.pipe(ctx.response, function (err, data) {
-			var xml = data.toString('utf8');
-			util.parseXML(xml, function (err, msg) {
-				console.log(msg)
-				ctx.response.wxmessage = msg;
-				fn.apply(_this, [msg, ctx, next]);
-			});
-		});
-	};
-});
-
-
 WXPay.mix('queryOrder', function (query, fn) {
 
 	if (!(query.transaction_id || query.out_trade_no)) {
