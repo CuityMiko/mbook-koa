@@ -1,4 +1,6 @@
 // classify.js
+const config = require('../../config')
+
 Page({
   data: {
     toast: { show: false, content: '', position: 'bottom' }, // 提示信息
@@ -11,8 +13,18 @@ Page({
     //显示加载中
     wx.showToast({ title: '加载中', icon: 'loading' })
     //根据url中传过来的分类index，加载指定的分类数据，index默认值1
+    if(options.index){
+      self.setData({ 'currentIndex':  options.index})
+      self.getClassifyData(options.index)
+    }else{
+      self.getClassifyData(self.data.currentIndex)
+    }
+    
+  },
+  getClassifyData: function(index){
+    let self = this
     wx.request({
-      url: '',
+      url: config.base_url + '/api/book/classify?index=' + index,
       header: { 'content-type': 'application/json' },
       success: function (res) {
         //隐藏加载信息
