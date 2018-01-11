@@ -1,4 +1,7 @@
 /* pages/fenlei/fenlei.wxss */
+page{
+  height: 100%;
+}
 
 .classify-container {
   position: relative;
@@ -7,11 +10,14 @@
 }
 
 .classify-container .tab {
-  overflow-x: auto;
-  white-space: nowrap;
-  height: 6.4%;
-  top: 0;
-  left: 0;
+  overflow-x:auto;
+  white-space:nowrap;
+  height:7.4%;
+  top:0;
+  left:0;
+  padding:0 15rpx;
+  font-weight:bold;
+  border-bottom: 1px solid #dddddd;
 }
 
 
@@ -27,70 +33,66 @@
   line-height: 80rpx;
   height: 80rpx;
   display: inline-block;
-  margin-right: 20rpx;
+  margin-right: 30rpx;
   width: 120rpx;
   text-align: center;
-  font-size: 28rpx;
+  font-size: 30rpx;
+  color: #888888;
 }
 
 .classify-container .tab .tab-item.active {
-  font-size: 32rpx;
   color: #1472e0;
 }
 
 .classify-container .tab .tab-item .tabLine {
-  height: 4rpx;
-  width: 100%;
-  background-color: #1472e0;
-  z-index: 1000;
-  margin-top: -6rpx;
+  height:6rpx;
+  width:30rpx;
+  border-radius:3rpx;
+  margin:0 auto;
+  background-color:#1472e0;
+  z-index:1000;
+  margin-top:-15rpx;
 }
 
 .classify-container .tab-content {
   height: 93.6%;
+  padding: 30rpx 0;
 }
 
-.classify-container .content-item {
-  padding-top: 30rpx;
-}
-
-.classify-container .content-item:first-child {
-  padding-top: 10rpx;
-}
-
-.classify-container .content-item .book-item {
+.classify-container .book-item {
   /*高度塌陷*/
   overflow: hidden;
   padding: 0 15rpx;
-}
-
-.classify-container .content-item .book-item>image {
-  height: 180rpx;
-  width: 140rpx;
-  box-shadow: 4rpx 4rpx 2rpx #888;
-  float: left;
-  display: inline-block;
-  margin-left: -100%;
+  position: relative;
   margin-bottom: 20rpx;
 }
 
-.classify-container .content-item .book-item .bookInfo {
-  float: left;
+.classify-container .book-item>image {
+  height:180rpx;
+  width:140rpx;
+  box-shadow:4rpx 4rpx 2rpx #888;
+  display:inline-block;
+  position:absolute;
+  top:50%;
+  margin-top:-84rpx;
+  left:10px;
+}
+
+.classify-container .book-item .bookInfo {
   width: 100%;
   padding: 10rpx 10rpx 10rpx 180rpx;
   font-size: 22rpx;
   box-sizing: border-box;
   position: relative;
-  margin-bottom: 20rpx;
 }
 
-.classify-container .content-item .book-item .bookInfo::after {
+.classify-container .book-item .bookInfo::after {
   content: "";
   display: none;
   clear: both;
 }
 
-.classify-container .content-item .book-item>text {
+.classify-container .book-item>text {
   display: block;
   color: #4d5154;
 }
@@ -101,6 +103,13 @@
   color: #4c4d4f;
 }
 
+.classify-container .bookInfo .des{
+  font-size: 24rpx;
+  color: #888888;
+  margin-right: 10rpx;
+  vertical-align: middle;
+}
+
 .classify-container .bookInfo .author {
   font-size: 24rpx;
   margin-top: 10rpx;
@@ -109,9 +118,13 @@
 }
 
 .classify-container .bookInfo .bookDes {
-  font-size: 24rpx;
-  color: #5a5f62;
-  margin-top: 20rpx;
+  font-size:24rpx;
+  color:#5a5f62;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  display:-webkit-box;
+  -webkit-line-clamp:3;
+  -webkit-box-orient:vertical;
 }
 
 .classify-container .bookInfo .text-underline {

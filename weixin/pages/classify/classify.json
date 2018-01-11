@@ -4,6 +4,7 @@
   "navigationBarTitleText": "分类",
   "navigationBarTextStyle": "white",
   "usingComponents": {
-    "toast": "../../component/toast/toast"
+    "toast": "../../component/toast/toast",
+    "no-data": "../../component/nodata/nodata"
   }
 }

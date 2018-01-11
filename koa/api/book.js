@@ -42,48 +42,51 @@ export default function (router) {
   // 获取书籍分类列表的接口
   router.get('/api/book/classify', async (ctx, next) => {
     let index = ctx.request.query.index
-    if (index) {
+    let page = ctx.request.query.page
+    if (index && page) {
       index = parseInt(index)
+      page = parseInt(page)
       let chineseName = '其他类别'
       switch(index){
-        case 1:
+        case 0:
           chineseName = '玄幻·奇幻'
           break
-        case 2:
+        case 1:
           chineseName = '修真·仙侠'
           break
-        case 3:
+        case 2:
           chineseName = '都市·青春'
           break
-        case 4:
+        case 3:
           chineseName = '历史·军事'
           break
-        case 5:
+        case 4:
           chineseName = '网游·竞技'
           break
-        case 6:
+        case 5:
           chineseName = '科幻·灵异'
           break
-        case 7:
+        case 6:
           chineseName = '言情·穿越'
           break
-        case 8:
+        case 7:
           chineseName = '耽美·同人'
           break
-        case 9:
+        case 8:
           chineseName = '侦探·推理'
           break
         default:
           break
       }
-      let books = await Book.find({classification: chineseName}, '_id name img_url author des').sort({classify_order: 1, hot_value: -1})
+      let books = await Book.find({classification: chineseName}, '_id name img_url author des').sort({classify_order: 1, hot_value: -1}).skip((page-1)*8).limit(8)
+      let total = await Book.count({ classification: chineseName })
       if (books) {
-        ctx.body = { ok: true, msg: '获取书籍详情成功', list: books}
+        ctx.body = { ok: true, msg: '获取书籍详情成功', total: total, list: books}
       } else {
         ctx.body = { ok: true, msg: '获取分类成功', list: [] }
       }
     } else {
-      ctx.body = { ok: false, msg: '缺少index参数' }
+      ctx.body = { ok: false, msg: '缺少参数' }
     }
   })
 }
