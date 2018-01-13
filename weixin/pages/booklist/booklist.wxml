@@ -7,15 +7,15 @@
     <icon type="search" size="16" color="#828282"/>
   </view> -->
   <view class="shelves">
-    <view class="sprite" wx:for="{{spriteArr}}" wx:key="index" style="top: {{ (330 + index * 320 ) + 'rpx' }}"></view>
     <view class="books">
-      <view class="book-item" wx:for="{{myBooks}}" wx:key="item.bookid">
-        <image src="{{item.img_url}}" bindtap="openReader" data-bookid="{{item.bookid}}"></image>
+      <view wx:for="{{myBooks}}" wx:key="item.bookid" hover-start-time="2000" class="book-item {{ removing ? 'shake' : '' }}">
+        <image src="{{item.img_url}}" data-bookid="{{item.bookid}}" bindtap="bookClick" bindlongtap="bookLongClick"></image>
+        <icon wx:if="{{removing}}" type="clear" size="16" color="#f76260" data-bookid="{{item.bookid}}" bindtap="removeBook" />
+      </view>
+      <view hover-start-time="2000" class="book-item add" bindtap="gotoShop">
+        <view class="image"></view>  
+        <icon class="iconfont icon-add"></icon>
       </view>
     </view>
   </view>
-  <!-- 暂无数据 -->
-  <!-- <no-data wx:if="{{themes.length == 0 ? true : false}}" text="暂无栏目信息" sub-text="可能是加载失败了，点击重新获取" btn-text="重新获取" show-btn="true" bindbtnclick="getTheme">
-      <icon class="iconfont icon-zanwushuju"></icon>
-  </no-data> -->
 </view>  

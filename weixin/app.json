@@ -3,6 +3,7 @@
     "pages/index/index",
     "pages/user/user",
     "pages/booklist/booklist",
+    "pages/shop/shop",
     "pages/classify/classify",
     "pages/bookdetail/bookdetail",
     "pages/reader/reader",

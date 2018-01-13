@@ -14,7 +14,8 @@ export default function(router) {
               if(hisBookList.books[i].bookid.toString() !== id){
                 newBookList.push({
                   bookid: hisBookList.books[i].bookid,
-                  index: count
+                  index: count,
+                  read: { num: hisBookList.books[i].read.num, top: hisBookList.books[i].read.top }
                 })
                 count ++
               }
@@ -117,6 +118,7 @@ export default function(router) {
     })
     let newThisBook = []
     // 获取书籍详情
+    console.log(thisBookList)
     for(let i=0; i < thisBookList.books.length; i++){
       let bookInfo = await Book.findById(thisBookList.books[i].bookid, 'name img_url author')
       newThisBook.push({

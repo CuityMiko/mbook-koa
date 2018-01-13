@@ -10,11 +10,7 @@ var hasRunTouchMove = false;
 
 Page({
   data: {
-    toast: {
-      show: false,
-      content: '',
-      position: 'bottom'
-    }, // 提示信息
+    toast: { show: false, content: '', position: 'bottom' }, // 提示信息
     bookid: '',
     factionName: '',
     author: '',
