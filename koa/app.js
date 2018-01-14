@@ -23,7 +23,7 @@ app.use(jwtKoa({ secret }).unless({
 }))
 app.use(json())
 app.use(logger())
-app.use(restc.koa2())
+// app.use(restc.koa2())
 app.use(require('koa-static')(__dirname + '/public'))
 app.use(views(__dirname + '/views', {
     extension: 'pug'
