@@ -6,3 +6,64 @@ body {
   padding: 0;
   margin: 0;
 }
+
+.container{
+  height: 100%;
+  overflow: hidden;
+  padding: 4em 1em 2em 1em;
+  box-sizing: border-box;
+  font-size: 1em;
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: space-between;
+  color: #353535;
+}
+
+.container .logo{
+  display: block;
+  width: 4.6em;
+  height: 4.6em;
+  border-radius: .4em;
+  margin: 0 auto;
+}
+
+.container .name{
+  text-align: center;
+  margin: 1em 0;
+}
+
+.container .infos{
+  list-style: none;
+  padding: 0;
+  margin-left: -1em;
+  margin-right: -1em;
+}
+
+.container .infos>li{
+  height: 3em;
+  line-height: 3em;
+  border-bottom: 1px solid #d7d7d7;
+  overflow: hidden;
+}
+
+.container .infos .left{
+  float: left;
+  margin-left: .9em;
+  font-size: 1.1em;
+}
+
+.container .infos .right{
+  float: right;
+  margin-right: 1em;
+  font-size: .9em;
+  color: #888888;
+}
+
+.container .footer{
+  text-align: center;
+  font-size: .8em;
+}
+
+.container .footer > p{
+  margin: 0;
+}
