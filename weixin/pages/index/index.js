@@ -10,7 +10,8 @@ Page({
     themes: [],
     click_times: {}, // 换一批点击次数
     isBannerOk: false,
-    isThemeOk: false
+    isThemeOk: false,
+    loaded: false
   },
   onLoad: function () {
     let self = this
@@ -21,14 +22,13 @@ Page({
           clientHeight: res.windowHeight
         });
       }
-    })
+    });
     // 获取banner和栏目信息
-    wx.showLoading({ title: '数据加载中' });
     (function () {
       let timer = setInterval(function () {
         if (self.data.isBannerOk && self.data.isThemeOk) {
           clearInterval(timer)
-          wx.hideLoading()
+          self.setData({ 'loaded': true })
         }
       }, 500)
     })();

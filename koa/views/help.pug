@@ -1,33 +1,25 @@
-doctype html
-html(lang='zh-cn')
-  head
-    meta(charset='utf-8')
-    meta(http-equiv='Content-Type', content='text/html; charset=utf-8')
-    meta(name='viewport', content='viewport-fit=cover,width=device-width, initial-scale=1.0,user-scalable = no')
-    meta(name='format-detection', content='telephone=no')
-    meta(name='apple-touch-fullscreen', content='YES')
-    meta(name='apple-mobile-web-app-capable', content='yes')
-    title=title
-    link(rel='stylesheet', href='/css/help.css')
-  body
-    .container
-      h3 帮助1
-      div
-        p 这里是测试文字，这里是测试文字....
-        p 这里是测试文字，这里是测试文字....
-        img(src='/img/test_help.png')
-      h3 帮助2
-      div 这里是测试文字，这里是测试文字....
-      h3 帮助3
-      div 这里是测试文字，这里是测试文字....
-    script(src='/js/jquery-1.9.1.js')
-    script(src='/js/jquery.collapse.js')
-    script.
-      new jQueryCollapse($(".container"), {
-        open: function() {
-          this.slideDown(150);
-        },
-        close: function() {
-          this.slideUp(150);
-        }
-      });
+extends layout
+block link
+  link(rel='stylesheet', href='/css/help.css')
+block content
+  h3 帮助1
+  div
+    p 这里是测试文字，这里是测试文字....
+    p 这里是测试文字，这里是测试文字....
+    img(src='/img/test_help.png')
+  h3 帮助2
+  div 这里是测试文字，这里是测试文字....
+  h3 帮助3
+  div 这里是测试文字，这里是测试文字....
+block script
+  script(src='/js/jquery-1.9.1.js')
+  script(src='/js/jquery.collapse.js')
+  script.
+    new jQueryCollapse($(".container"), {
+      open: function() {
+        this.slideDown(150);
+      },
+      close: function() {
+        this.slideUp(150);
+      }
+    });

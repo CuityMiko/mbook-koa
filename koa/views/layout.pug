@@ -1,0 +1,31 @@
+doctype html
+html(lang='zh-cn')
+  head
+    meta(charset='utf-8')
+    meta(http-equiv='Content-Type', content='text/html; charset=utf-8')
+    meta(name='viewport', content='viewport-fit=cover,width=device-width, initial-scale=1.0,user-scalable = no')
+    meta(name='format-detection', content='telephone=no')
+    meta(name='apple-touch-fullscreen', content='YES')
+    meta(name='apple-mobile-web-app-capable', content='yes')
+    title=title
+    style
+     include ../public/css/style.css
+    block link
+    block head_script
+    script.
+      //- 监听加载状态
+      document.onreadystatechange = function() {
+        if (document.readyState === 'complete') {
+          document.querySelector('.container').style.display = 'block'
+          document.querySelector('.pre-loading').style.display = 'none'
+        }
+      }
+  body
+    .container
+      block content
+    .pre-loading
+      img(src="/img/book-loading.svg")
+      //- p
+      //-  | 加载中
+      //-  span(class="dotting")
+    block script

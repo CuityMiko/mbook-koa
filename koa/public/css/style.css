@@ -1,0 +1,89 @@
+html,
+body {
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  position: relative;
+}
+
+.pre-loading {
+  width: 8em;
+  height: 8em;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-left: -4em;
+  margin-top: -4em;
+}
+
+.pre-loading>img {
+  width: 100%;
+  height: 8em;
+}
+
+.pre-loading>p {
+  width: 100%;
+  height: 2em;
+  line-height: 2em;
+  margin: -2em 0 0 0;
+  font-size: .8em;
+  text-align: center;
+}
+
+.pre-loading .dotting {
+  display: inline-block;
+  width: 10px;
+  min-height: 2px;
+  padding-right: 2px;
+  border-left: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+  background-color: currentColor;
+  background-clip: content-box;
+  box-sizing: border-box;
+  animation: dot 4s infinite step-start both;
+}
+
+.pre-loading .dotting:before {
+  content: '...';
+}
+
+
+/* IE8 */
+
+.pre-loading .dotting::before {
+  content: '';
+}
+
+:root .dotting {
+  margin-left: 2px;
+  padding-left: 2px;
+}
+
+
+/* IE9+ */
+
+@keyframes dot {
+  25% {
+    border-color: transparent;
+    background-color: transparent;
+  }
+  /* 0个点 */
+  50% {
+    border-right-color: transparent;
+    background-color: transparent;
+  }
+  /* 1个点 */
+  75% {
+    border-right-color: transparent;
+  }
+  /* 2个点 */
+}
+
+.container {
+  display: none
+}

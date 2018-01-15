@@ -1,4 +1,22 @@
 /**index.wxss**/
+page{
+  height: 100%;
+}
+
+.loading{
+  height: 100%;
+  position: relative;
+}
+
+.loading>image{
+  height: 200rpx;
+  width: 200rpx;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin-top: -100rpx;
+  margin-left: -100rpx;
+}
 
 .index {
   background: #f4f4f4;
