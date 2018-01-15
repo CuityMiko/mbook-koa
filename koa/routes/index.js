@@ -19,4 +19,25 @@ router.get('/help', async(ctx, next) => {
   })
 })
 
+// 关于我们页面
+router.get('/about_us', async(ctx, next) => {
+  await ctx.render('aboutus', {
+      title: '关于我们'
+  })
+})
+
+// 关注公众号页面
+router.get('/notice', async(ctx, next) => {
+  await ctx.render('notice', {
+      title: '关注公众号'
+  })
+})
+
+// 活动页面
+router.get('/activity/001', async(ctx, next) => {
+  await ctx.render('activity001', {
+      title: '同花顺品牌宣传活动'
+  })
+})
+
 module.exports = router

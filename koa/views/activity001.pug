@@ -1,0 +1,158 @@
+doctype html
+html
+  head
+    meta(http-equiv='Content-Type', content='text/html; charset=utf-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no')
+    meta(name='format-detection', content='telephone=no')
+    meta(name='apple-touch-fullscreen', content='YES')
+    meta(name='apple-mobile-web-app-capable', content='yes')
+    meta(name='apple-mobile-web-app-status-bar-style', content='black')
+    link(rel='stylesheet', type='text/css', href='/activities/001/styles/index.css?82')
+    title=title
+    script.
+      /* 自适应字体, 设置初始字体：root em */
+      function autoFontSize() {
+        var font_size = document.documentElement.clientWidth / 640.0 * 100;
+        font_size = font_size >= 50 ? font_size : 50;
+        var html = document.getElementsByTagName('html')[0];
+        html.style.fontSize = font_size + 'px';
+      }
+      window.onresize = function () {
+        autoFontSize()
+      };
+      autoFontSize();
+  body
+    img.pre-load(src='/activities/001/images/sprite.png', alt='')
+    img.pre-load(src='/activities/001/images/loading.gif', alt='')
+    img.pre-load(src='/activities/001/images/btn_bg.png', alt='')
+    .container
+      .content
+        img(src='/activities/001/images/banner.png', alt='')
+        .card-item.xlkhl
+          .title
+            span.line
+            | 限量开户礼
+          .daojishi
+            | 距离结束仅剩
+            .leave-time
+          #pd-slider.swipe
+            .swipe-wrap
+              .op1
+                .progress
+                  span.progress-line
+                  span.progress-line-wc
+                  span.text 已领80%
+              .op2
+                .progress
+                  span.progress-line
+                  span.progress-line-wc
+                  span.text 已领80%
+            .dots
+              span.dot.active
+              span.dot
+        .card-item.shipin
+          .title
+            span.line
+            | 视频小窍门
+          #video-slider.swipe
+            .swipe-wrap
+              .op1
+                .video(data-objid='57725e20f77e1a1c4671c3f1', data-poster='http://khtest.10jqka.com.cn/dev/lidikang/mediabox/video.png', style='background:url(http://khtest.10jqka.com.cn/dev/lidikang/mediabox/video.png) center no-repeat; max-height: 3rem')
+                  video(autoplay='', muted='', playsinline='', webkit-playsinline='true', data-type='1', data-subtype='0', data-extra='', data-title='如何在同花顺开户，手把手教你用', controls='false', preload='true', src='http://khtest.10jqka.com.cn/dev/lidikang/mediabox/video.mp4')
+                p.video-des 如何在同花顺开户，手把手教你用
+                //
+                  <div class="op2">
+                  <div class="video" data-objid="57725e20f77e1a1c4671c3f1" data-poster="http://khtest.10jqka.com.cn/dev/lidikang/mediabox/video.mp4"
+                  style="background:url(http://khtest.10jqka.com.cn/dev/lidikang/mediabox/video2.png) center no-repeat;">
+                  <video data-type="1" data-subtype="0" data-extra="" controls="false" preload="none" src="http://khtest.10jqka.com.cn/dev/lidikang/mediabox/video.mp4"
+                  playsinline muted width="100%" height="100%"></video>
+                  </div>
+                  <p class="video-des">随心而动，随刃而行</p>
+                  </div>
+            .dots
+              span.dot.active
+              span.dot
+        .allqs
+          .title
+            i.icon-dot-left
+            span.text 同花顺50家开户券商一览
+            i.icon-dot-right
+          ul.barrage-area
+        .card-item.ganyan
+          .title
+            span.line
+            | Ta的入市感言
+          #ganyan-slider.swipe
+            .swipe-wrap
+              .op0
+                .ganyan-item
+                  .personal
+                    .text
+                      p.username 蛮族之王
+                      p.subword 随心而动，随刃而行
+                    img.avatar(src='/activities/001/images/default_avatar.jpg')
+                  p.word
+                    | TRIGGER，日本新晋的一家进行动画企划和制作的公司。TRIGGER由著名动画公司GAINAX退社的三名核心人员大冢雅彦、今石洋之、舛本和也三人于2011年8月22日成立。
+              .op1
+                .ganyan-item
+                  .personal
+                    .text
+                      p.username 德邦总管
+                      p.subword 一点寒芒先到，然后枪出如龙
+                    img.avatar(src='/activities/001/images/default_avatar.jpg')
+                  p.word 2014年9月4日 - trigger()函数用于在每个匹配元素上触发指定类型的事件。 此外,你还可以在触发事件时为事件处理函数传入额外的参数。
+              .op2
+                .ganyan-item
+                  .personal
+                    .text
+                      p.username andyliwr
+                      p.subword hahah
+                    img.avatar(src='/activities/001/images/default_avatar.jpg')
+                  p.word 每日好诗是中国诗歌网的品牌栏目,每天推荐一首原创好诗,展现最优秀的诗歌和诗人。在这里,您看到的所有作品都是精心遴选出的诗歌精品。每日好诗稿酬500元asdasd
+              .op3
+                .ganyan-item
+                  .personal
+                    .text
+                      p.username 德玛西亚之力
+                      p.subword 人在塔在
+                    img.avatar(src='/activities/001/images/default_avatar.jpg')
+                  p.word
+                    | trigger（触发器）是个特殊的存储过程，它的执行不是由程序调用，也不是手工启动，而是由个事件来触发，比如当对一个表进行操作（ insert，delete， update）时..
+            .dots
+              span(class="dot active")
+              span(class="dot")
+              span(class="dot")
+              span(class="dot")
+          button#write 说说我的入市感言
+          p.des 填写入市感言，可获赠高级诊股产品
+        .contact
+          .main
+            .title
+              i.icon-line-left
+              span.text 真诚沟通
+              i.icon-line-right
+              p.des 7*24小时为您服务
+            .way
+              .way-item(data-way='qq')
+                p.question 有疑问？
+                p.text 咨询QQ客服
+                .icon
+                  i.icon-qq
+              .way-item(data-way='tel')
+                p.question 有疑问？
+                p.text 咨询电话客服
+                .icon
+                  i.icon-tel
+            a.goto-tel(href='tel:0571-56965600')
+            a.goto-qq(href='mqqwpa://im/chat?chat_type=wpa&uin=1245490903&version=1&src_type=web&web_src=oicqzone.com')
+            p.logo
+              img(src='/activities/001/images/logo.png', alt='同花顺股票开户')
+            p.logo-des
+              span 安全
+              span 便捷
+              span 免费
+    script(type='text/javascript', src='/js/zepto.min.js')
+    script(type='text/javascript', src='/activities/001/scripts/swipe.js')
+    script(type='text/javascript', src='/activities/001/scripts/mediabox.js')
+    script(type='text/javascript', src='/activities/001/scripts/danmu.js')
+    script(type='text/javascript', src='/activities/001/scripts/index.js')
