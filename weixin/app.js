@@ -32,16 +32,16 @@ App({
               code: code
             },
             success: res => {
-              if(res.data.ok){
+              if (res.data.ok) {
                 // 将token存入缓存，在每次发送需要认证的请求时在header里带上token
                 wx.setStorageSync('token', res.data.token)
                 wx.setStorageSync('userinfo', res.data.userinfo)
-              }else if(!res.data.ok && !res.data.token && !res.data.registe){
+              } else if (!res.data.ok && !res.data.token && !res.data.registe) {
                 // 未注册
                 wx.login({
                   success: res => {
                     let code = res.code
-                    if(res.code){
+                    if (res.code) {
                       // 获取用户信息后，发送registe请求
                       wx.getUserInfo({
                         success: res => {
@@ -51,15 +51,21 @@ App({
                             url: config.base_url + '/api/user/registe',
                             data: Object.assign({ identity: 'appuser', code: code }, res.userInfo),
                             success: res => {
-                              if(res.data.ok){
+                              if (res.data.ok) {
                                 wx.setStorageSync('token', res.data.token)
                                 wx.setStorageSync('userinfo', res.data.userinfo)
-                              }else{
-                                wx.showToast({ title: '注册失败', image: '/static/img/close.png' })
+                              } else {
+                                wx.showToast({ title: res.data.msg ? res.data.msg : '注册失败', image: '/static/img/close.png' })
+                                setTimeout(function(){
+                                  wx.hideToast()
+                                }, 2000)
                               }
                             },
                             fail: err => {
                               wx.showToast({ title: '注册失败', image: '/static/img/close.png' })
+                              setTimeout(function(){
+                                wx.hideToast()
+                              }, 2000)
                             }
                           })
                         }
@@ -68,22 +74,28 @@ App({
                   },
                   fail: err => {
                     wx.showToast({ title: '注册失败', image: '/static/img/close.png' })
+                    setTimeout(function(){
+                      wx.hideToast()
+                    }, 2000)
                   }
                 })
               }
             },
             fail: err => {
               wx.showToast({ title: '登录失败', image: '/static/img/close.png' })
+              setTimeout(function(){
+                wx.hideToast()
+              }, 2000)
             }
           })
         } else {
           wx.showToast({ title: '登录失败', image: '/static/img/close.png' })
+          setTimeout(function(){
+            wx.hideToast()
+          }, 2000)
         }
       }
     })
-  },
-  doRegiste: function(){
-    
   },
   globalData: {
     userInfo: null
