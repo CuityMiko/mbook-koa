@@ -119,38 +119,45 @@
 }
 
 .top-handle {
-  height: 80rpx;
+  height: 120rpx;
+  background: #9082f3;
+  color: #ffffff;
+  font-size: 32rpx;
+  padding: 0 5%;
 }
 
 .prev {
   text-align: right;
-  height: 80rpx;
+  height: 120rpx;
 }
 
 .next {
-  height: 80rpx;
+  height: 120rpx;
 }
 
 .prev-handle {
-  width: 80rpx;
+  width: 75rpx;
   height: 100%;
 }
 
 .next-handle {
-  width: 80rpx;
+  width: 75rpx;
   height: 100%;
 }
 
 .date-area {
   width: 50%;
-  height: 80rpx;
+  height: 120rpx;
   text-align: center;
 }
 
 .weeks {
+  background: #ffffff;
   height: 50rpx;
   line-height: 50rpx;
-  opacity: 0.5
+  font-size: 36rpx;
+  margin: 0 5%;
+  box-sizing: border-box;
 }
 
 .week {
@@ -158,7 +165,12 @@
 }
 
 .days {
+  background: #ffffff;
   height: 500rpx;
+  margin: 0 5%;
+  box-sizing: border-box;
+  border-bottom-left-radius: 30px;
+  border-bottom-right-radius: 30px;
 }
 
 .grid {
@@ -314,4 +326,37 @@
 .picker-view {
   color: #FF7CA0;
   text-align: center;
+}
+
+page{
+  height: 100%;
+}
+
+.flex{
+  background: #e5e3e6;
+  position: relative;
+  height: 100%;
+}
+.weeks .flex{
+  background: transparent;
+}
+
+.iconfont.icon-arrow-left, .iconfont.icon-arrow-right{
+  line-height: 120rpx;
+  font-size: 48rpx;
+}
+
+.calendar{
+  position: relative;
+}
+
+.white-box{
+  position: absolute;
+  top: 0;
+  left: 5%;
+  background: #ffffff;
+  width: 90%;
+  height: 100%;
+  border-radius: 30rpx;
+  opacity: .22;
 }
