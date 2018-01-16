@@ -9,6 +9,10 @@ body {
 
 .container{
   height: 100%;
+}
+
+.main{
+  height: 100%;
   overflow: hidden;
   padding: 4em 1em 2em 1em;
   box-sizing: border-box;
@@ -19,7 +23,7 @@ body {
   color: #353535;
 }
 
-.container .logo{
+.main .logo{
   display: block;
   width: 4.6em;
   height: 4.6em;
@@ -27,43 +31,43 @@ body {
   margin: 0 auto;
 }
 
-.container .name{
+.main .name{
   text-align: center;
   margin: 1em 0;
 }
 
-.container .infos{
+.main .infos{
   list-style: none;
   padding: 0;
   margin-left: -1em;
   margin-right: -1em;
 }
 
-.container .infos>li{
+.main .infos>li{
   height: 3em;
   line-height: 3em;
   border-bottom: 1px solid #d7d7d7;
   overflow: hidden;
 }
 
-.container .infos .left{
+.main .infos .left{
   float: left;
   margin-left: .9em;
   font-size: 1.1em;
 }
 
-.container .infos .right{
+.main .infos .right{
   float: right;
   margin-right: 1em;
   font-size: .9em;
   color: #888888;
 }
 
-.container .footer{
+.main .footer{
   text-align: center;
   font-size: .8em;
 }
 
-.container .footer > p{
+.main .footer > p{
   margin: 0;
 }

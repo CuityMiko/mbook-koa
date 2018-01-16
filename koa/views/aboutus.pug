@@ -1,38 +1,29 @@
-doctype html
-html(lang='zh-cn')
-  head
-    meta(charset='utf-8')
-    meta(http-equiv='Content-Type', content='text/html; charset=utf-8')
-    meta(name='viewport', content='viewport-fit=cover,width=device-width, initial-scale=1.0,user-scalable = no')
-    meta(name='format-detection', content='telephone=no')
-    meta(name='apple-touch-fullscreen', content='YES')
-    meta(name='apple-mobile-web-app-capable', content='yes')
-    title=title
-    link(rel='stylesheet', type='text/css', href='css/aboutus.css')
-  body
-    .container
-      .header
-        img(class="logo", src="/img/logo.jpeg")
-        p(class="name") mbook开发团队
-      ul(class="infos")
-        li
-          span(class="left") 官方微信
-          span(class="right") dreamldk
-        li
-          span(class="left") 官方微博
-          span(class="right") 带你去月光倾城的地方
-        li
-          span(class="left") 官方网站
-          span(class="right") www.andylistudio.com
-        li
-          span(class="left") 客服电话
-          span(class="right") 021-0000000
-        li
-          span(class="left") 邮箱
-          span(class="right") andyliwr@outlook.com
-      .footer
-        p 启明软件工作室 版权所有
-        p Copyright 2017-2018 andylistudio. All Rights Reserved.
-        
+extends layout
+block link
+  link(rel='stylesheet', type='text/css', href='/css/aboutus.css')
+block content
+  .main
+    .header
+      img(class="logo", src="/img/logo.jpeg")
+      p(class="name") mbook开发团队
+    ul(class="infos")
+      li
+        span(class="left") 官方微信
+        span(class="right") dreamldk
+      li
+        span(class="left") 官方微博
+        span(class="right") 带你去月光倾城的地方
+      li
+        span(class="left") 官方网站
+        span(class="right") www.andylistudio.com
+      li
+        span(class="left") 客服电话
+        span(class="right") 021-0000000
+      li
+        span(class="left") 邮箱
+        span(class="right") andyliwr@outlook.com
+    .footer
+      p 启明软件工作室 版权所有
+      p Copyright 2017-2018 andylistudio. All Rights Reserved.
           
 
