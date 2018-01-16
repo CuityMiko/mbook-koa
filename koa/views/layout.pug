@@ -18,6 +18,9 @@ html(lang='zh-cn')
         if (document.readyState === 'complete') {
           document.querySelector('.container').style.display = 'block'
           document.querySelector('.pre-loading').style.display = 'none'
+          if(typeof initPage === 'function'){
+            initPage()
+          }
         }
       }
   body

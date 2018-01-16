@@ -204,7 +204,7 @@ function formatMonth(number) {
   }
 }
 
-$(document).ready(function () {
+function initPage(){
   // 开始倒计时
   startClock()
 
@@ -298,4 +298,4 @@ $(document).ready(function () {
   });
 
   barrage.begin();
-});
+}
