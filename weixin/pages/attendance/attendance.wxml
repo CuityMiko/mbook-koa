@@ -1,8 +1,8 @@
 <!--attendance.wxml-->
 <toast toast="{{toast}}"></toast>
 <view class="flex box box-tb box-align-center">
+  <view class="white-box"></view>
   <view class="calendar box box-tb">
-    <view class="white-box"></view>
     <view class="top-handle box box-lr box-pack-between box-pack-center">
       <view class="prev box box-rl" bindtap="handleCalendar" data-handle="prev">
         <view class="prev-handle box box-lr box-align-center box-pack-center"><icon class="iconfont icon-arrow-left"></icon></view>
@@ -12,17 +12,28 @@
         <view class="next-handle box box-lr box-align-center box-pack-center"><icon class="iconfont icon-arrow-right"></icon></view>
       </view>
     </view>
+    <view class="tu-ding">
+      <icon class="tu-ding-left"></icon>
+      <icon class="tu-ding-right"></icon>
+    </view>
+    <view class="keep-day">连续签到3天啦~</view>
     <view class="weeks box box-lr box-pack-center box-align-center">
       <view class="flex week fs28" wx:for="{{weeks_ch}}" wx:key="{{index}}" data-idx="{{index}}">{{item}}</view>
     </view>
     <view class="days box box-lr box-wrap">
       <view wx:if="{{hasEmptyGrid}}" class="grid white-color box box-align-center box-pack-center" wx:for="{{empytGrids}}" wx:key="{{index}}" data-idx="{{index}}"></view>
       <view class="grid white-color box box-align-center box-pack-center" wx:for="{{days}}" wx:key="{{index}}" data-idx="{{index}}" bindtap="tapDayItem">
-        <view class="day {{item.choosed ? 'border-radius pink-bg' : ''}} box box-align-center box-pack-center">{{item.day}}</view>
+        <view class="day {{item.choosed ? 'foot-bg' : ''}} box box-align-center box-pack-around">{{item.day}}</view>
       </view>
     </view>
+    <button class="yaoyiyao"><view class="iconfont icon-yaoyiyao"></view>摇一摇签到</button>
   </view>
-  <view class="pink-bg"></view>
+</view>
+<view class="rule">
+  <view class="title">奖励规则</view>
+  <view class="status"></view>
+  <view class="text">连续签到1天送
+  </view>
 </view>
 <view wx:if="{{showPicker}}" class="box box-tb">
   <view class="picker-btns box box-lr box-pack-between box-align-center">
