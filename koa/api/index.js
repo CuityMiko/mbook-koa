@@ -9,6 +9,7 @@ import good from './good'
 import pay from './pay'
 import buy from './buy'
 import charge from './charge'
+import attendance from './attendance'
 import other from './other'
 
 export default function(router) {
@@ -23,5 +24,6 @@ export default function(router) {
     pay(router)
     buy(router)
     charge(router)
+    attendance(router)
     other(router)
 }

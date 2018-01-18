@@ -20,6 +20,15 @@ const UserSchema = new mongoose.Schema({
   create_time: Date
 }, { versionKey: false })
 
+// 修改书币的统一方法
+UserSchema.statics.addAmount = async function (userid, num) {
+  if(userid && num){
+    
+  }
+  let current = await this.findOne({id: userid})
+  let updateResult = await this.update({ id: userid }, { $set: {amount: } }).sort({priority: -1}).limit(3)
+}
+
 let User = mongoose.model('User', UserSchema)
 
 export { User }

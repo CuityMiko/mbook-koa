@@ -31,13 +31,13 @@ const formatTime2 = date => {
 }
 
 const unique = arr => {
-  var res=[];
-  for(var i=0,len=arr.length;i<len;i++){
-      var obj = arr[i];
-      for(var j=0,jlen = res.length;j<jlen;j++){
-          if(res[j]===obj) break;            
-      }
-      if(jlen===j)res.push(obj);
+  let res = [];
+  for (let i = 0, len = arr.length; i < len; i++) {
+    let obj = arr[i];
+    for (let j = 0, jlen = res.length; j < jlen; j++) {
+      if (res[j] === obj) break;
+    }
+    if (jlen === j) res.push(obj);
   }
   return res;
 }
@@ -47,7 +47,7 @@ const unique = arr => {
  * @param {String} str 
  */
 const md5 = str => {
-    return crypto.createHash('md5').update(str).digest('hex')
+  return crypto.createHash('md5').update(str).digest('hex')
 }
 
 /**
@@ -58,11 +58,11 @@ const xmlToJson = str => {
   return new Promise((resolve, reject) => {
     const parseString = xml2js.parseString
     parseString(str, (err, result) => {
-        if (err) {
-            reject(err)
-        } else {
-            resolve(result)
-        }
+      if (err) {
+        reject(err)
+      } else {
+        resolve(result)
+      }
     })
   })
 }
@@ -81,16 +81,53 @@ const jsonToXml = obj => {
  * @param {Object} obj 
  */
 const isEmpty = obj => {
-  if(!obj){
+  if (!obj) {
     return true
-  }else{
-    if(typeof(obj) === 'object' && JSON.stringify(obj) === '{}'){
+  } else {
+    if (typeof (obj) === 'object' && JSON.stringify(obj) === '{}') {
       return true
     }
-    if(obj instanceof Array && obj.length === 0){
+    if (obj instanceof Array && obj.length === 0) {
       return true
     }
     return false
+  }
+}
+
+/**
+ * 计算一组日期中连续天数的次数
+ * @param {Array} arr
+ */
+const continueDays = arr => {
+  let date = new Date();
+  let y = date.getFullYear();
+  let m = date.getMonth() + 1;
+  let d = date.getDate();
+  let today = y + '/' + m + '/' + d;
+  //转时间戳
+  function time(date) {
+    return new Date(date);
+  }
+  // arr检测
+  arr = arr.filter(item => {
+    return time(item) < time(today)
+  })
+  let num = 0;//声明计数变量;
+  let le = arr.length;//数组长度;
+  //日期时间戳相差一天则连续,此法虽笨,但实用;判断当前日期与最近一天
+  if (time(today) - time(arr[le - 1]) == 86400000) {
+    num = 2;//满足条件,连续2天;
+    //然后对数组循环判断,满足则num++;否则中断循环;
+    for (let i = le; i > 0; i--) {
+      if (time(arr[i - 1]) - time(arr[i - 2]) == 86400000) {
+        num++;
+      } else {
+        break;//如果只要找出所有连续的天数,不需要中断
+      }
+    }
+    return num
+  } else {
+    return 1
   }
 }
 
@@ -101,5 +138,6 @@ module.exports = {
   md5: md5,
   xmlToJson: xmlToJson,
   jsonToXml: jsonToXml,
-  isEmpty: isEmpty
+  isEmpty: isEmpty,
+  continueDays: continueDays
 }
