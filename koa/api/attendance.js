@@ -20,9 +20,9 @@ export default function (router) {
            * 发放奖励
            * 每天签到成功可以领取50书币
            * 连续签到3天 额外获得100书币
-           * 连续签到7天 额外获得200书币
-           * 连续签到15天 额外获得400书币
-           * 连续签到30天 额外获得600书币
+           * 连续签到7天 额外获得150书币
+           * 连续签到15天 额外获得200书币
+           * 连续签到30天 额外获得300书币
            */
           let basePrise = 50
           switch(keep_times){
@@ -30,16 +30,31 @@ export default function (router) {
               basePrise += 100
               break
             case 7:
-              basePrise += 200
+              basePrise += 150
               break
             case 15:
-              basePrise += 400
+              basePrise += 200
               break
             case 30:
-              basePrise += 600
+              basePrise += 300
               break
           }
-          ctx.body = { ok: true, msg: '签到成功', keep_times: keep_times }
+          // 修改用户的书币数
+          let changeResult = await User.addAmount(payload.userid, basePrise)
+          if(changeResult){
+            // 获取当前用户的签到排名
+            let totalCount = await Attendance.distinct('userid')
+            let myCount = await Attendance.distinct('userid', { keep_times: { $gt: keep_times } })
+            ctx.body = { ok: true, msg: '签到成功', keep_times: keep_times, total: totalCount.length, present: 100 - parseInt((myCount.length/totalCount.length)*100) }
+          }else{
+            // 回退签到记录
+            let hisNewAttendance = await Attendance.findOne({ userid: payload.userid })
+            let records = hisAttendance.records.filter(item => {
+              return item !== nowDate
+            })
+            let newUpdateResult = await Attendance.update({userid: payload.userid}, { $set: { records: records } })
+            ctx.body = { ok: false, msg: '发放签到奖励失败' }
+          }
         }else{
           ctx.body = { ok: false, msg: '您已经签到过了' }
         }
@@ -53,7 +68,7 @@ export default function (router) {
         if(thisAttendance){
           ctx.body = { ok: true, msg: '签到成功' }
         }else{
-          ctx.body = { ok: true, msg: '保存签到记录失败' }
+          ctx.body = { ok: false, msg: '保存签到记录失败' }
         }
       }
     }else{

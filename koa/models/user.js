@@ -23,10 +23,35 @@ const UserSchema = new mongoose.Schema({
 // 修改书币的统一方法
 UserSchema.statics.addAmount = async function (userid, num) {
   if(userid && num){
-    
+    let current = await this.findById(userid)
+    let updateResult = await this.update({ _id: userid }, { $set: { amount: parseInt(current.amount + num) } }).sort({priority: -1}).limit(3)
+    if(updateResult.ok == 1 && updateResult.nModified == 1){
+      return true
+    }else{
+      return false
+    }
+  }else{
+    return false
   }
-  let current = await this.findOne({id: userid})
-  let updateResult = await this.update({ id: userid }, { $set: {amount: } }).sort({priority: -1}).limit(3)
+}
+
+UserSchema.statics.reduceAmount = async function (userid, num) {
+  if(userid && num){
+    let current = await this.findById(userid)
+    let amount = parseInt(current.amount - num)
+    if(amount >= 0){
+      let updateResult = await this.update({ _id: userid }, { $set: { amount: amount } }).sort({priority: -1}).limit(3)
+      if(updateResult.ok == 1 && updateResult.nModified == 1){
+        return true
+      }else{
+        return false
+      }
+    }else{
+      return false
+    }
+  }else{
+    return false
+  }
 }
 
 let User = mongoose.model('User', UserSchema)
