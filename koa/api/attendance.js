@@ -75,4 +75,23 @@ export default function (router) {
       ctx.body = { ok: false, msg: '无效token' }
     }
   })
+
+  // 获取我的签到信息
+  router.get('/api/attendance/me', async (ctx, next) => {
+    // 获取用户信息
+    let token = ctx.header.authorization.split(' ')[1]
+    let payload = await jwtVerify(token)
+    if(payload && payload.userid){
+      let hisAttendance = await Attendance.findOne({ userid: payload.userid })
+      let totalCount = await Attendance.distinct('userid')
+      if(hisAttendance){
+        let myCount = await Attendance.distinct('userid', { keep_times: { $gt: hisAttendance.keep_times } })
+        ctx.body = { ok: true, msg: '获取签到信息成功', keep_times: hisAttendance.keep_times, records: hisAttendance.records, total: totalCount.length, present: 100 - parseInt((myCount.length/totalCount.length)*100) }
+      }else{
+        ctx.body = { ok: true, msg: '没有签到记录', keep_times: 0, records: [], total:  totalCount, present: 0 }
+      }
+    }else{
+      ctx.body = { ok: false, msg: '无效token' }
+    }
+  })
 }
