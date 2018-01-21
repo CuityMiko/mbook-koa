@@ -16,6 +16,8 @@ export default function (router) {
         let keep_times = tool.continueDays(hisAttendance.records)
         let updateResult = await Attendance.update({userid: payload.userid}, {'$addToSet': {records: moment().format('YYYY/MM/DD')}, keep_times: keep_times})
         if(updateResult.ok == 1 && updateResult.nModified == 1){
+          hisAttendance = await Attendance.findOne({ userid: payload.userid })
+          keep_times = tool.continueDays(hisAttendance.records)
           /**
            * 发放奖励
            * 每天签到成功可以领取50书币
@@ -45,7 +47,7 @@ export default function (router) {
             // 获取当前用户的签到排名
             let totalCount = await Attendance.distinct('userid')
             let myCount = await Attendance.distinct('userid', { keep_times: { $gt: keep_times } })
-            ctx.body = { ok: true, msg: '签到成功', keep_times: keep_times, total: totalCount.length, present: 100 - parseInt((myCount.length/totalCount.length)*100) }
+            ctx.body = { ok: true, msg: '签到成功', keep_times: keep_times, total: totalCount.length, records: hisAttendance.records, present: 100 - parseInt((myCount.length/totalCount.length)*100) }
           }else{
             // 回退签到记录
             let hisNewAttendance = await Attendance.findOne({ userid: payload.userid })
@@ -86,7 +88,11 @@ export default function (router) {
       let totalCount = await Attendance.distinct('userid')
       if(hisAttendance){
         let myCount = await Attendance.distinct('userid', { keep_times: { $gt: hisAttendance.keep_times } })
-        ctx.body = { ok: true, msg: '获取签到信息成功', keep_times: hisAttendance.keep_times, records: hisAttendance.records, total: totalCount.length, present: 100 - parseInt((myCount.length/totalCount.length)*100) }
+        let nowDate = moment().format('YYYY/MM/DD')
+        let hasDone = hisAttendance.records.some(item => {
+          return nowDate === item
+        })
+        ctx.body = { ok: true, msg: '获取签到信息成功', has_done: hasDone,  keep_times: hisAttendance.keep_times, records: hisAttendance.records, total: totalCount.length, present: 100 - parseInt((myCount.length/totalCount.length)*100) }
       }else{
         ctx.body = { ok: true, msg: '没有签到记录', keep_times: 0, records: [], total:  totalCount, present: 0 }
       }

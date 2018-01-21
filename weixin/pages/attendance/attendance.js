@@ -7,7 +7,11 @@ Page({
   data: {
     toast: { show: false, content: '', position: 'bottom' }, // 提示信息
     hasEmptyGrid: false,
-    showPicker: false
+    showPicker: false,
+    hasDone: false,
+    keepTimes: 0,
+    records: [],
+    statusText: ''
   },
   onLoad: function () {
     const date = new Date()
@@ -21,6 +25,8 @@ Page({
       cur_month,
       weeks_ch
     })
+    // 获取我的签到记录
+    this.getMyAttendance()
   },
   getThisMonthDays(year, month) {
     return new Date(year, month, 0).getDate()
@@ -47,18 +53,27 @@ Page({
     }
   },
   calculateDays(year, month) {
+    let self = this
     let days = []
-
-    const thisMonthDays = this.getThisMonthDays(year, month)
-
+    const thisMonthDays = self.getThisMonthDays(year, month)
     for (let i = 1; i <= thisMonthDays; i++) {
       days.push({
         day: i,
         choosed: false
       })
     }
-
-    this.setData({
+    // 标记已经签到的日子
+    month = month <= 9 ? '0' + month : month
+    self.data.records.forEach(item => {
+      days.forEach((dayItem, dayIndex) => {
+        let day = dayItem.day <= 9 ? '0' + dayItem.day : dayItem.day
+        let key = 'days[' + dayIndex + '].choosed'
+        if((year + '/' + month + '/' + day) === item){
+          days[dayIndex].choosed = true
+        }
+      })
+    })
+    self.setData({
       days
     })
   },
@@ -74,13 +89,13 @@ Page({
         newMonth = 12
       }
 
-      this.calculateDays(newYear, newMonth)
-      this.calculateEmptyGrids(newYear, newMonth)
-
       this.setData({
         cur_year: newYear,
         cur_month: newMonth
       })
+
+      this.calculateDays(newYear, newMonth)
+      this.calculateEmptyGrids(newYear, newMonth)
     } else {
       let newMonth = cur_month + 1
       let newYear = cur_year
@@ -89,13 +104,13 @@ Page({
         newMonth = 1
       }
 
-      this.calculateDays(newYear, newMonth)
-      this.calculateEmptyGrids(newYear, newMonth)
-
       this.setData({
         cur_year: newYear,
         cur_month: newMonth
       })
+
+      this.calculateDays(newYear, newMonth)
+      this.calculateEmptyGrids(newYear, newMonth)
     }
   },
   tapDayItem(e) {
@@ -144,6 +159,59 @@ Page({
     }
 
     this.setData(o)
+  },
+  doAttendance(){
+    let self = this
+    wx.request({
+      method: 'GET',
+      header: { 'Authorization': 'Bearer ' + wx.getStorageSync('token') },
+      url: config.base_url + '/api/attendance',
+      success: res => {
+        if(res.data.ok){
+          self.setData({ 'hasDone': true, 'keepTimes': res.data.keep_times, 'records': res.data.records, 'present': res.data.present })
+          self.calculateEmptyGrids(self.data.cur_year, self.data.cur_month)
+          self.calculateDays(self.data.cur_year, self.data.cur_month)
+          wx.showToast({ title: '签到成功', icon: 'success' })
+          setTimeout(function(){
+            wx.hideToast()
+          }, 1000)
+        }else{
+          self.showToast('获取签到记录失败' + (res.data.msg ? '，' + res.data.msg : ''), 'bottom')
+        }
+      },
+      fail: err => {
+        self.showToast('获取签到记录失败', 'bottom')
+      }
+    })
+  },
+  getMyAttendance(){
+    let self = this
+    wx.request({
+      method: 'GET',
+      header: { 'Authorization': 'Bearer ' + wx.getStorageSync('token') },
+      url: config.base_url + '/api/attendance/me',
+      success: res => {
+        if(res.data.ok){
+          // 设定statusText
+          let statusText = ''
+          if(res.data.keep_times >= 0 && res.data.keep_times < 3){
+            statusText = '还差' + (3-res.data.keep_times) + '天获得100积分'
+          }else if(res.data.keep_times >= 3 && res.data.keep_times < 15){
+            statusText = '还差' + (15-res.data.keep_times) + '天获得150积分'
+          }else if(res.data.keep_times >= 15 && res.data.keep_times < 30){
+            statusText = '还差' + (30-res.data.keep_times) + '天获得200积分'
+          }
+          self.setData({ 'hasDone': res.data.has_done, 'keepTimes': res.data.keep_times, 'records': res.data.records, 'present': res.data.present, 'statusText': statusText })
+          self.calculateEmptyGrids(self.data.cur_year, self.data.cur_month)
+          self.calculateDays(self.data.cur_year, self.data.cur_month)
+        }else{
+          self.showToast('获取签到记录失败' + (res.data.msg ? '，' + res.data.msg : ''), 'bottom')
+        }
+      },
+      fail: err => {
+        self.showToast('获取签到记录失败', 'bottom')
+      }
+    })
   },
   showToast: function (content, position) {
     let self = this

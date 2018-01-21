@@ -19,11 +19,11 @@
   ``` 
 3. linux备份
 ```
-sudo mongodump --host localhost --port 27017 --db mbook /home/andyliwr/文档/work01_book_read_app/dump/mbook
+sudo mongodump --host localhost --port 27017 --db mbook --out /home/andyliwr/Documents/work01_book_read_app/dump/mbook
 ```
 4. linux恢复
 ```
-sudo mongorestore --host localhost --port 27017 --db mbook /home/andyliwr/文档/work01_book_read_app/dump/mbook
+sudo mongorestore --host localhost --port 27017 --db mbook /home/andyliwr/Documents/work01_book_read_app/dump/mbook
 ```
 
 ### 思考
