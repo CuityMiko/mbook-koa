@@ -68,14 +68,16 @@ Page({
           'allSliderValue.bright': res.value
         })
       }
-    });
+    })
     //读取用户设置
     var userSetting = wx.getStorageSync( 'reader_setting');
-    self.setData({
-      'allSliderValue.bright': userSetting.allSliderValue.bright || self.data.allSliderValue.bright,
-      'allSliderValue.font': userSetting.allSliderValue.font || self.data.allSliderValue.font,
-      'colorStyle': userSetting.colorStyle || self.data.colorStyle
-    });
+    if(userSetting){
+      self.setData({
+        'allSliderValue.bright': userSetting.allSliderValue.bright || self.data.allSliderValue.bright,
+        'allSliderValue.font': userSetting.allSliderValue.font || self.data.allSliderValue.font,
+        'colorStyle': userSetting.colorStyle || self.data.colorStyle
+      })
+    }
     // 设置背景色
     wx.setNavigationBarColor({
       frontColor: self.data.colorStyle.styleNum == 4 ? '#ffffff' : '#000000',
@@ -430,7 +432,6 @@ Page({
         'isShowMulu': 0
       });
     }
-    console.log(x, w)
   },
   readerScrollTop: function(event){
     this.setData({ 'scrollTopBackUp': event.detail.scrollTop })

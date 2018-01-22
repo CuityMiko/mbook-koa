@@ -455,6 +455,7 @@ page {
 .rule .text {
   font-size: 30rpx;
   padding-left: 40rpx;
+  padding-right: 100rpx;
   color: #7f7f7f;
 }
 
@@ -464,5 +465,5 @@ page {
 
 .rule .text.done::after {
   content: '√';
-  margin-left: 100rpx;
+  float: right;
 }

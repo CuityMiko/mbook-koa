@@ -67,6 +67,6 @@
       <icon class="iconfont icon-zanwushuju"></icon>
   </no-data>
 </scroll-view>
-<view class="loading">
-  <image wx:if="{{!loaded}}" src="https://fs.andylistudio.com/mbook/book-loading.svg"></image>
+<view class="loading" wx:if="{{!loaded}}">
+  <image src="https://fs.andylistudio.com/mbook/book-loading.svg"></image>
 </view>
