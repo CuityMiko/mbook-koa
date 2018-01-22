@@ -81,7 +81,7 @@ page{
   color: #3399ff;
 }
 
-.main .main-item{
+.main navigator{
   flex: 50%;
   height: 50%;
   position: relative;

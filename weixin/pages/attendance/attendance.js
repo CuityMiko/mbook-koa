@@ -10,6 +10,7 @@ Page({
     showPicker: false,
     hasDone: false,
     keepTimes: 0,
+    present: 0,
     records: [],
     statusText: ''
   },
