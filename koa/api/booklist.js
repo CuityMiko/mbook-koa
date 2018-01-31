@@ -117,7 +117,6 @@ export default function(router) {
     })
     let newThisBook = []
     // 获取书籍详情
-    console.log(thisBookList)
     for(let i=0; i < thisBookList.books.length; i++){
       let bookInfo = await Book.findById(thisBookList.books[i].bookid, 'name img_url author')
       newThisBook.push({

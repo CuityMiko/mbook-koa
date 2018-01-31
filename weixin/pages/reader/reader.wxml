@@ -1,9 +1,9 @@
 <!--index.wxml-->
 <toast toast="{{toast}}"></toast>
 <view class="container reader" style="background-color: {{colorStyle.content_bg}}">
-	<scroll-view class="content" scroll-x="false" scroll-y="true" bindtap="clickPage" scroll-with-animation="true" bindscroll="readerScrollTop" scroll-top="{{bindTopValue}}" style="height:{{windows.windows_height+'px'}};font-family: {{currentFontFamily == '使用系统字体' ? 'inherit' : currentFontFamily}};font-size:{{allSliderValue.font + 'px'}};color:{{colorStyle.styleNum == '4'? '#85898c': '#000800'}}">
-		<text>{{content}}</text>
-	</scroll-view>
+	<view class="content" bind:touchstart="handletouchtart" bind:touchmove="handletouchmove" bind:touchend="handletouchend" style="height:{{windows.windows_height+'px'}};font-family: {{currentFontFamily == '使用系统字体' ? 'inherit' : currentFontFamily}};font-size:{{allSliderValue.font + 'px'}};color:{{colorStyle.styleNum == '4'? '#85898c': '#000800'}}">
+		<text style="column-width: {{windows.windows_width+'px'}}">{{content}}</text>
+	</view>
 	<view class="tips" wx:if="{{showReaderTips}}" bindtap="closeReaderTips">
 		<text class="pre-page">上一页</text>
 		<view class="show-bar">

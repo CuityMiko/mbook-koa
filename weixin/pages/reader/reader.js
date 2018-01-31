@@ -1,12 +1,13 @@
 //login.js
 const config = require('../../config')
 
-var currentGesture = 0; //控制当一个手势进行的时候屏蔽其他的手势
+var currentGesture  = 0; //控制当一个手势进行的时候屏蔽其他的手势
 var moveTime = null; //控制左滑右滑的动画
 var isMoving = 0;
 var leftTimmerCount = 0;
 var rightTimmerCount = 0;
 var hasRunTouchMove = false;
+var currentPageIndex = 0; // 当前是分栏的第几页
 var scrollTop = 0;
 
 Page({
@@ -123,6 +124,138 @@ Page({
       colorStyle: this.data.colorStyle //当前的主题
     });
     this.updateRead();
+  },
+  handletouchmove: function(event){
+    // console.log('正在执行touchmove, isMoving为：'+isMoving);
+    var self = this;
+    if (currentGesture != 0 || isMoving == 1){
+      return;
+    }
+    var currentX = event.touches[0].pageX;
+    var currentY = event.touches[0].pageY;
+    // 判断用没有滑动而是点击屏幕的动作
+    hasRunTouchMove = true;
+    console.log('正在执行touchmove, isMoving为：'+isMoving+'------event: {x: '+event.touches[0].pageX+' ,y: '+event.touches[0].pageY+'}');
+    var direction = 0;
+    if ((currentX - self.data.touches.lastX) < 0){
+      direction = 0;
+    }else if(((currentX - self.data.touches.lastX) > 0)){
+      direction = 1;
+    }
+    //需要减少或者增加的值
+    var moreOrLessValue = Math.abs(currentX - self.data.touches.lastX);
+    //将当前坐标进行保存以进行下一次计算
+    self.setData({touches: {lastX: currentX, lastY: currentY}, move_direction: direction});
+    var currentIndex = self.data.pageIndex;
+    if(direction == 0){
+      if(currentIndex < self.data.maxPageNum){
+        self.setData({leftValue: self.data.leftValue - moreOrLessValue});
+      }
+    }else{
+      if(currentIndex > 1){
+        self.setData({leftValue: self.data.leftValue + moreOrLessValue});
+      }
+    }
+  },
+  handletouchtart: function(event){
+    // 判断用户的点击事件，如果不是滑动，将不会执行touchmove
+    hasRunTouchMove = false;
+    // console.log('正在执行touchtart, isMoving为：'+isMoving+'------event: {x: '+event.touches[0].pageX+' ,y: '+event.touches[0].pageY+'}');
+    // console.log('正在执行touchtart, isMoving为：'+isMoving);
+    if(isMoving == 0){
+      this.setData({touches: {lastX: event.touches[0].pageX, lastY: event.touches[0].pageY}});
+    }
+  },
+  handletouchend: function(){
+    console.log('正在执行touchend, isMoving为：'+isMoving);
+    var self = this;
+    // 判断用户的点击事件，决定是否显示控制栏
+    if(hasRunTouchMove == false){
+      var y = self.data.touches.lastY
+      var x = self.data.touches.lastX
+      var h = self.data.windows.windows_height/2
+      var w = self.data.windows.windows_width/2
+      if(x && y && y >= (h-75) && y <= (h+75) && x >= (w-75) && x <= (w+75)){
+        self.setData({
+          control: {
+            all: self.data.control.all === 0 ? 1 : 0,
+            control_tab: 1,
+            control_detail: 1,
+            target: self.data.control.target || 'jingdu'
+          },
+          isShowFontSelector: 0
+        })
+        return
+      }
+    }
+    currentGesture = 0;
+    //左滑动和右滑动的操作
+    var currentIndex = currentPageIndex; //当前页数
+    var targetLeftValue = null; //移动之后content的目标左值
+    var pingjunValue = null; //500ms内平均每100ms移动的值
+    if(isMoving == 0){
+      if(self.data.move_direction == 0){
+        if(currentIndex < self.data.maxPageNum){
+          targetLeftValue = (-1)*self.data.windows.windows_width*currentIndex;
+          pingjunValue = Math.abs(targetLeftValue - self.data.leftValue)/4;//500ms其实函数只执行了4次，第一次会等待100ms才会开始函数
+          isMoving = 1; //开始计时的时候将标志置1
+          //使用计时器实现动画效果
+          // console.log('开始向 左 滑动的计时器，isMoving为1');
+          moveTime = setInterval(function(){
+            ++ leftTimmerCount;
+            var currentLeftValue = self.data.leftValue;
+            //如果达到了目标值，立即停止计时器
+            //调试发现有些时候这个if的跳转会莫名的不成立，所以做个限制，函数被执行了4次之后，无论条件是否成立，将leftValue设置为目标值，并结束计时器
+            if(leftTimmerCount == 4){
+              clearInterval(moveTime);
+              isMoving = 0;
+              leftTimmerCount = 0;
+              self.setData({leftValue: targetLeftValue});
+              return;
+            }
+            if(currentLeftValue == targetLeftValue){
+              clearInterval(moveTime);
+              isMoving = 0;
+              leftTimmerCount = 0;
+              // console.log('向 左 滑动的计时器结束了，isMoving为0');
+              return;
+            }
+            self.setData({leftValue: currentLeftValue-pingjunValue});
+          },75);
+          self.setData({pageIndex: ++currentIndex});
+        }
+      }else{
+        //前一页和后一页相差其实是2个-320px
+        if(currentIndex > 1){
+          targetLeftValue = (-1)*self.data.windows.windows_width*(currentIndex-2);
+          pingjunValue = Math.abs(targetLeftValue - self.data.leftValue)/4;
+          isMoving = 1;
+          // console.log('开始向 左 滑动的计时器，isMoving为1');
+          moveTime = setInterval(function(){
+            ++ rightTimmerCount;
+            var currentLeftValue = self.data.leftValue;
+            if(rightTimmerCount == 4){
+              clearInterval(moveTime);
+              isMoving = 0;
+              rightTimmerCount = 0;
+              self.setData({leftValue: targetLeftValue});
+              return;
+            }
+            if(currentLeftValue == targetLeftValue){
+              clearInterval(moveTime);
+              isMoving = 0;
+              rightTimmerCount = 0;
+              // console.log('向 右 滑动的计时器结束了，isMoving为0');
+              return;
+            }
+            self.setData({leftValue: currentLeftValue + pingjunValue});
+          },75);
+          self.setData({pageIndex: --currentIndex});
+        }
+      }
+    }else{
+
+    }
   },
   clickPage: function(event){
     var self = this;
@@ -372,9 +505,6 @@ Page({
           wx.setNavigationBarTitle({
             title: '「' + res.data.bookname + '」• ' + res.data.data.name
           });
-          // 决定是否调用预加载
-          self.scrollToUpper()
-          self.scrollToLower()
         }else{
           self.showToast('获取章节内容失败' + (res.data.msg ? '，' + res.data.msg : ''), 'bottom')
           // 展示无数据按钮
