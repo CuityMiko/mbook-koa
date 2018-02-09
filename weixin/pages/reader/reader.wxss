@@ -23,9 +23,6 @@ page {
   column-gap: 10px;
   position: relative;
   display:block;
-}
-
-.reader .content text{
   text-align: justify;
 }
 

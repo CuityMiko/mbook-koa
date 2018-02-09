@@ -2,7 +2,9 @@
 <toast toast="{{toast}}"></toast>
 <view class="container reader" style="background-color: {{colorStyle.content_bg}}">
 	<view class="content" bind:touchstart="handletouchtart" bind:touchmove="handletouchmove" bind:touchend="handletouchend" style="height:{{windows.windows_height+'px'}};font-family: {{currentFontFamily == '使用系统字体' ? 'inherit' : currentFontFamily}};font-size:{{allSliderValue.font + 'px'}};color:{{colorStyle.styleNum == '4'? '#85898c': '#000800'}}">
-		<text style="column-width: {{windows.windows_width+'px'}}">{{content}}</text>
+		<view id="content-out" style="overflow: {{hasGotMaxNum ? 'hidden' : 'auto'}}; height: {{hasGotMaxNum ?'100%' : 'auto'}}">
+			<text style="column-width: {{windows.windows_width+'px'}}; left: {{leftValue + 'px'}}">{{content}}</text>
+		</view>
 	</view>
 	<view class="tips" wx:if="{{showReaderTips}}" bindtap="closeReaderTips">
 		<text class="pre-page">上一页</text>
