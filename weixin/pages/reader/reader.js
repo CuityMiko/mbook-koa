@@ -2,7 +2,8 @@
 const config = require('../../config')
 
 var currentGesture  = 0; //控制当一个手势进行的时候屏蔽其他的手势
-var moveTimer = null; //控制左滑右滑的动画
+var leftMoveTimer = null; //控制左滑的动画计时器
+var rightMoveTimer = null; //控制右滑的动画计时器
 var isMoving = 0;
 var leftTimmerCount = 0;
 var rightTimmerCount = 0;
@@ -130,7 +131,7 @@ Page({
     this.updateRead();
   },
   handletouchmove: function(event){
-    console.log('正在执行touchmove, isMoving为：'+isMoving);
+    // console.log('正在执行touchmove, isMoving为：'+isMoving);
     var self = this;
     if (currentGesture != 0 || isMoving == 1){
       return;
@@ -139,7 +140,7 @@ Page({
     var currentY = event.touches[0].pageY;
     // 判断用没有滑动而是点击屏幕的动作
     hasRunTouchMove = true;
-    console.log('正在执行touchmove, isMoving为：'+isMoving+'------event: {x: '+event.touches[0].pageX+' ,y: '+event.touches[0].pageY+'}');
+    // console.log('正在执行touchmove, isMoving为：'+isMoving+'------event: {x: '+event.touches[0].pageX+' ,y: '+event.touches[0].pageY+'}');
     var direction = 0;
     if ((currentX - self.data.touches.lastX) < 0){
       direction = 0;
@@ -151,23 +152,20 @@ Page({
     //将当前坐标进行保存以进行下一次计算
     self.setData({touches: {lastX: currentX, lastY: currentY}, moveDirection: direction});
     var currentIndex = self.data.pageIndex;
-    console.log(self.data.leftValue, direction)
     if(direction == 0){
       if(currentIndex < self.data.maxPageNum){
         self.setData({leftValue: self.data.leftValue - moreOrLessValue});
-        console.log(self.data.leftValue)
       }
     }else{
       if(currentIndex > 1){
         self.setData({leftValue: self.data.leftValue + moreOrLessValue});
-        console.log(self.data.leftValue)
       }
     }
   },
   handletouchtart: function(event){
     // 判断用户的点击事件，如果不是滑动，将不会执行touchmove
     hasRunTouchMove = false;
-    console.log('正在执行touchtart, isMoving为：'+isMoving+'------event: {x: '+event.touches[0].pageX+' ,y: '+event.touches[0].pageY+'}');
+    // console.log('正在执行touchtart, isMoving为：'+isMoving+'------event: {x: '+event.touches[0].pageX+' ,y: '+event.touches[0].pageY+'}');
     if(isMoving == 0){
       this.setData({touches: {lastX: event.touches[0].pageX, lastY: event.touches[0].pageY}});
     }
@@ -210,29 +208,31 @@ Page({
           pingjunValue = Math.abs(targetLeftValue - self.data.leftValue)/4;//500ms其实函数只执行了4次，第一次会等待100ms才会开始函数
           isMoving = 1; //开始计时的时候将标志置1
           //使用计时器实现动画效果
-          // console.log('开始向 左 滑动的计时器，isMoving为1');
-          moveTimer = setInterval(function(){
+          leftMoveTimer = setInterval(function(){
             ++ leftTimmerCount;
             var currentLeftValue = self.data.leftValue;
             //如果达到了目标值，立即停止计时器
             //调试发现有些时候这个if的跳转会莫名的不成立，所以做个限制，函数被执行了4次之后，无论条件是否成立，将leftValue设置为目标值，并结束计时器
             if(leftTimmerCount == 4){
-              clearInterval(moveTimer);
+              clearInterval(leftMoveTimer);
               isMoving = 0;
               leftTimmerCount = 0;
               self.setData({leftValue: targetLeftValue});
               return;
             }
             if(currentLeftValue == targetLeftValue){
-              clearInterval(moveTimer);
+              clearInterval(leftMoveTimer);
               isMoving = 0;
               leftTimmerCount = 0;
-              // console.log('向 左 滑动的计时器结束了，isMoving为0');
+              self.setData({leftValue: targetLeftValue});
               return;
             }
             self.setData({leftValue: currentLeftValue-pingjunValue});
           },75);
           self.setData({pageIndex: ++currentIndex});
+        }else{
+          console.log('开始加载下一章');
+          self.loadNextChapter();
         }
       }else if(self.data.moveDirection === 1){
         //前一页和后一页相差其实是2个-320px
@@ -240,57 +240,33 @@ Page({
           targetLeftValue = (-1)*(self.data.windows.windows_width-10)*(currentIndex-2);
           pingjunValue = Math.abs(targetLeftValue - self.data.leftValue)/4;
           isMoving = 1;
-          // console.log('开始向 左 滑动的计时器，isMoving为1');
-          moveTimer = setInterval(function(){
+          rightMoveTimer = setInterval(function(){
             ++ rightTimmerCount;
             var currentLeftValue = self.data.leftValue;
             if(rightTimmerCount == 4){
-              clearInterval(moveTimer);
+              clearInterval(rightMoveTimer);
               isMoving = 0;
               rightTimmerCount = 0;
               self.setData({leftValue: targetLeftValue});
               return;
             }
             if(currentLeftValue == targetLeftValue){
-              clearInterval(moveTimer);
+              clearInterval(rightMoveTimer);
               isMoving = 0;
               rightTimmerCount = 0;
-              // console.log('向 右 滑动的计时器结束了，isMoving为0');
+              self.setData({leftValue: targetLeftValue});
               return;
             }
             self.setData({leftValue: currentLeftValue + pingjunValue});
           },75);
           self.setData({pageIndex: --currentIndex});
+        }else{
+          console.log('开始加载上一章');
+          self.loadPreChapter();
         }
       }
     }else{}
   },
-  // clickPage: function(event){
-  //   var self = this;
-  //   var y = event.detail.y;
-  //   var h = self.data.windows.windows_height / 2;
-  //   if (y && y >= (h - 75) && y <= (h + 75)) {
-  //     // 显示控制栏
-  //     self.setData({
-  //       control: {
-  //         all: self.data.control.all === 0 ? 1 : 0,
-  //         control_tab: 1,
-  //         control_detail: 1,
-  //         target: self.data.control.target || 'jingdu'
-  //       },
-  //       isShowFontSelector: 0
-  //     });
-  //     return;
-  //   }else if(y && y < (h - 75)){
-  //     // 向上翻页
-  //     scrollTop -= self.data.windows.windows_height
-  //     self.setData({ 'bindTopValue': scrollTop >= 0 ? scrollTop : 0 })
-  //   }else if(y && y > (h + 75)){
-  //     // 向下翻页
-  //     scrollTop += self.data.windows.windows_height
-  //     self.setData({ 'bindTopValue': scrollTop })
-  //   }
-  // },
   sectionSliderChange: function (event) {
     var self = this;
     self.setData({
@@ -308,11 +284,21 @@ Page({
             'currentSectionNum': res.data.data.num,
             'content': res.data.data.content,
             'factionTitle': res.data.data.name,
-            'allSliderValue.section': res.data.data.num
+            'allSliderValue.section': res.data.data.num,
+            'hasGotMaxNum': false,
+            'pageIndex': 1,
+            'leftValue': 0
           });
           wx.setNavigationBarTitle({
             title: '「' + res.data.bookname + '」• ' + res.data.data.name
           });
+          // 重新计算最大分页数
+          wx.createSelectorQuery().select('#content-out').boundingClientRect(function(rect){
+            self.setData({
+              'maxPageNum':  Math.ceil(rect.height / (parseInt(self.data.windows.windows_height - 20))),
+              'hasGotMaxNum': true
+            })
+          }).exec();
         }else{
           self.showToast('获取章节内容失败' + (res.data.msg ? '，' + res.data.msg : ''), 'bottom')
         }
@@ -478,11 +464,20 @@ Page({
             'currentSectionNum': res.data.data.num,
             'content': res.data.data.content,
             'factionTitle': res.data.data.name,
-            'allSliderValue.section': res.data.data.num
+            'allSliderValue.section': res.data.data.num,
+            'pageIndex': 1,
+            'leftValue': 0
           });
           wx.setNavigationBarTitle({
             title: '「' + res.data.bookname + '」• ' + res.data.data.name
           });
+          // 重新计算最大分页数
+          wx.createSelectorQuery().select('#content-out').boundingClientRect(function(rect){
+            self.setData({
+              'maxPageNum':  Math.ceil(rect.height / (parseInt(self.data.windows.windows_height - 20))),
+              'hasGotMaxNum': true
+            })
+          }).exec();
         }else{
           self.showToast('获取章节内容失败' + (res.data.msg ? '，' + res.data.msg : ''), 'bottom')
         }
@@ -510,6 +505,10 @@ Page({
             'author': res.data.author,
             'headImg': res.data.headimg
           });
+          // 设置标题
+          wx.setNavigationBarTitle({
+            title: '「' + res.data.bookname + '」• ' + res.data.data.name
+          });
           // 动态计算最大页数
           wx.createSelectorQuery().select('#content-out').boundingClientRect(function(rect){
             // 获取屏幕高度和宽度信息
@@ -527,9 +526,6 @@ Page({
               }
             })
           }).exec();
-          wx.setNavigationBarTitle({
-            title: '「' + res.data.bookname + '」• ' + res.data.data.name
-          });
         }else{
           self.showToast('获取章节内容失败' + (res.data.msg ? '，' + res.data.msg : ''), 'bottom')
           // 展示无数据按钮
@@ -595,24 +591,41 @@ Page({
     console.log(event)
     scrollTop = event.detail.scrollTop
   },
-  scrollToUpper: function(){
+  loadPreChapter: function(){
     let self = this
-      let preChapterNum = self.data.currentSectionNum - 1
-      if(preChapterNum >= 0){
+    let preChapterNum = self.data.currentSectionNum - 1
+    if (preChapterNum > 0) {
       wx.request({
         method: 'GET',
         url: config.base_url + '/api/chapter/detail?bookid=' + self.data.bookid + '&chapter_num=' + preChapterNum,
-        header: { 'Authorization': 'Bearer ' + wx.getStorageSync('token') },
+        header: {
+          'Authorization': 'Bearer ' + wx.getStorageSync('token')
+        },
         success(res) {
-          if(res.data.ok){
+          if (res.data.ok) {
             self.setData({
               'bindTopValue': 0,
               'currentSectionNum': res.data.data.num,
               'content': res.data.data.content,
               'factionTitle': res.data.data.name,
-              'allSliderValue.section': res.data.data.num
+              'allSliderValue.section': res.data.data.num,
+              'hasGotMaxNum': false
             })
-          }else{
+            // 设置标题
+            wx.setNavigationBarTitle({
+              title: '「' + self.data.factionTitle + '」• ' + self.data.factionTitle
+            });
+            // 重新计算最大分页数
+            wx.createSelectorQuery().select('#content-out').boundingClientRect(function(rect){
+              var maxPageNum = Math.ceil(rect.height / (parseInt(self.data.windows.windows_height - 20)));
+              self.setData({
+                'maxPageNum':  maxPageNum,
+                'pageIndex': maxPageNum, // 往前翻页，讲pageIndex重置为最后一页
+                'leftValue': (-1)*(self.data.windows.windows_width-10)*(maxPageNum-1),
+                'hasGotMaxNum': true
+              })
+            }).exec();
+          } else {
             self.showToast('加载上一章失败' + (res.data.msg ? '，' + res.data.msg : ''), 'bottom')
           }
         },
@@ -620,11 +633,11 @@ Page({
           self.showToast('加载上一章失败，', 'bottom')
         }
       })
-    }else{
+    } else {
       self.showToast('已经翻到最前面了', 'bottom')
     }
   },
-  scrollToLower: function(){
+  loadNextChapter: function(){
     let self = this
     let nextChapterNum = self.data.currentSectionNum + 1
     if(nextChapterNum <= self.data.newestSectionNum){
@@ -639,8 +652,22 @@ Page({
               'currentSectionNum': res.data.data.num,
               'content': res.data.data.content,
               'factionTitle': res.data.data.name,
-              'allSliderValue.section': res.data.data.num
+              'allSliderValue.section': res.data.data.num,
+              'hasGotMaxNum': false,
+              'pageIndex': 1, // 将pageIndex重置为第一页，
+              'leftValue': 0 // 左滑值重置为0
             })
+            // 设置标题
+            wx.setNavigationBarTitle({
+              title: '「' + self.data.factionTitle + '」• ' + self.data.factionTitle
+            });
+            // 重新计算最大分页数
+            wx.createSelectorQuery().select('#content-out').boundingClientRect(function(rect){
+              self.setData({
+                'maxPageNum':  Math.ceil(rect.height / (parseInt(self.data.windows.windows_height - 20))),
+                'hasGotMaxNum': true
+              })
+            }).exec();
           }else{
             self.showToast('加载下一章失败' + (res.data.msg ? '，' + res.data.msg : ''), 'bottom')
           }

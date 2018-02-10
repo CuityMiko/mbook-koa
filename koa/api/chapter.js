@@ -70,6 +70,7 @@ export default function (router) {
     let token = ctx.header.authorization.split(' ')[1]
     let payload = await jwtVerify(token)
     if(chapter_id){
+      // 通过传递章节id获取章节内容
       let thisChapter = await Chapter.findById(chapter_id)
       let thisBook = await Book.findById(bookid, 'name img_url author newest_chapter')
       if (thisChapter._id) {
@@ -87,6 +88,7 @@ export default function (router) {
         ctx.body = { ok: false, msg: '获取章节详情失败' }
       }
     }else if(chapter_num){
+      // 通过传递章节数获取章节内容
       let thisBook = await Book.findById(bookid, 'id name img_url author newest_chapter').populate({
         path: 'chapters',
         match: {
