@@ -85,7 +85,7 @@ Page({
       header: { 'Authorization': 'Bearer ' + wx.getStorageSync('token') },
       data: {
         chargeids: selectPrise.map(item => { return item.id }),
-        pay_money: 1, // self.data.payNum
+        pay_money: self.data.payNum,
         yuebi_num: self.data.willGetYuebiNum,
         spbill_create_ip: self.data.localIp || '0.0.0.0'
       },

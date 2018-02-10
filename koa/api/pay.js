@@ -6,7 +6,7 @@ import moment from 'moment'
 export default function (router) {
   router.post('/api/pay', async (ctx, next) => {
     let { chargeids, pay_money, yuebi_num, spbill_create_ip } = ctx.request.body
-    console.log(chargeids, pay_money, yuebi_num, spbill_create_ip)
+    console.log('支付请求参数: ' + JSON.stringify(ctx.request.body))
     let payload = await jwtVerify(ctx.header.authorization.split(' ')[1])
     if (payload && payload.userid) {
       // 查询得到用户的openid
@@ -99,14 +99,13 @@ export default function (router) {
               if(addAmontResult){
                 // 处理订单状态, 修改status的值
                 await Pay.updateStatus(result.xml.out_trade_no[0], 1)
-                console.log('已经为ID为' + thisPay.userid + '的用户下发' + thisPay.yuebi_num + '书币')
+                console.log('ID为' + thisPay._id + '的订单支付成功，为ID为' + thisPay.userid + '下发' + thisPay.yuebi_num + '书币')
               }else{
-                await Pay.updateStatus(result.xml.out_trade_no[0], 1)
-                // await Pay.
+                await Pay.updateStatus(result.xml.out_trade_no[0], 4)
+                await Pay.updateDes(result.xml.out_trade_no[0], '支付成功，但下发书币失败', 1)
+                console.log('ID为' + thisPay.userid + '的用户支付成功，但是下发书币失败')
               }
               ctx.body = `<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>`
-              console.log('支付成功')
-              
             }else{
               await Pay.updateStatus(result.xml.out_trade_no[0], 2)
               ctx.body = `<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[支付失败]]></return_msg></xml>`
@@ -114,11 +113,11 @@ export default function (router) {
             }
           }else{
             ctx.body = `<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[订单不存在]]></return_msg></xml>`
-            console.log('订单不存在')
+            console.log('订单支付失败，找不到ID为' + result.xml.out_trade_no[0] + '的订单，微信回调参数: ' + JSON.stringify(result))
           }
         }else{
           ctx.body = `<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[订单不存在]]></return_msg></xml>`
-          console.log('订单不存在')
+          console.log('订单支付失败，微信回调参数: ' + JSON.stringify(result))
         }
       }
       await next()
@@ -135,11 +134,14 @@ export default function (router) {
       // 关闭订单
       weixinpay.closeOrder({ out_trade_no: payId}, function(err, result){})
       if(updateResult){
+        console.log('ID为' + payId + '的订单被取消')
         ctx.body = { ok: true, msg: '取消订单成功' }
       }else{
+        console.log('ID为' + payId + '的订单取消失败，参数错误')
         ctx.body = { ok: false, msg: '取消订单失败，参数错误' }
       }
     }else{
+      console.log('ID为' + payId + '的订单取消失败，参数错误')
       ctx.body = { ok: false, msg: '取消订单失败，参数错误' }
     }
   })

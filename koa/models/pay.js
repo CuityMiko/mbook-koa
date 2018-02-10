@@ -8,7 +8,7 @@ const PaySchema = new mongoose.Schema({
   userid: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   pay_money: Number, // 应支付金额
   yuebi_num: Number, // 获得阅币数
-  status: Number, // 订单完成状态, 0:初次创建，1：支付成功，2:支付失败
+  status: Number, // 订单完成状态, 0:初次创建，1：支付成功，2:支付失败，3: 订单取消， 4异常错误
   des: [], // 额外说明
   create_time: Date
 }, { versionKey: false })
@@ -32,6 +32,7 @@ PaySchema.statics.updateStatus = async function (id, num) {
    * num = 1，订单支付成功
    * num = 2, 订单支付失败
    * num = 3, 订单取消
+   * num = 4, 出现异常错误
    */
   if(num === 0 || num === 1 || num === 2 || num === 3){
     let updateResult = await this.update({_id: id}, {status: num})
