@@ -94,16 +94,19 @@ export default function (router) {
           let thisPay = await Pay.findById(result.xml.out_trade_no[0])
           if(thisPay._id){
             if(result.xml && result.xml.result_code && result.xml.result_code[0] === 'SUCCESS'){
-              // 增加用户书币
-              let addAmontResult = await User.addAmount(thisPay.userid, thisPay.yuebi_num)
-              if(addAmontResult){
-                // 处理订单状态, 修改status的值
-                await Pay.updateStatus(result.xml.out_trade_no[0], 1)
-                console.log('ID为' + thisPay._id + '的订单支付成功，为ID为' + thisPay.userid + '下发' + thisPay.yuebi_num + '书币')
-              }else{
-                await Pay.updateStatus(result.xml.out_trade_no[0], 4)
-                await Pay.updateDes(result.xml.out_trade_no[0], '支付成功，但下发书币失败', 1)
-                console.log('ID为' + thisPay.userid + '的用户支付成功，但是下发书币失败')
+              // 为了防止多次回调重复修改用户书币数，这里限制订单status为1时不做增加书币处理
+              if(thisPay.status !== 1){
+                // 增加用户书币
+                let addAmontResult = await User.addAmount(thisPay.userid, thisPay.yuebi_num)
+                if(addAmontResult){
+                  // 处理订单状态, 修改status的值
+                  await Pay.updateStatus(result.xml.out_trade_no[0], 1)
+                  console.log('ID为' + thisPay._id + '的订单支付成功，为ID为' + thisPay.userid + '下发' + thisPay.yuebi_num + '书币')
+                }else{
+                  await Pay.updateStatus(result.xml.out_trade_no[0], 4)
+                  await Pay.updateDes(result.xml.out_trade_no[0], '支付成功，但下发书币失败', 1)
+                  console.log('ID为' + thisPay.userid + '的用户支付成功，但是下发书币失败')
+                }
               }
               ctx.body = `<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>`
             }else{

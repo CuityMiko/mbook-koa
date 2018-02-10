@@ -3,7 +3,7 @@
     <image class="avatar" src="{{userInfo.avatar}}"></image>
     <view class="info">
       <view class="username">{{userInfo.username}}</view>
-      <view class="amount"><icon class="iconfont icon-qianbi"></icon><text class="num">0</text>书币</view>
+      <view class="amount"><icon class="iconfont icon-qianbi"></icon><text class="num">{{amount}}</text>书币</view>
     </view>
     <view class="word">{{text}}</view>
   </view>
