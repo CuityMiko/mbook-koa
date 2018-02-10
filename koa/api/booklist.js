@@ -71,15 +71,15 @@ export default function(router) {
   router.post('/api/booklist/update_read', async(ctx, next) => {
     let token = ctx.header.authorization.split(' ')[1]
     let payload = await jwtVerify(token)
-    let { bookid, chapter_num, chapter_page_top } = ctx.request.body
+    let { bookid, chapter_num, chapter_page_index } = ctx.request.body
     if(payload.userid){
-      if(bookid && chapter_num && (chapter_page_top || chapter_page_top == 0) ){
+      if(bookid && chapter_num && (chapter_page_index || chapter_page_index == 0) ){
         let thisBookList = await BookList.findOne({ userid: payload.userid })
         let newBooks = thisBookList.books.map(item => {
           if(item.bookid.toString() == bookid){
             item.read = {
               num: chapter_num,
-              top: chapter_page_top
+              top: chapter_page_index
             }
             return item
           }else{
@@ -89,7 +89,7 @@ export default function(router) {
         let updateResult = await BookList.update({ userid: payload.userid }, { '$set': { 'books': newBooks } })
         if(updateResult.ok == 1){
           if(updateResult.nModified == 1){
-            ctx.body = { ok: true, msg: '更新阅读进度成功，最新进度第 ' + chapter_num + ' 章 高度 ' + chapter_page_top }
+            ctx.body = { ok: true, msg: '更新阅读进度成功，最新进度第' + chapter_num + '章，第' + chapter_page_index + '页' }
           }else{
             ctx.body = { ok: true, msg: '阅读进度没有改动' }
           }
