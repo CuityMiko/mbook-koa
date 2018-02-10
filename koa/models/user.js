@@ -20,7 +20,11 @@ const UserSchema = new mongoose.Schema({
   create_time: Date
 }, { versionKey: false })
 
-// 修改书币的统一方法
+/**
+ * 增加用户书币数的静态函数
+ * @param {String} 用户id
+ * @param {Number} 需要增加的阅币数
+ */
 UserSchema.statics.addAmount = async function (userid, num) {
   if(userid && num){
     let current = await this.findById(userid)
@@ -35,6 +39,11 @@ UserSchema.statics.addAmount = async function (userid, num) {
   }
 }
 
+/**
+ * 减少用户书币数的静态函数
+ * @param {String} 用户id
+ * @param {Number} 需要减少的阅币数
+ */
 UserSchema.statics.reduceAmount = async function (userid, num) {
   if(userid && num){
     let current = await this.findById(userid)

@@ -8,6 +8,9 @@ const AttendanceSchema = new mongoose.Schema({
     create_time: Date // 创建时间
 }, { versionKey: false })
 
+/**
+ * 将字母id装换成mongodb的ObjectId对象的静态函数
+ */
 AttendanceSchema.statics.transId = async function (id) {
   return mongoose.Types.ObjectId(id)
 }

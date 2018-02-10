@@ -84,7 +84,7 @@ export default function (router) {
     })
 
     await promise.then(async (result) => {
-      console.log(result)
+      // console.log(result)
       ctx.type = 'xml'
       // 判断result是否为空，为空则返回fail
       if(tool.isEmpty(result)){
@@ -92,12 +92,21 @@ export default function (router) {
       }else{
         if(result.xml && result.xml.out_trade_no && result.xml.out_trade_no[0]){
           let thisPay = await Pay.findById(result.xml.out_trade_no[0])
-          if(thisPay){
+          if(thisPay._id){
             if(result.xml && result.xml.result_code && result.xml.result_code[0] === 'SUCCESS'){
-              // 处理订单状态, 修改status的值
-              await Pay.updateStatus(result.xml.out_trade_no[0], 1)
+              // 增加用户书币
+              let addAmontResult = await User.addAmount(thisPay.userid, thisPay.yuebi_num)
+              if(addAmontResult){
+                // 处理订单状态, 修改status的值
+                await Pay.updateStatus(result.xml.out_trade_no[0], 1)
+                console.log('已经为ID为' + thisPay.userid + '的用户下发' + thisPay.yuebi_num + '书币')
+              }else{
+                await Pay.updateStatus(result.xml.out_trade_no[0], 1)
+                // await Pay.
+              }
               ctx.body = `<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>`
               console.log('支付成功')
+              
             }else{
               await Pay.updateStatus(result.xml.out_trade_no[0], 2)
               ctx.body = `<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[支付失败]]></return_msg></xml>`
