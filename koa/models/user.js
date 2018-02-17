@@ -1,10 +1,12 @@
 import mongoose from 'mongoose'
+import bcrypt from 'bcrypt-nodejs'
+const SALT_WORK_FACTOR = 10
 
 const UserSchema = new mongoose.Schema({
-  username: String,
+  username: {type: String, unique: true , required: true},
   password: String,
   avatar: String,
-  identity: Number, // 区分用户是普通用户还是系统管理员
+  identity: Number, // 区分用户是普通用户还是系统管理员，1：小程序用户，2：系统管理员
   openid: String, // 小程序openid
   // unionid: String, // 小程序unionid
   amount: 0, // 书币数量
@@ -17,6 +19,7 @@ const UserSchema = new mongoose.Schema({
       mode: String, // 模式
     }
   },
+  is_active: Boolean, // 后台管理账号是否激活标志
   create_time: Date
 }, { versionKey: false })
 
@@ -61,6 +64,34 @@ UserSchema.statics.reduceAmount = async function (userid, num) {
   }else{
     return false
   }
+}
+
+// 存储密码之前将其转换成hash值
+UserSchema.pre('save', function (next) {
+  var user = this
+  //产生密码hash当密码有更改的时候(或者是新密码)
+  if (!user.isModified('password')) return next();
+  // 产生一个salt
+  bcrypt.genSalt(SALT_WORK_FACTOR, function (err, salt) {
+    if (err) return next(err)
+    //  结合salt产生新的hash
+    bcrypt.hash(user.password, salt, function (err, hash) {
+      if (err) return next(err)
+      // 使用hash覆盖明文密码
+      user.password = hash
+      next()
+    })
+  })
+})
+
+/**
+ * 检验用户密码的合法性的实例方法
+ */
+UserSchema.methods.checkPassword = function (candidatePassword, cb) {
+  bcrypt.compare(candidatePassword, this.password, function (err, isMatch) {
+    if (err) return cb(err)
+    cb(null, isMatch)
+  })
 }
 
 let User = mongoose.model('User', UserSchema)

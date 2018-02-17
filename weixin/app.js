@@ -28,7 +28,7 @@ App({
             method: 'POST',
             url: config.base_url + '/api/user/login',
             data: {
-              identity: 'appuser',
+              identity: 1,
               code: code
             },
             success: res => {
