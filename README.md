@@ -85,3 +85,5 @@ wx.checkSession({
 
 ### loading动画地址
 [loading](https://loading.io/icon/custom/95323/)
+
+"no-console": ["error"],

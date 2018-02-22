@@ -11,6 +11,7 @@ const jwt = require('jsonwebtoken')
 const jwtKoa = require('koa-jwt')
 const logger = require('koa-logger')
 const restc = require('restc')
+const cors = require('koa2-cors')
 const noAuthPathArr = require('./config/noauth')
 const index = require('./routes/index')
 const secret = 'mbook'
@@ -36,6 +37,9 @@ app.use(async(ctx, next) => {
     const ms = new Date() - start
     console.log(`${ctx.method} ${ctx.url} - ${ms}ms`)
 })
+
+// cross
+app.use(cors())
 
 // routes
 app.use(index.routes(), index.allowedMethods())
