@@ -1,4 +1,4 @@
-import jwtVerify from './jwt'
+import { jwtVerify, checkUserToken, checkAdminToken } from './jwt'
 import tool from './common'
 
-export { jwtVerify, tool }
+export { jwtVerify, checkUserToken, checkAdminToken, tool }

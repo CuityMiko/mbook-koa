@@ -1,3 +1,4 @@
+import { checkAdminToken } from '../utils'
 import { Banner } from '../models'
 
 export default function (router) {
@@ -28,17 +29,20 @@ export default function (router) {
     })
 
     router.post('/api/banner', async (ctx, next) => {
-      let { priority, show, type, url, img_url, des } = ctx.request.body
-      let result = await Banner.create({
-          priority: priority,
-          show: show,
-          type: type,
-          url: url,
-          img_url: img_url,
-          des: des,
-          create_time: new Date()
-      })
-      ctx.body = result
+      let userid = await checkAdminToken(ctx, 'banner_add')
+      if(userid){
+        let { priority, show, type, url, img_url, des } = ctx.request.body
+        let result = await Banner.create({
+            priority: priority,
+            show: show,
+            type: type,
+            url: url,
+            img_url: img_url,
+            des: des,
+            create_time: new Date()
+        })
+        ctx.body = result
+      }
     })
 
     router.put('/api/banner/:id', async (ctx, next) => {

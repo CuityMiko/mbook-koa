@@ -91,7 +91,7 @@ export default function (router) {
                 }
                 if(isCorrect){
                   // 产生token
-                  let userToken = {userid: user._id}
+                  let userToken = {userid: user._id, identity: identity}
                   //token签名 有效期为2小时
                   const token = jwt.sign(userToken, secret, {
                     expiresIn: '2h'
@@ -137,17 +137,9 @@ export default function (router) {
   })
 
   router.post('/api/user/registe', async (ctx, next) => {
-    let {
-      identity
-    } = ctx.request.body
+    let {identity} = ctx.request.body
     if (identity === 'appuser') {
-      let {
-        code,
-        nickName,
-        province,
-        country,
-        avatarUrl
-      } = ctx.request.body
+      let {code, nickName, province, country, avatarUrl} = ctx.request.body
       // app用户注册
       // 向微信服务器发送请求，使用code换取openid和session_key
       let qsdata = {
