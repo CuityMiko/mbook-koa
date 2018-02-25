@@ -1,5 +1,6 @@
 import axios from 'axios'
 import qs from 'qs'
+import Cookies from "js-cookie";
 import {Message} from 'iview'
 import env from '../../build/env';
 
@@ -12,9 +13,9 @@ axios.defaults.baseURL = env === 'development'
 // 这里的config包含每次请求的内容
 axios.interceptors.request.use(config => {
   // 判断localStorage中是否存在admin_token
-  if (localStorage.getItem('admin_token')) {
+  if (Cookies.get('admin_token')) {
     //  存在将admin_token写入 request header
-    config.headers.apiToken = `${localStorage.getItem('admin_token')}`
+    config.headers.Authorization = `Bearer ${Cookies.get('admin_token')}`
   }
   return config
 }, err => {
@@ -50,11 +51,11 @@ function checkCode (res, des) {
     Message.error('  ')
   }
   if (res.data && (!res.data.ok)) {
-    // if (res.data.msg) {
-    //   Message.error(des + '失败，' + res.data.msg)
-    // } else {
-    //   Message.error(des + '失败')
-    // }
+    if (res.data.msg) {
+      Message.error(des + '失败，' + res.data.msg)
+    } else {
+      Message.error(des + '失败')
+    }
   }
   return res
 }
@@ -82,7 +83,23 @@ export default {
     return axios({
       method: 'get',
       url,
-      params, // get 请求时带的参数
+      params,
+      timeout: 5000,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    }).then((response) => {
+      return checkStatus(response, des)
+    }).then((response) => {
+      return checkCode(response, des)
+    })
+  },
+  patch (url, params, des) {
+    console.log(url, params, des)
+    return axios({
+      method: 'patch',
+      url,
+      data: params,
       timeout: 5000,
       headers: {
         'X-Requested-With': 'XMLHttpRequest'

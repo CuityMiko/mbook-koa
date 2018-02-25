@@ -76,6 +76,16 @@ export const otherRouter = {
 // 作为Main组件的子页面展示并且在左侧菜单显示的路由写在appRouter里
 export const appRouter = [
     {
+        path: '/banner',
+        icon: 'key',
+        name: 'banner',
+        title: 'banner管理',
+        component: Main,
+        children: [
+            { path: 'index', title: 'banner管理', name: 'banner_manage', component: () => import('@/views/banner.vue') }
+        ]
+    },
+    {
         path: '/access',
         icon: 'key',
         name: 'access',

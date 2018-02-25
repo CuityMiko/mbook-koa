@@ -1,4 +1,4 @@
 const config = {
-  "base_url": "http://localhost:5000"
+  "base_url": "https://mbook.lilyplay.com"
 }
 module.exports = config

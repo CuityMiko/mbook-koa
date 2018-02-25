@@ -7,19 +7,21 @@ import user from './modules/user';
 Vue.use(Vuex);
 
 const store = new Vuex.Store({
-    state: {
-        //
-    },
-    mutations: {
-        //
-    },
-    actions: {
-
-    },
-    modules: {
-        app,
-        user
+  state: {
+    isShowModal: false
+  },
+  mutations: {
+    changeModal (state, boolean){
+      state.isShowModal = boolean
     }
+  },
+  actions: {
+
+  },
+  modules: {
+    app,
+    user
+  }
 });
 
 export default store;

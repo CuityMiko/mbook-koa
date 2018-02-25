@@ -25,7 +25,7 @@ export default function (router) {
           limit = 10
       }
       let result = await Banner.find().skip((page - 1) * limit).limit(limit)
-      ctx.body = { ok: true, msg: '查询成功', list: result }
+      ctx.body = { ok: true, msg: '查询成功', total: result.length, list: result }
     })
 
     router.post('/api/banner', async (ctx, next) => {
@@ -45,20 +45,13 @@ export default function (router) {
       }
     })
 
-    router.put('/api/banner/:id', async (ctx, next) => {
+    router.patch('/api/banner/:id', async (ctx, next) => {
       let id = ctx.params.id
-      let { priority, show, type, url, img_url, des } = ctx.request.body
       let result = await Banner.update({ _id: id },
       {
-          $set: {
-              priority: priority,
-              show: show,
-              type: type,
-              url: url,
-              img_url: img_url,
-              des: des,
-          }
+          $set: ctx.request.body
       })
+      console.log(ctx.request.body)
       if(result.ok === 1){
           ctx.body = { ok: true, msg: '更新成功' }
       }else{
