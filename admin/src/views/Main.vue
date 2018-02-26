@@ -3,7 +3,6 @@
 </style>
 <template>
     <div class="main" :class="{'main-hide-text': shrink}">
-        <div class="modal-bg" v-if="isShowModal"></div>
         <div class="sidebar-menu-con" :style="{width: shrink?'60px':'200px', overflow: shrink ? 'visible' : 'auto'}">
             <shrinkable-menu 
                 :shrink="shrink"
@@ -92,8 +91,7 @@ export default {
       shrink: false,
       userName: "",
       isFullScreen: false,
-      openedSubmenuArr: this.$store.state.app.openedSubmenuArr,
-      isShowModal: this.$store.state.isShowModal
+      openedSubmenuArr: this.$store.state.app.openedSubmenuArr
     };
   },
   computed: {
@@ -204,9 +202,6 @@ export default {
   created() {
     // 显示打开的页面的列表
     this.$store.commit("setOpenedList");
-    setInterval(() => {
-      console.log(this.$store.state.isShowModal)
-    }, 1000)
   }
 };
 </script>

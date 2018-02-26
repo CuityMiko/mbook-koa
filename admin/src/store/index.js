@@ -8,12 +8,8 @@ Vue.use(Vuex);
 
 const store = new Vuex.Store({
   state: {
-    isShowModal: false
   },
   mutations: {
-    changeModal (state, boolean){
-      state.isShowModal = boolean
-    }
   },
   actions: {
 

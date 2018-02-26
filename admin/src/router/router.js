@@ -77,7 +77,7 @@ export const otherRouter = {
 export const appRouter = [
     {
         path: '/banner',
-        icon: 'key',
+        icon: 'images',
         name: 'banner',
         title: 'banner管理',
         component: Main,

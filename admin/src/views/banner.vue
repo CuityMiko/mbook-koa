@@ -31,6 +31,9 @@
   top: 0;
   margin-left: -300px;
 }
+.banner-container .textarea.ivu-input{
+  font-size: 12px;
+}
 </style>
 
 <template>
@@ -44,51 +47,31 @@
                     </div>
                     <Page class="page-tool" :total="total" :current="page" @on-change="handlePageChange" show-total></Page>
                 </Card>
-                <Card class="modal-container" v-if="isShowModal">
-                  <p class="title" slot="title">新增banner</p>
-                  <Form :model="modalData" :label-width="80">
-                    <FormItem label="图片地址">
+                <Modal v-model="isShowModal" :title="modalTitle" :loading="modalLoading" @on-ok="handleModalConfrim" @on-cancel="handleModalCancel" width="600" :mask-closable="false">
+                  <Form ref="modalForm" :model="modalData" :rules="modalRule" :label-width="80">
+                    <FormItem prop="img_url" label="图片地址" :error="modalError.img_url">
                         <Input v-model="modalData.img_url" placeholder="请输入banner图片地址"></Input>
                     </FormItem>
-                    <FormItem label="描述">
+                    <FormItem prop="des" label="描述" :error="modalError.des">
                         <Input v-model="modalData.des" type="textarea" :autosize="{minRows: 2,maxRows: 5}" placeholder="输入banner描述"></Input>
                     </FormItem>
-                    <FormItem label="跳转类型">
-                        <Select v-model="modalData.select">
+                    <FormItem prop="type" label="跳转类型" :error="modalError.type">
+                        <Select v-model="modalData.type">
                             <Option value="0">小程序链接</Option>
                             <Option value="1">第三方链接</Option>
                         </Select>
                     </FormItem>
-                    <FormItem label="Radio">
-                        <RadioGroup v-model="modalData.radio">
-                            <Radio label="male">Male</Radio>
-                            <Radio label="female">Female</Radio>
-                        </RadioGroup>
+                    <FormItem prop="url" label="跳转地址" :error="modalError.url">
+                        <Input v-model="modalData.url" placeholder="请输入跳转地址"></Input>
                     </FormItem>
-                    <FormItem label="Checkbox">
-                        <CheckboxGroup v-model="modalData.checkbox">
-                            <Checkbox label="Eat"></Checkbox>
-                            <Checkbox label="Sleep"></Checkbox>
-                            <Checkbox label="Run"></Checkbox>
-                            <Checkbox label="Movie"></Checkbox>
-                        </CheckboxGroup>
-                    </FormItem>
-                    <FormItem label="Switch">
-                        <i-switch v-model="modalData.switch" size="large">
-                            <span slot="open">On</span>
-                            <span slot="close">Off</span>
+                    <FormItem prop="show" label="是否显示" :error="modalError.show">
+                        <i-switch v-model="modalData.show" size="large">
+                            <span slot="open">显示</span>
+                            <span slot="close">隐藏</span>
                         </i-switch>
                     </FormItem>
-                    <FormItem label="Slider">
-                        <Slider v-model="modalData.slider" range></Slider>
-                    </FormItem>
-                    
-                    <FormItem>
-                        <Button type="primary">Submit</Button>
-                        <Button type="ghost" style="margin-left: 8px">Cancel</Button>
-                    </FormItem>
                   </Form>
-                </Card>
+                </Modal>
             </Col>
         </Row>
     </div>
@@ -241,8 +224,25 @@ export default {
       page: 1,
       limit: 10,
       total: 0,
-      isShowModal: false,
-      modalData: {}
+      isShowModal: false, // 控制modal的显隐
+      modalLoading: true, // 点击modal确定按钮是否显示loading
+      modalTitle: '', // modal标题
+      isAddOrUpdateModal: '', // 是新增弹窗或者更新弹窗
+      modalData: {},
+      modalRule: {
+        img_url: [
+          { required: true, message: '请输入图片地址', trigger: 'blur' }
+        ],
+        des: [],
+        type: [
+          { required: true, message: '请选择跳转类型', trigger: 'blur' }
+        ],
+        url: [
+          { required: true, message: '请输入跳转地址', trigger: 'blur' }
+        ],
+        show: []
+      },
+      modalError: {} // modal错误提示信息
     };
   },
   methods: {
@@ -289,11 +289,92 @@ export default {
         des: '',
         type: '',
         url: '',
-        show: ''
+        show: false
       };
       this.isShowModal = true;
-      this.$store.commit('changeModal', true);
-      console.log(this.$store.state.isShowModal)
+      this.modalTitle = '新增banner';
+      this.isAddOrUpdateModal = 'add';
+    },
+    handleModalConfrim(){
+      let self = this;
+      // 合法性校验
+      self.$refs['modalForm'].validate((valid) => {
+        if (valid) {
+          console.log('合法')
+          let imgUrlRegExp = /^(http|https):\/\/.+\.(jpg|png|JPG|PNG|gif)$/;
+          let urlRegExp = /^((\/pages\/.+)|(https:\/\/.+))$/;
+          let isOk = true;
+          if(!imgUrlRegExp.test(self.modalData.img_url)){
+            self.modalError.img_url = Math.random().toString();
+            self.$nextTick(function(){
+              self.modalError.img_url = '图片地址不合法';
+            });
+            isOk = false;
+          }
+          if(self.modalData.des.length > 100){
+            self.modalError.des = Math.random().toString();
+            self.$nextTick(function(){
+              self.modalError.des = '请输入0至100个字的描述';
+            });
+            isOk = false;
+          }
+          if(self.modalData.type !== '0' && self.modalData.type !== '1' ){
+            self.modalError.type = Math.random().toString();
+            self.$nextTick(function(){
+              self.modalError.type = '请选择跳转类型';
+            });
+            isOk = false;
+          }
+          if(self.modalData.type !== '0' && self.modalData.type !== '1' ){
+            self.modalError.type = Math.random().toString();
+            self.$nextTick(function(){
+              self.modalError.type = '请选择跳转类型';
+            });
+            isOk = false;
+            self.modalData.type = parseInt(self.modalData.type)
+          }
+          console.log(!urlRegExp.test(self.modalData.url))
+          if(!urlRegExp.test(self.modalData.url)){
+            self.modalError.url = Math.random().toString();
+            self.$nextTick(function(){
+              self.modalError.url = '跳转地址不合法';
+            });
+            isOk = false;
+          }
+          console.log(isOk)
+          // 如果全部校验通过，发送POST请求
+          if(isOk){
+            http.post('/api/banner', self.modalData, '新增banner').then(res => {
+              self.modalLoading = false;
+              // 避免校验完直接关闭弹窗
+              self.$nextTick(() => {
+                self.modalLoading = true;
+              });
+              if(res.data.ok){
+                console.log(res)
+              }
+            }).catch(err => {
+              self.modalLoading = false;
+              self.$nextTick(() => {
+                self.modalLoading = true;
+              });
+            })
+          }else{
+            self.modalLoading = false;
+            self.$nextTick(() => {
+              self.modalLoading = true;
+            });
+          }
+        }else{
+          self.modalLoading = false;
+          self.$nextTick(() => {
+            self.modalLoading = true;
+          });
+        }
+      })
+    },
+    handleModalCancel(){
+      this.$refs['modalForm'].resetFields();
     }
   },
   created() {

@@ -31,9 +31,10 @@ export default function (router) {
     router.post('/api/banner', async (ctx, next) => {
       let userid = await checkAdminToken(ctx, 'banner_add')
       if(userid){
-        let { priority, show, type, url, img_url, des } = ctx.request.body
+        let { show, type, url, img_url, des } = ctx.request.body
+        let maxPriority = await Banner.count()
         let result = await Banner.create({
-            priority: priority,
+            priority: maxPriority + 1,
             show: show,
             type: type,
             url: url,
