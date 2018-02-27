@@ -42,9 +42,7 @@
             <Col span="24">
                 <Card>
                     <p class="title" slot="title">首页广告配置<Button class="add-icon" type="primary" icon="android-add" @click="handleAdd">新增banner</Button></p>
-                    <div class="edittable-table-height-con">
-                        <dragable-table refs="table" v-model="tableData" :columns-list="columnsList" :loading="loading"></dragable-table>
-                    </div>
+                    <dragable-table refs="table" v-model="tableData" :columns-list="columnsList" :loading="loading"></dragable-table>
                     <Page class="page-tool" :total="total" :current="page" @on-change="handlePageChange" show-total></Page>
                 </Card>
                 <Modal v-model="isShowModal" :title="modalTitle" :loading="modalLoading" @on-ok="handleModalConfrim" @on-cancel="handleModalCancel" width="600" :mask-closable="false">
@@ -56,7 +54,7 @@
                         <Input v-model="modalData.des" type="textarea" :autosize="{minRows: 2,maxRows: 5}" placeholder="输入banner描述"></Input>
                     </FormItem>
                     <FormItem prop="type" label="跳转类型" :error="modalError.type">
-                        <Select v-model="modalData.type">
+                        <Select v-model="modalData.type" placeholder="请选择跳转类型">
                             <Option value="0">小程序链接</Option>
                             <Option value="1">第三方链接</Option>
                         </Select>
@@ -235,7 +233,7 @@ export default {
         ],
         des: [],
         type: [
-          { required: true, message: '请选择跳转类型', trigger: 'blur' }
+          { required: true, message: '请选择跳转类型', trigger: 'change' }
         ],
         url: [
           { required: true, message: '请输入跳转地址', trigger: 'blur' }
@@ -248,6 +246,7 @@ export default {
   methods: {
     getData() {
       this.tableData = tableData.table1Data;
+      this.loading = false;
       http.get("/api/banner", {page: this.page, limit: this.limit}, "获取banner").then(res => {
         this.loading = false;
         if (res.data.ok) {
@@ -333,7 +332,6 @@ export default {
             isOk = false;
             self.modalData.type = parseInt(self.modalData.type)
           }
-          console.log(!urlRegExp.test(self.modalData.url))
           if(!urlRegExp.test(self.modalData.url)){
             self.modalError.url = Math.random().toString();
             self.$nextTick(function(){
@@ -341,7 +339,6 @@ export default {
             });
             isOk = false;
           }
-          console.log(isOk)
           // 如果全部校验通过，发送POST请求
           if(isOk){
             http.post('/api/banner', self.modalData, '新增banner').then(res => {
@@ -351,7 +348,10 @@ export default {
                 self.modalLoading = true;
               });
               if(res.data.ok){
-                console.log(res)
+                self.$Message.success('新增banner成功');
+                self.getData();
+                self.isShowModal = false;
+                self.total = res.data.total;
               }
             }).catch(err => {
               self.modalLoading = false;

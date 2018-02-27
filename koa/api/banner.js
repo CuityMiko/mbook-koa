@@ -25,11 +25,12 @@ export default function (router) {
           limit = 10
       }
       let result = await Banner.find().skip((page - 1) * limit).limit(limit)
-      ctx.body = { ok: true, msg: '查询成功', total: result.length, list: result }
+      let total = await Banner.count()
+      ctx.body = { ok: true, msg: '查询成功', total: total, list: result }
     })
 
     router.post('/api/banner', async (ctx, next) => {
-      let userid = await checkAdminToken(ctx, 'banner_add')
+      let userid = await checkAdminToken(ctx, next, 'banner_add')
       if(userid){
         let { show, type, url, img_url, des } = ctx.request.body
         let maxPriority = await Banner.count()
@@ -42,7 +43,7 @@ export default function (router) {
             des: des,
             create_time: new Date()
         })
-        ctx.body = result
+        ctx.body = {ok: true, msg: '新增banner成功', data: result, total: maxPriority + 1}
       }
     })
 
