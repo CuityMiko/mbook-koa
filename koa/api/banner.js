@@ -53,9 +53,9 @@ export default function (router) {
       {
           $set: ctx.request.body
       })
-      console.log(ctx.request.body)
       if(result.ok === 1){
-          ctx.body = { ok: true, msg: '更新成功' }
+          let newest = await Banner.findById(id)
+          ctx.body = { ok: true, msg: '更新成功', data: newest }
       }else{
           ctx.body = { ok: false, msg: '更新失败', data: result }
       }

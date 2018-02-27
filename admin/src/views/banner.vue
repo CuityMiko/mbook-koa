@@ -202,17 +202,53 @@ export default {
           align: "center",
           width: 190,
           key: "handle",
-          render: h => {
+          render: (h, params) => {
             return h("div", [
               h('Button', {
                 class: 'change-btn',
                 props: {
                   type: 'primary'
+                },
+                on: {
+                  'click': () => {
+                    console.log(params.row.type)
+                    // 打开修改弹窗
+                    this.modalData = {
+                      img_url: params.row.img_url,
+                      des: params.row.des,
+                      type: params.row.type.toString(),
+                      url: params.row.url,
+                      show: params.row.show
+                    };
+                    this.isShowModal = true;
+                    this.modalTitle = '修改banner';
+                    this.isAddOrUpdateModal = 'update';
+                    this.currentBannerId = params.row._id;
+                  }
                 }
               }, '修改'),
               h('Button', {
                 props: {
                   type: 'error'
+                },
+                on: {
+                  'click': () => {
+                    this.$Modal.confirm({
+                      title: '温馨提示',
+                      content: '确定要删除此banner？',
+                      onOk: () => {
+                        http.delete('/api/banner/' + params.row._id , {}, '删除banner').then(res => {
+                          if(res.data.ok){
+                            // 更新tableData
+                            this.isShowModal = false;
+                            this.$Message.success('删除banner成功');
+                            this.getData();
+                          }
+                        });
+                      },
+                      onCancel: () => {}
+                    });
+                  }
                 }
               }, '删除')
             ])
@@ -226,6 +262,7 @@ export default {
       modalLoading: true, // 点击modal确定按钮是否显示loading
       modalTitle: '', // modal标题
       isAddOrUpdateModal: '', // 是新增弹窗或者更新弹窗
+      currentBannerId: '', // 当前正在修改的banner Id
       modalData: {},
       modalRule: {
         img_url: [
@@ -341,24 +378,43 @@ export default {
           }
           // 如果全部校验通过，发送POST请求
           if(isOk){
-            http.post('/api/banner', self.modalData, '新增banner').then(res => {
-              self.modalLoading = false;
-              // 避免校验完直接关闭弹窗
-              self.$nextTick(() => {
-                self.modalLoading = true;
-              });
-              if(res.data.ok){
-                self.$Message.success('新增banner成功');
-                self.getData();
-                self.isShowModal = false;
-                self.total = res.data.total;
-              }
-            }).catch(err => {
-              self.modalLoading = false;
-              self.$nextTick(() => {
-                self.modalLoading = true;
-              });
-            })
+            if(self.isAddOrUpdateModal === 'add'){
+              http.post('/api/banner', self.modalData, '新增banner').then(res => {
+                self.modalLoading = false;
+                // 避免校验完直接关闭弹窗
+                self.$nextTick(() => {
+                  self.modalLoading = true;
+                });
+                if(res.data.ok){
+                  self.isShowModal = false;
+                  self.$Message.success('新增banner成功');
+                  self.getData();
+                }
+              }).catch(err => {
+                self.modalLoading = false;
+                self.$nextTick(() => {
+                  self.modalLoading = true;
+                });
+              })
+            }else if(self.isAddOrUpdateModal === 'update'){
+              http.patch('/api/banner/' + self.currentBannerId, self.modalData, '修改banner').then(res => {
+                self.modalLoading = false;
+                // 避免校验完直接关闭弹窗
+                self.$nextTick(() => {
+                  self.modalLoading = true;
+                });
+                if(res.data.ok){
+                  self.isShowModal = false;
+                  self.$Message.success('修改banner成功');
+                  self.getData();
+                }
+              }).catch(err => {
+                self.modalLoading = false;
+                self.$nextTick(() => {
+                  self.modalLoading = true;
+                });
+              })
+            }
           }else{
             self.modalLoading = false;
             self.$nextTick(() => {

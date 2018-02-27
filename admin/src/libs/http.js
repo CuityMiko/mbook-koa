@@ -52,7 +52,6 @@ function checkCode (res, des) {
     Message.error('登录状态过期，请退出重新登录')
     return
   }
-  console.log(res, res.data && (!res.data.ok))
   if (res.data && (!res.data.ok)) {
     if (res.data.msg) {
       Message.error(des + '失败，' + res.data.msg)
@@ -98,9 +97,23 @@ export default {
     })
   },
   patch (url, params, des) {
-    console.log(url, params, des)
     return axios({
       method: 'patch',
+      url,
+      data: params,
+      timeout: 5000,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    }).then((response) => {
+      return checkStatus(response, des)
+    }).then((response) => {
+      return checkCode(response, des)
+    })
+  },
+  delete (url, params, des) {
+    return axios({
+      method: 'delete',
       url,
       data: params,
       timeout: 5000,
