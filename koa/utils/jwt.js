@@ -5,7 +5,7 @@ const secret = 'mbook' // token秘钥
 
 const jwtVerify = str => {
   return new Promise((resolve, reject) => {
-      jwt.verify(str, appSecret, function(err, decoded){
+      jwt.verify(str, secret, function(err, decoded){
           if(err){
             reject(err)
             return

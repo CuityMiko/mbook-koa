@@ -15,7 +15,7 @@ const BannerSchema = new mongoose.Schema({
  * 按照优先级排序，并选取前三
  */
 BannerSchema.statics.getBanner = async function () {
-  return await this.find({ show: true }, 'type url img_url des').sort({priority: -1}).limit(3)
+  return await this.find({ show: true }, 'type url img_url des').sort({priority: 1}).limit(3)
 }
 
 let Banner = mongoose.model('Banner', BannerSchema)
