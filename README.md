@@ -87,3 +87,13 @@ wx.checkSession({
 [loading](https://loading.io/icon/custom/95323/)
 
 "no-console": ["error"],
+
+### 分类栏
+```
+{
+  "pagePath": "pages/classify/classify",
+  "iconPath": "static/img/classify.png",
+  "selectedIconPath": "static/img/classify_active.png",
+  "text": "分类"
+}
+```

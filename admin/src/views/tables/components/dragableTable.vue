@@ -23,6 +23,10 @@ export default {
         startFunc (e) {
             this.$emit('on-start', e.oldIndex);
         },
+        moveFunc(e){
+            console.log(e)
+            this.$emit('on-move', e);
+        },
         endFunc (e) {
             let movedRow = this.value[e.oldIndex];
             this.value.splice(e.oldIndex, 1);
@@ -43,6 +47,7 @@ export default {
         Sortable.create(el, {
             onStart: vm.startFunc,
             onEnd: vm.endFunc,
+            onMove: vm.moveFunc,
             onChoose: vm.chooseFunc
         });
     }

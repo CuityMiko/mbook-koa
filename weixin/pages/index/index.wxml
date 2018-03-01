@@ -11,10 +11,10 @@
     </block>
   </swiper>
   <view class="nav">
-    <navigator url="/pages/rank/rank">
+    <navigator url="/pages/classify/classify">
       <view class="nav-item">
-        <icon class="iconfont icon-paihang" style="background: #ffc539"></icon>
-        <text>排行</text>
+        <icon class="iconfont icon-fenlei1" style="background: #ffc539"></icon>
+        <text>分类</text>
       </view>
     </navigator>
      <navigator url="/pages/rank/rank">

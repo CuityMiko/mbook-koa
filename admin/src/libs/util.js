@@ -5,7 +5,7 @@ import packjson from '../../package.json';
 let util = {};
 
 util.title = function (title) {
-  title = title || 'iView admin';
+  title = title || '微书管理系统';
   window.document.title = title;
 };
 

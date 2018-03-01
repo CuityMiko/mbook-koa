@@ -1,5 +1,5 @@
 {
-    "extends": "standard",
+    "extends": "html",
     "root": true,
     "parserOptions": {
         "ecmaVersion": 6,
@@ -9,7 +9,7 @@
         "browser": true,
         "node": true
     },
-    "plugins": [ "html", "standard" ],
+    "plugins": [ "html" ],
     "rules": {
         "indent": ["error", 2, { "SwitchCase": 1 }],
         "quotes": ["error", "single"],

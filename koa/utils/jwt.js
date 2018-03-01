@@ -23,36 +23,55 @@ const checkUserToken = str => {
 /**
  * 检查后台接口的token值是否有效（必须拥有当前权限，并且identity为2）如果有效则返回true，否则报相应的错误
  * @param {Object} ctx 
+ * @param {Object} next 
  * @param {String} permission 权限名称
  */
-const checkAdminToken = (ctx, permission) => {
-  let token = ctx.header.authorization
-  if(token){
-    return new Promise((resolve, reject) => {
-      jwt.verify(token, secret, async function(err, decoded){
-        if(err){
-          reject(err)
-          ctx.throw(-401)
-          return
-        }
-        if(decoded && decoded.userid){
-          // 权限判断
-          let user = await User.findById(decoded.userid, 'identity permission')
-          let access = user.permission.some(item => {
-            return item === permission
-          })
-          if(access && user.identity === '2'){
-            resolve(decoded.userid)
-          }else{
-            ctx.throw(-403)
+const checkAdminToken = async (ctx, next, permission) => {
+  if(ctx.header.authorization){
+    let token = ctx.header.authorization.split(' ')[1]
+    if(token){
+      return new Promise((resolve, reject) => {
+        jwt.verify(token, secret, async function(err, decoded){
+          if(err){
+            ctx.status = 401
+            ctx.body = {ok: false, msg: '无效token', err: err}
+            await next()
+            resolve(null)
+            return
           }
-        }else{
-          ctx.throw(-401)
-        }
+          if(decoded && decoded.userid){
+            // 权限判断
+            let user = await User.findById(decoded.userid, 'identity permission')
+            let access = user.permission.some(item => {
+              return item === permission
+            })
+            // test
+            access = true
+            if(access && user.identity === 2){
+              resolve(decoded.userid)
+            }else{
+              resolve(null)
+              ctx.status = 403
+              ctx.body = {ok: false, msg: '您没有该权限'}
+              await next()
+            }
+          }else{
+            resolve(null)
+            ctx.status = 401
+            ctx.body = {ok: false, msg: '无效token'}
+            await next()
+          }
+        })
       })
-    })
-  } else {
-    ctx.throw(-401)
+    } else {
+      ctx.status = 401
+      ctx.body = {ok: false, msg: '无效token'}
+      await next()
+    }
+  }else{
+    ctx.status = 401
+    ctx.body = {ok: false, msg: '无效token'}
+    await next()
   }
 }
 
