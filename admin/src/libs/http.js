@@ -57,6 +57,9 @@ function checkCode (res, des) {
     router.push({name: "login"})
     return
   }
+  if (res.status === 403) {
+    Message.error('您暂无此权限')
+  }
   if (res.data && (!res.data.ok)) {
     if (res.data.msg) {
       Message.error(des + '失败，' + res.data.msg)
