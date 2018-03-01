@@ -88,74 +88,12 @@ wx.checkSession({
 
 "no-console": ["error"],
 
-jxs语法
-First, Vue 2.0's vnode format is different from React's. The second argument to the createElement call is a "data object" that accepts nested objects. Each nested object will be then processed by corresponding modules:
-
-render (h) {
-  return h('div', {
-    // Component props
-    props: {
-      msg: 'hi'
-    },
-    // normal HTML attributes
-    attrs: {
-      id: 'foo'
-    },
-    // DOM props
-    domProps: {
-      innerHTML: 'bar'
-    },
-    // Event handlers are nested under "on", though
-    // modifiers such as in v-on:keyup.enter are not
-    // supported. You'll have to manually check the
-    // keyCode in the handler instead.
-    on: {
-      click: this.clickHandler
-    },
-    // For components only. Allows you to listen to
-    // native events, rather than events emitted from
-    // the component using vm.$emit.
-    nativeOn: {
-      click: this.nativeClickHandler
-    },
-    // class is a special module, same API as `v-bind:class`
-    class: {
-      foo: true,
-      bar: false
-    },
-    // style is also same as `v-bind:style`
-    style: {
-      color: 'red',
-      fontSize: '14px'
-    },
-    // other special top-level properties
-    key: 'key',
-    ref: 'ref',
-    // assign the `ref` is used on elements/components with v-for
-    refInFor: true,
-    slot: 'slot'
-  })
+### 分类栏
+```
+{
+  "pagePath": "pages/classify/classify",
+  "iconPath": "static/img/classify.png",
+  "selectedIconPath": "static/img/classify_active.png",
+  "text": "分类"
 }
-The equivalent of the above in Vue 2.0 JSX is:
-
-render (h) {
-  return (
-    <div
-      // normal attributes or component props.
-      id="foo"
-      // DOM properties are prefixed with `domProps`
-      domPropsInnerHTML="bar"
-      // event listeners are prefixed with `on` or `nativeOn`
-      onClick={this.clickHandler}
-      nativeOnClick={this.nativeClickHandler}
-      // other special top-level properties
-      class={{ foo: true, bar: false }}
-      style={{ color: 'red', fontSize: '14px' }}
-      key="key"
-      ref="ref"
-      // assign the `ref` is used on elements/components with v-for
-      refInFor
-      slot="slot">
-    </div>
-  )
-}
+```

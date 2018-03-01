@@ -156,7 +156,7 @@ export default {
               on: {
                 'on-change': val => {
                   http.patch('/api/banner/' + params.row._id, {show: val}, '更新banner').then(res => {
-                    if(res.data.ok){
+                    if(res.data && res.data.ok){
                       // 更新tableData
                       this.tableData.forEach(element => {
                         if(element._id === params.row._id){
@@ -237,7 +237,7 @@ export default {
                       content: '确定要删除此banner？',
                       onOk: () => {
                         http.delete('/api/banner/' + params.row._id , {}, '删除banner').then(res => {
-                          if(res.data.ok){
+                          if(res.data && res.data.ok){
                             // 更新tableData
                             this.isShowModal = false;
                             this.$Message.success('删除banner成功');
@@ -286,7 +286,7 @@ export default {
       this.loading = false;
       http.get("/api/banner", {page: this.page, limit: this.limit}, "获取banner").then(res => {
         this.loading = false;
-        if (res.data.ok) {
+        if (res.data && res.data.ok) {
           this.tableData = res.data.list;
           this.total = res.data.total;
         }
@@ -302,7 +302,7 @@ export default {
         // 发送交换请求
         http.post('/api/banner/exchange', {from_index: e.from, to_index: e.to}, '交换顺序').then(res => {
           console.log(res)
-          if(res.data.ok){
+          if(res.data && res.data.ok){
             this.getData()
           }
         })
@@ -333,7 +333,6 @@ export default {
       // 合法性校验
       self.$refs['modalForm'].validate((valid) => {
         if (valid) {
-          console.log('合法')
           let imgUrlRegExp = /^(http|https):\/\/.+\.(jpg|png|JPG|PNG|gif)$/;
           let urlRegExp = /^((\/pages\/.+)|(https:\/\/.+))$/;
           let isOk = true;
@@ -382,7 +381,7 @@ export default {
                 self.$nextTick(() => {
                   self.modalLoading = true;
                 });
-                if(res.data.ok){
+                if(res.data && res.data.ok){
                   self.isShowModal = false;
                   self.$Message.success('新增banner成功');
                   self.getData();
@@ -400,7 +399,7 @@ export default {
                 self.$nextTick(() => {
                   self.modalLoading = true;
                 });
-                if(res.data.ok){
+                if(res.data && res.data.ok){
                   self.isShowModal = false;
                   self.$Message.success('修改banner成功');
                   self.getData();

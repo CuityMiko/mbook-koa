@@ -2,6 +2,8 @@ import axios from 'axios'
 import qs from 'qs'
 import Cookies from "js-cookie";
 import {Message} from 'iview'
+import { router } from '../router/index';
+import store from '../store';
 import env from '../../build/env';
 
 axios.defaults.baseURL = env === 'development'
@@ -50,6 +52,9 @@ function checkCode (res, des) {
   // token过期错误
   if (res.status === 401) {
     Message.error('登录状态过期，请退出重新登录')
+    store.commit("logout", this);
+    store.commit("clearOpenedSubmenu");
+    router.push({name: "login"})
     return
   }
   if (res.data && (!res.data.ok)) {
