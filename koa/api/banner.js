@@ -24,7 +24,7 @@ export default function (router) {
       }else{
           limit = 10
       }
-      let result = await Banner.find().skip((page - 1) * limit).limit(limit)
+      let result = await Banner.find().skip((page - 1) * limit).limit(limit).sort({priority: 1})
       let total = await Banner.count()
       ctx.body = { ok: true, msg: '查询成功', total: total, list: result }
     })
@@ -69,5 +69,46 @@ export default function (router) {
         }else{
             ctx.body = { ok: false, msg: '删除失败', data: result.result }
         }
+    })
+
+    // 交换banner位置
+    router.post('/api/banner/exchange', async (ctx, next) => {
+        let from_index = ctx.request.body.from_index
+        let to_index = ctx.request.body.to_index
+        if(from_index && to_index){
+            from_index ++
+            to_index ++
+            if(from_index !== to_index){
+                let thisBanner = await Banner.findOne({priority: from_index}, 'id priority')
+                if(from_index > to_index){
+                    let needChangeBanner = await Banner.find({priority: {$lt: from_index, $gte: to_index}}, 'id priority')
+                    if(thisBanner && needChangeBanner.length > 0){
+                        await Banner.update({_id: thisBanner._id}, {$set: {priority: to_index}})
+                        for(let i=0; i<needChangeBanner.length; i++){
+                            await Banner.update({_id: needChangeBanner[i]._id}, {$set: {priority: needChangeBanner[i].priority + 1}})
+                        }
+                        ctx.body = {ok: true, msg: '交换成功'}
+                    }else{
+                        ctx.body = {ok: false, msg: '参数错误'}
+                    }
+                }else{
+                    let needChangeBanner = await Banner.find({priority: {$gt: from_index, $lte: to_index}}, 'id priority')
+                    if(thisBanner && needChangeBanner.length > 0){
+                        await Banner.update({_id: thisBanner._id}, {$set: {priority: to_index}})
+                        for(let i=0; i<needChangeBanner.length; i++){
+                            await Banner.update({_id: needChangeBanner[i]._id}, {$set: {priority: needChangeBanner[i].priority - 1}})
+                        }
+                        ctx.body = {ok: true, msg: '交换成功'}
+                    }else{
+                        ctx.body = {ok: false, msg: '参数错误'}
+                    }
+                }
+            }else{
+                ctx.body = {ok: false, msg: '交换顺序不能相同'}
+            }
+        }else{
+            ctx.body = {ok: false, msg: '参数错误'}
+        }
+        
     })
 }

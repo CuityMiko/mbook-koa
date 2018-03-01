@@ -42,7 +42,7 @@
             <Col span="24">
                 <Card>
                     <p class="title" slot="title">首页广告配置<Button class="add-icon" type="primary" icon="android-add" @click="handleAdd">新增banner</Button></p>
-                    <dragable-table refs="table" v-model="tableData" :columns-list="columnsList" :loading="loading"></dragable-table>
+                    <dragable-table refs="table" v-model="tableData" :columns-list="columnsList" :loading="loading" @on-start="handleDragStart" @on-end="handleDragEnd"></dragable-table>
                     <Page class="page-tool" :total="total" :current="page" @on-change="handlePageChange" show-total></Page>
                 </Card>
                 <Modal v-model="isShowModal" :title="modalTitle" :loading="modalLoading" @on-ok="handleModalConfrim" @on-cancel="handleModalCancel" width="600" :mask-closable="false">
@@ -77,7 +77,6 @@
 
 <script>
 import dragableTable from "./tables/components/dragableTable.vue";
-import tableData from "./tables/components/table_data.js";
 import http from "../libs/http";
 import moment from 'moment';
 
@@ -258,6 +257,8 @@ export default {
       page: 1,
       limit: 10,
       total: 0,
+      hasDraged: false,
+      isDraging: false, // 处在拖拽状态
       isShowModal: false, // 控制modal的显隐
       modalLoading: true, // 点击modal确定按钮是否显示loading
       modalTitle: '', // modal标题
@@ -282,7 +283,6 @@ export default {
   },
   methods: {
     getData() {
-      this.tableData = tableData.table1Data;
       this.loading = false;
       http.get("/api/banner", {page: this.page, limit: this.limit}, "获取banner").then(res => {
         this.loading = false;
@@ -292,25 +292,22 @@ export default {
         }
       });
     },
-    handleNetConnect(state) {
-      this.breakConnect = state;
+    handleDragStart(from){
+      this.hasDraged = true
+      this.isDraging = true
     },
-    handleLowSpeed(state) {
-      this.lowNetSpeed = state;
-    },
-    getCurrentData() {
-      this.showCurrentTableData = true;
-    },
-    handleDel(val, index) {
-      this.$Message.success("删除了第" + (index + 1) + "行数据");
-    },
-    handleCellChange(val, index, key) {
-      this.$Message.success(
-        "修改了第 " + (index + 1) + " 行列名为 " + key + " 的数据"
-      );
-    },
-    handleChange(val, index) {
-      this.$Message.success("修改了第" + (index + 1) + "行数据");
+    handleDragEnd(e){
+      this.isDraging = false
+      if(e.to !== e.from){
+        // 发送交换请求
+        http.post('/api/banner/exchange', {from_index: e.from, to_index: e.to}, '交换顺序').then(res => {
+          console.log(res)
+          if(res.data.ok){
+            this.getData()
+          }
+        })
+      }
+      return false
     },
     // 点击分页
     handlePageChange(val){
