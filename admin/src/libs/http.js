@@ -9,8 +9,8 @@ import env from '../../build/env';
 axios.defaults.baseURL = env === 'development'
   ? 'http://127.0.0.1:5000'
   : env === 'production'
-    ? 'https://mbook.andylistudio.com'
-    : 'https://mdebug.andylistudio.com'
+    ? 'https://mbook.lilyplay.com'
+    : 'https://mdebug.lilyplay.com'
 
 // 这里的config包含每次请求的内容
 axios.interceptors.request.use(config => {
