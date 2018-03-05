@@ -9,7 +9,7 @@ export default function (router) {
   })
 
   router.get('/api/banner', async (ctx, next) => {
-    let userid = await checkAdminToken(ctx, next, 'banner_add')
+    let userid = await checkAdminToken(ctx, next, 'banner_list')
     if (userid) {
       // 获取url参数
       let { page, limit } = ctx.request.query
@@ -51,7 +51,7 @@ export default function (router) {
   })
 
   router.patch('/api/banner/:id', async (ctx, next) => {
-    let userid = await checkAdminToken(ctx, next, 'banner_add')
+    let userid = await checkAdminToken(ctx, next, 'banner_update')
     if (userid) {
       let id = ctx.params.id
       let result = await Banner.update({ _id: id },
@@ -68,7 +68,7 @@ export default function (router) {
   })
 
   router.delete('/api/banner/:id', async (ctx, next) => {
-    let userid = await checkAdminToken(ctx, next, 'banner_add')
+    let userid = await checkAdminToken(ctx, next, 'banner_delete')
     if (userid) {
       let id = ctx.params.id
       let result = await Banner.remove({ _id: id })
@@ -82,7 +82,7 @@ export default function (router) {
 
   // 交换banner位置
   router.post('/api/banner/exchange', async (ctx, next) => {
-    let userid = await checkAdminToken(ctx, next, 'banner_add')
+    let userid = await checkAdminToken(ctx, next, 'banner_update')
     if (userid) {
       let from_index = ctx.request.body.from_index
       let to_index = ctx.request.body.to_index

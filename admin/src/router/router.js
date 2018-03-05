@@ -85,6 +85,16 @@ export const appRouter = [
             { path: 'index', title: 'banner管理', name: 'banner_manage', component: () => import('@/views/banner.vue') }
         ]
     },
+    {
+        path: '/theme',
+        icon: 'ios-pricetags-outline',
+        name: 'theme',
+        title: '主题管理',
+        component: Main,
+        children: [
+            { path: 'index', title: '主题管理', name: 'theme_manage', component: () => import('@/views/theme.vue') }
+        ]
+    },
     // {
     //     path: '/access',
     //     icon: 'key',
