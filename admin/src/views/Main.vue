@@ -12,8 +12,14 @@
                 :open-names="openedSubmenuArr"
                 :menu-list="menuList">
                 <div slot="top" class="logo-con">
-                    <img v-show="!shrink"  src="../images/logo.jpg" key="max-logo" />
-                    <img v-show="shrink" src="../images/logo-min.jpg" key="min-logo" />
+                  <div v-show="!shrink" class="spand">
+                    <img src="../images/logo.jpg" key="max-logo" />
+                    <span>微书管理系统</span>
+                  </div>
+                  <div v-show="shrink" class="collape">
+                    <img src="../images/logo.jpg" key="max-logo" />
+                  </div>
+                    <!-- <img v-show="shrink" src="../images/logo-min.jpg" key="min-logo" /> -->
                 </div>
             </shrinkable-menu>
         </div>
