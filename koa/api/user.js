@@ -195,7 +195,7 @@ export default function (router) {
         }
       }
     } else if (identity === 'adminuser') {
-      // 系统管理员登录
+      // 系统管理员注册
     } else {
       ctx.body = {
         ok: false,

@@ -33,7 +33,7 @@ axios.interceptors.response.use(response => {
 function checkStatus (response) {
   // 如果http状态码正常，则直接返回数据
   if (response && (response.status === 200 || response.status === 304 ||
-    response.status === 400 || response.status === 401 || response.status === 403 || response.status === 404)) {
+    response.status === 400 || response.status === 401 || response.status === 403 || response.status === 404 || response.status === 500)) {
     return response
   }
   // 异常状态(状态值不是以上的情况)下，把错误信息返回去

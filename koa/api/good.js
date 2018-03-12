@@ -113,7 +113,6 @@ export default function (router) {
           if(type){
             type = parseInt(type)
             updateObj.type = type
-            console.log(type)
             if(type === 0){
               // do nothing
             }else if(type === 1){
@@ -148,7 +147,6 @@ export default function (router) {
             return
           }else{
             let updateResult = await Good.update({ _id: goodid }, { $set: updateObj})
-            console.log(updateResult)
             if(updateResult.ok === 1){
               ctx.body = { ok: true, msg: '更新成功', data: await Good.findById(goodid) }
             }else{

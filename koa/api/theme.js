@@ -1,4 +1,4 @@
-import { Theme, Book } from '../models'
+import { Theme, Book, BookList } from '../models'
 import { tool, checkAdminToken } from '../utils'
 
 export default function (router) {
@@ -129,6 +129,24 @@ export default function (router) {
     ctx.body = { ok: true, msg: '创建主题成功！', data: theme }
   })
 
+  // 后台获取主题详细信息
+  router.get('/api/theme/:id', async (ctx, next) => {
+    let userid = await checkAdminToken(ctx, next, 'theme_list')
+    if(userid){
+      let id = ctx.params.id
+      let thisTheme = await Theme.findById(id).populate({
+        path: "books.bookid",
+        select: {chapters: 0}
+      })
+      // 获取书籍详情
+      if(thisTheme){
+        ctx.body = {ok: true, msg: '获取主题详情成功', data: thisTheme}
+      }else{
+        ctx.body = {ok: false, msg: '获取主题详情失败'}
+      }
+    }
+  })
+
   // 后台列出主题的接口
   router.get('/api/theme', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'theme_list')
@@ -241,26 +259,28 @@ export default function (router) {
     let { id, books } = ctx.request.body
     if(id){
       let thisTheme = await Theme.findById(id)
-      let allbooks = []
-      thisTheme.books.forEach(item => {
-        allbooks.push(item.bookid.toString())
-      })
-      allbooks = allbooks.concat(books ? books.split('|') : [])
-      // let set = new Set(allbooks)
-      // allbooks = Array.from(set)
-      allbooks = tool.unique(allbooks)
-      let finalBooks = []
-      for(let i=0; i<allbooks.length; i++){
-        finalBooks.push({
-          bookid: await Theme.transId(allbooks[i]),
-          index: i
+      if(thisTheme){
+        let allbooks = []
+        thisTheme.books.forEach(item => {
+          allbooks.push(typeof item.bookid === 'string' ? item.bookid : item.bookid.toString())
         })
-      }
-      let result = await Theme.update({_id: id}, { '$set': { 'books': finalBooks}})
-      if (result.ok === 1) {
-        ctx.body = { ok: true, msg: '栏目添加书籍成功' }
-      } else {
-        ctx.body = { ok: false, msg: '栏目添加书籍失败', data: result }
+        allbooks = allbooks.concat(books ? books.split('|') : [])
+        allbooks = tool.unique(allbooks)
+        let finalBooks = []
+        for(let i=0; i<allbooks.length; i++){
+          finalBooks.push({
+            bookid: await Theme.transId(allbooks[i]),
+            index: i
+          })
+        }
+        let result = await Theme.update({_id: id}, { '$set': { 'books': finalBooks}})
+        if (result.ok === 1) {
+          ctx.body = { ok: true, msg: '栏目添加书籍成功' }
+        } else {
+          ctx.body = { ok: false, msg: '栏目添加书籍失败', data: result }
+        }
+      }else{
+        ctx.body = { ok: false, msg: '找不到这样的书籍' }
       }
     }else{
       ctx.body = { ok: false, msg: '缺乏id参数' }

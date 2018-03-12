@@ -200,19 +200,13 @@ export default {
                 },
                 on: {
                   'click': () => {
-                    console.log(params.row.type)
                     // 打开修改弹窗
-                    this.modalData = {
-                      img_url: params.row.img_url,
-                      des: params.row.des,
-                      type: params.row.type.toString(),
-                      url: params.row.url,
-                      show: params.row.show
-                    };
-                    this.isShowModal = true;
-                    this.modalTitle = '修改主题';
-                    this.isAddOrUpdateModal = 'update';
-                    this.currentBannerId = params.row._id;
+                    this.$router.push({
+                      name: 'theme_book',
+                      params: {
+                        theme_id: params.row._id
+                      }
+                    })
                   }
                 }
               }, '编辑书籍'),

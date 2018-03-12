@@ -34,7 +34,9 @@ const unique = arr => {
   let res = [];
   for (let i = 0, len = arr.length; i < len; i++) {
     let obj = arr[i];
-    for (let j = 0, jlen = res.length; j < jlen; j++) {
+    let jlen = res.length;
+    let j = 0;
+    for (j = 0; j < jlen; j++) {
       if (res[j] === obj) break;
     }
     if (jlen === j) res.push(obj);

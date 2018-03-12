@@ -75,8 +75,14 @@ UserSchema.pre('save', function (next) {
   // 产生一个salt
   bcrypt.genSalt(SALT_WORK_FACTOR, function (err, salt) {
     if (err) return next(err)
-    //  结合salt产生新的hash
-    bcrypt.hash(user.password, salt, function (err, hash) {
+    /**
+     * 结合salt产生新的hash
+     * @param data — Data to be encrypted
+     * @param salt — Salt to be used in encryption
+     * @param progressCallback — Callback to be fired multiple times during the hash calculation to signify progress
+     * @param callback — Callback with error and hashed result, to be fired once the data has been encrypted
+     */
+    bcrypt.hash(user.password, salt, function(){}, function (err, hash) {
       if (err) return next(err)
       // 使用hash覆盖明文密码
       user.password = hash
