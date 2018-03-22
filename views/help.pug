@@ -1,0 +1,25 @@
+extends layout
+block link
+  link(rel='stylesheet', href='/css/help.css')
+block content
+  h3 帮助1
+  div
+    p 这里是测试文字，这里是测试文字....
+    p 这里是测试文字，这里是测试文字....
+    img(src='/img/test_help.png')
+  h3 帮助2
+  div 这里是测试文字，这里是测试文字....
+  h3 帮助3
+  div 这里是测试文字，这里是测试文字....
+block script
+  script(src='/js/jquery-1.9.1.js')
+  script(src='/js/jquery.collapse.js')
+  script.
+    new jQueryCollapse($(".container"), {
+      open: function() {
+        this.slideDown(150);
+      },
+      close: function() {
+        this.slideUp(150);
+      }
+    });

@@ -1,0 +1,73 @@
+html,
+body {
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+.container{
+  height: 100%;
+}
+
+.main{
+  height: 100%;
+  overflow: hidden;
+  padding: 4em 1em 2em 1em;
+  box-sizing: border-box;
+  font-size: 1em;
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: space-between;
+  color: #353535;
+}
+
+.main .logo{
+  display: block;
+  width: 4.6em;
+  height: 4.6em;
+  border-radius: .4em;
+  margin: 0 auto;
+}
+
+.main .name{
+  text-align: center;
+  margin: 1em 0;
+}
+
+.main .infos{
+  list-style: none;
+  padding: 0;
+  margin-left: -1em;
+  margin-right: -1em;
+}
+
+.main .infos>li{
+  height: 3em;
+  line-height: 3em;
+  border-bottom: 1px solid #d7d7d7;
+  overflow: hidden;
+}
+
+.main .infos .left{
+  float: left;
+  margin-left: .9em;
+  font-size: 1.1em;
+}
+
+.main .infos .right{
+  float: right;
+  margin-right: 1em;
+  font-size: .9em;
+  color: #888888;
+}
+
+.main .footer{
+  text-align: center;
+  font-size: .8em;
+}
+
+.main .footer > p{
+  margin: 0;
+}
