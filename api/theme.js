@@ -165,9 +165,16 @@ export default function (router) {
     let userid = await checkAdminToken(ctx, next, 'theme_update')
     if (userid) {
       let id = ctx.params.id
+      let { name, priority, des, show, layout, flush } = ctx.request.body
       let result = await Theme.update({ _id: id },
         {
-          $set: ctx.request.body
+          $set: {
+            name: name,
+            des: des,
+            show: show,
+            layout: layout,
+            flush: flush
+          }
         })
       if (result.ok === 1) {
         let newest = await Theme.findById(id)
@@ -235,6 +242,49 @@ export default function (router) {
     }
   })
 
+  // 后台主题书籍排序接口
+  router.post('/api/theme/:id/book_exchange', async (ctx, next) => {
+    let userid = await checkAdminToken(ctx, next, 'theme_update')
+    if (userid) {
+      let themeId = ctx.params.id
+      let from_index = ctx.request.body.from_index
+      let to_index = ctx.request.body.to_index
+      if (from_index && to_index) {
+        from_index = parseInt(from_index)
+        to_index = parseInt(to_index)
+        console.log('from_index和to_index', from_index, to_index)
+        let thisTheme = await Theme.findById(themeId)
+        let newBooks = thisTheme.books.sort((item1, item2) => {
+          return parseInt(item1.index) - parseInt(item2.index) 
+        })
+        if (from_index !== to_index) {
+          if (from_index > to_index) {
+            newBooks[from_index].index = newBooks[to_index].index
+            for(let i= to_index; i<from_index; i++){
+              newBooks[i].index = newBooks[i].index + 1
+            }
+          } else {
+            newBooks[from_index].index = newBooks[to_index].index
+            for(let i= from_index + 1; i<=to_index; i++){
+              newBooks[i].index = newBooks[i].index - 1
+            }
+          }
+          let updateResqust = await Theme.update({ _id: themeId }, { $set: { books: newBooks } })
+          if(updateResqust.ok === 1){
+            ctx.body = { ok: true, msg: '交换成功' }
+          }else{
+            ctx.body = { ok: false, msg: '交换失败' }
+          }           
+        } else {
+          ctx.body = { ok: false, msg: '交换顺序不能相同' }
+        }
+      } else {
+        ctx.body = { ok: false, msg: '参数错误' }
+      }
+    }
+  })
+
+  // 列出主题下的所有书籍
   router.get('/api/theme/list_book', async (ctx, next) => {
     let id = ctx.request.query.id
     let result = await Theme.findById(id)
@@ -255,32 +305,39 @@ export default function (router) {
     }
   })
 
-  router.post('/api/theme/add_book', async (ctx, next) => {
-    let { id, books } = ctx.request.body
+  // 后台更新主题中的书籍列表
+  router.put('/api/theme/:id', async (ctx, next) => {
+    let id = ctx.params.id
+    let { books } = ctx.request.body
     if(id){
       let thisTheme = await Theme.findById(id)
       if(thisTheme){
-        let allbooks = []
-        thisTheme.books.forEach(item => {
-          allbooks.push(typeof item.bookid === 'string' ? item.bookid : item.bookid.toString())
-        })
-        allbooks = allbooks.concat(books ? books.split('|') : [])
-        allbooks = tool.unique(allbooks)
+        let allbooks = books ? books.split('|') : []
+        // thisTheme.books.forEach(item => {
+        //   allbooks.push(typeof item.bookid === 'string' ? item.bookid : item.bookid.toString())
+        // })
+        // allbooks = allbooks.concat(books ? books.split('|') : [])
+        // allbooks = tool.unique(allbooks)
         let finalBooks = []
+        let count = 1
         for(let i=0; i<allbooks.length; i++){
-          finalBooks.push({
-            bookid: await Theme.transId(allbooks[i]),
-            index: i
-          })
+          let thisBook = await Book.findById(allbooks[i])
+          if(thisBook){
+            finalBooks.push({
+              bookid: await Theme.transId(allbooks[i]),
+              index: count
+            })
+            count ++
+          }
         }
         let result = await Theme.update({_id: id}, { '$set': { 'books': finalBooks}})
         if (result.ok === 1) {
-          ctx.body = { ok: true, msg: '栏目添加书籍成功' }
+          ctx.body = { ok: true, msg: '更新主题书籍成功' }
         } else {
-          ctx.body = { ok: false, msg: '栏目添加书籍失败', data: result }
+          ctx.body = { ok: false, msg: '更新主题书籍失败', data: result }
         }
       }else{
-        ctx.body = { ok: false, msg: '找不到这样的书籍' }
+        ctx.body = { ok: false, msg: '找不到这样的主题' }
       }
     }else{
       ctx.body = { ok: false, msg: '缺乏id参数' }
