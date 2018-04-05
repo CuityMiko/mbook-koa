@@ -197,9 +197,9 @@ export default function (router) {
         })
       if (result.ok === 1) {
         let newest = await Book.findById(id)
-        ctx.body = { ok: true, msg: '更新成功', data: newest }
+        ctx.body = { ok: true, msg: '更新书籍成功', data: newest }
       } else {
-        ctx.body = { ok: false, msg: '更新失败', data: result }
+        ctx.body = { ok: false, msg: '更新书籍失败', data: result }
       }
     }
   })
@@ -224,7 +224,6 @@ export default function (router) {
       }else{
         ctx.body = { ok: false, msg: '删除失败，找不到此书籍' }
       }
-      
     }
   })
 }
