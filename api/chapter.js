@@ -3,6 +3,79 @@ import { checkAdminToken, jwtVerify, tool } from '../utils'
 import convert from 'koa-convert'
 import body from 'koa-better-body'
 import xlsx from 'node-xlsx'
+// nodejs 读取大文本
+import util from 'util'
+import events from 'events'
+import fs from 'fs'
+
+// 创建可限制读取大小的文本流
+function ReadStreamThrottle (stream, speed) {
+  this._stream = stream
+  this._readBytes = 0
+  this._speed = speed
+  this._ended = false
+  this._readBytesSecond = 0
+  this._lastTimestamp = Date.now()
+  this._paused = false
+  let self = this
+
+  // 检查速度是否太快
+  function isTooFast () {
+    const t = (Date.now() - self._lastTimestamp) / 1000
+    const bps = self._readBytesSecond / t
+    return bps > speed
+  }
+
+  // 每隔一段时间检查速度
+  function checkSpeed () {
+    if (isTooFast()) {
+      self.pause()
+      // 直到平均速度放缓到预设的值时继续读流
+      const tid = setInterval(function () {
+        if (!isTooFast()) {
+          clearInterval(tid)
+          self.resume()
+        }
+      }, 100)
+    } else {
+      self.resume()
+    }
+  }
+
+  stream.on('data', function (chunk) {
+    self._readBytes += chunk.length
+    self._readBytesSecond += chunk.length
+    self.emit('data', chunk)
+    checkSpeed()
+  })
+
+  stream.on('end', function () {
+    self._ended = true
+    self.emit('end')
+  })
+}
+
+util.inherits(ReadStreamThrottle, events.EventEmitter)
+
+ReadStreamThrottle.prototype.pause = function () {
+  this._paused = true
+  this._stream.pause()
+}
+
+ReadStreamThrottle.prototype.resume = function () {
+  this._paused = false
+  this._stream.resume()
+}
+
+// 打印内存占用情况
+// function printMemoryUsage () {
+//   var info = process.memoryUsage()
+//   function mb (v) {
+//     return (v / 1024 / 1024).toFixed(2) + 'MB'
+//   }
+//   console.log('rss=%s, heapTotal=%s, heapUsed=%s', mb(info.rss), mb(info.heapTotal), mb(info.heapUsed))
+// }
+// setInterval(printMemoryUsage, 1000)
 
 export default function (router) {
   router.get('/api/chapter/list', async(ctx, next) => {
@@ -289,7 +362,6 @@ export default function (router) {
           num = parseInt(num)
           if(name){
             if(content){
-              // 判断num是否重复
               // 检查num是否重复
               let oldChapter = await Book.findById(book_id).populate({
                 path: 'chapters',
@@ -334,20 +406,167 @@ export default function (router) {
         }
       }
       try {
-        let uploadData = xlsx.parse(ctx.request.files[0].path)
-        // 保存章节
-        if(uploadData && uploadData[0] && uploadData[0].data){
-          if(uploadData[0].data[0] instanceof Array && uploadData[0].data[0][0] === '章节序号'){
-            for(let i=1; i<uploadData[0].data.length; i++){
-              console.log(i, uploadData[0].data[i][0], uploadData[0].data[i][1], uploadData[0].data[i][2])
-              await saveChapter(i, uploadData[0].data[i][0], uploadData[0].data[i][1], uploadData[0].data[i][2])
+        // 判断上传的文件是excel还是text
+        const type = ctx.request.files[0].type
+        const inputPath = ctx.request.files[0].path
+        if (type === 'text/plain') {
+          return new Promise(async (resolve, reject) => {
+            try {
+              // 已存在章节号
+              let chapterHasExisted = await Book.findById(book_id).populate({
+                path: 'chapters',
+                select: 'num'
+              })
+              chapterHasExisted = chapterHasExisted.chapters.map(item => {
+                return item.num
+              })
+              // 用户上传了txt
+              const MB = 1024  * 1024 // 限制读取大小为1M
+              const stream = new ReadStreamThrottle(fs.createReadStream(inputPath), MB)
+              let lastChapterNumber = 1
+              stream.on('data', async function (chunk) {
+                const hasReadText = chunk.toString()
+                // 只要匹配的第一项不是章节开头的，说明上一个章节是断章，需要剩余内容补回到原章节中
+                const chapterTitleReg = /第?[零一二三四五六七八九十百千万0-9]+章(\s*|、*).*/igm
+                const firstLine = hasReadText.substring(0, 1000).split('\n')[0].trim()
+                // console.log(firstLine, '===>', firstLine.search(chapterTitleReg))
+                let startFromChapterTitle = false
+                if (firstLine.match(chapterTitleReg)) {
+                  startFromChapterTitle = true
+                }
+                let result = null
+                let chapters = [] // 记录已经匹配到的章节
+                let count = 0 // 记录匹配到的次数
+                while ((result = chapterTitleReg.exec(hasReadText)) !== null) {
+                  if (count === 0 && !startFromChapterTitle) {
+                    // 更新断章
+                    const thisChapter = await Book.findById(book_id).populate({
+                      path: 'chapters',
+                      match: { num: lastChapterNumber },
+                      select: '_id num content',
+                    })
+                    if (thisChapter && thisChapter.chapters.length === 1) {
+                      const updateResult = await Chapter.update({ _id: thisChapter.chapters[0]._id }, {$set: {
+                        content: thisChapter.chapters[0].content + hasReadText.substring(1, result.index).trim(),
+                      }})
+                      // if (updateResult.ok) {
+                      //   // console.log('\n更新断章成功，章节号: ' + thisChapter.chapters[0].num  + ', 断章内容:' + hasReadText.substring(1, result.index).trim().substring(0, 30) + '\n')
+                      // }
+                    }
+                  }
+                  const num = tool.chineseParseInt(result[0].match(/第?[零一二三四五六七八九十百千万0-9]+章/)[0])
+                  const name = result[0].match(/(?<=章).*$/)[0].replace(/、/, '').trim()
+                  chapters.push({
+                    num,
+                    name,
+                    resultIndex: result.index + result[0].length,
+                    lastIndex: chapterTitleReg.lastIndex - result[0].length,
+                  })
+                  count ++
+                  lastChapterNumber = num
+                }
+
+                // 遍历chapter获取章节内容并存储
+                for (let i=0; i<chapters.length; i++) {
+                  let content = ''
+                  if (i === (chapters.length - 1)) {
+                    content = hasReadText.substring(chapters[i].resultIndex).trim()
+                  } else {
+                    content = hasReadText.substring(chapters[i].resultIndex, chapters[i+1].lastIndex).trim()
+                  }
+                  delete chapters[i].lastIndex
+                  delete chapters[i].resultIndex
+                  chapters[i].content = content
+
+                  // 存储章节
+                  if (chapterHasExisted.indexOf(chapters[i].num) > -1) {
+                    const thisChapter = await Book.findById(book_id).populate({
+                      path: 'chapters',
+                      match: { num: chapters[i].num},
+                      select: '_id num',
+                    })
+                    if (thisChapter && thisChapter.chapters.length === 1) {
+                      if (chapters[i].num >= 1 && chapters[i].content && chapters[i].name.length <= 20 ) {
+                        const updateResult = await Chapter.update({ _id: thisChapter.chapters[0]._id }, {$set: {
+                          name: chapters[i].name,
+                          content: chapters[i].content,
+                        }})
+                        if (updateResult.ok) {
+                          rightNum ++
+                        } else {
+                          addErrors.push(`第${chapters[i].num}章 ${chapters[i].name} 更新失败`)
+                        }
+                      } else {
+                        console.log(chapters[i].num, chapters[i].content.substring(0, 10))
+                        addErrors.push(`第${chapters[i].num}章 ${chapters[i].name} 内容错误，取消更新`)
+                      }
+                    } else {
+                      addErrors.push(`第${chapters[i].num}章 ${chapters[i].name} 更新时查找失败`)
+                    }
+                  } else {
+                    const addResut = await Chapter.create({
+                      name: chapters[i].name,
+                      num: chapters[i].num,
+                      content: chapters[i].content,
+                      create_time: new Date(),
+                    })
+                    if (addResut._id) {
+                      let updateResult = await Book.update({_id: book_id}, {
+                        $addToSet: {
+                          chapters: addResut._id
+                        }
+                      })
+                      if (updateResult.ok) {
+                        rightNum ++
+                        chapterHasExisted.push(chapters[i].num)
+                      } else {
+                        addErrors.push(`第${chapters[i].num}章 ${chapters[i].name} 创建成功，更新BOOK失败`)
+                      }
+                    } else {
+                      addErrors.push(`第${chapters[i].num}章 ${chapters[i].name} 创建失败`)
+                    }
+                  }
+                }
+              })
+              stream.on('end', function () {
+                ctx.body = { ok: true, msg: '上传成功', errors: addErrors, success: rightNum }
+                resolve(next())
+              })
+              stream.on('error', (error) => {
+                ctx.body = { ok: false, msg: '读取文件失败，请试着换成小一点的文档', errors: addErrors, success: rightNum }
+                resolve(next())
+              })
+            } catch (err) {
+              console.error(err)
+              reject(next())
             }
-            ctx.body = { ok: true, msg: '上传成功', errors: addErrors, success: rightNum }
+            
+            process.on('unhandledRejection', (reason, p) => {
+              console.log('Unhandled Rejection at:', p, 'reason:', reason)
+              // application specific logging, throwing an error, or other logic here
+            })         
+          }).catch(error => {
+            console.error(error)
+          })
+        } else if (type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+          // 用户上传了excel
+          const uploadData = xlsx.parse(inputPath)
+          // 保存章节
+          if(uploadData && uploadData[0] && uploadData[0].data){
+            if(uploadData[0].data[0] instanceof Array && uploadData[0].data[0][0] === '章节序号'){
+              for(let i=1; i<uploadData[0].data.length; i++){
+                // console.log(i, uploadData[0].data[i][0], uploadData[0].data[i][1], uploadData[0].data[i][2])
+                await saveChapter(i, uploadData[0].data[i][0], uploadData[0].data[i][1], uploadData[0].data[i][2])
+              }
+              ctx.body = { ok: true, msg: '上传成功', errors: addErrors, success: rightNum }
+            }else{
+              ctx.body = { ok: false, msg: 'excel文件格式错误' }
+            }
           }else{
             ctx.body = { ok: false, msg: 'excel文件格式错误' }
           }
-        }else{
-          ctx.body = { ok: false, msg: 'excel文件格式错误' }
+        } else {
+          ctx.body = { ok: false, msg: '上传的文件格式错误' }
         }
       }catch(err){
         console.log(err)
