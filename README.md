@@ -33,5 +33,15 @@ sudo mongorestore --host localhost --port 27017 --db mbook /home/andyliwr/Docume
 + windows启动方式: 双击`ngrok.bat`
 
 ### 常见问题
-1. 接口报错：`errmsg: 'E11000 duplicate key error collection: mbook.chapters index: num_1 dup key: { : 130 }'`
-打开robomongo删除chapters表下的num_1的index，它的属性是unique，所以新增相同num的chapter的时候会出现这种错误，后来我删除了chapter表，并不在会出现chapter的num_1的索引，所以推断应该是数据恢复的时候带过来的
+#### 接口报错：`errmsg: 'E11000 duplicate key error collection: mbook.chapters index: num_1 dup key: { : 130 }'`
+
+  打开robomongo删除chapters表下的num_1的index，它的属性是unique，所以新增相同num的chapter的时候会出现这种错误，后来我删除了chapter表，并不在会出现chapter的num_1的索引，所以推断应该是数据恢复的时候带过来的
+  
+#### 安装`node-canvas`
+```
+# ubuntu下运行
+sudo apt-get install libcairo2-dev libjpeg-dev libpango1.0-dev libgif-dev build-essential g++
+# mac OS下运行
+brew install pkg-config cairo pango libpng jpeg giflib
+cnpm install canvas --save
+```

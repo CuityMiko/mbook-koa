@@ -54,11 +54,20 @@ export default function (router) {
             expiresIn: '2h'
           }) //token签名 有效期为2小时 
           console.log('用户 ' + user._id + ' 于 ' + user.create_time.toDateString() + ' 登录')
+          const booklist = await BookList.findOne({ userid: user._id }, 'books')
+          let allBooks = []
+          if (booklist) {
+            allBooks = booklist.books.map(item => {
+              return item.bookid
+            })
+          }
           ctx.body = {
             ok: true,
             msg: '登录成功',
             token: token,
-            userinfo: user
+            userinfo: user,
+            // 额外返回信息
+            allbooks: allBooks
           }
         } else {
           // 未注册，重定向到注册页面
@@ -186,7 +195,9 @@ export default function (router) {
           ok: true,
           msg: '注册成功',
           token: token,
-          userinfo: user
+          userinfo: user,
+          // 额外信息
+          allbooks: []
         }
       } else {
         ctx.body = {

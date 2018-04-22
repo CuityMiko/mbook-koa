@@ -1,38 +1,257 @@
-import send from 'koa-send'
-import path from 'path'
-import fs from 'fs'
+import send from "koa-send";
+import path from "path";
+import fs from "fs";
+import Canvas  from 'canvas'
+import qn from 'qn'
+import https from 'https'
+import uuid from 'uuid'
+import config from '../config'
+import { Book } from '../models'
 
-export default function (router) {
-    router.get('/api/get_text', async (ctx, next) => {
-        let arr = [
-          '读万卷书,行万里路。 ——顾炎武',
-          '读过一本好书，像交了一个益友。 ——臧克家',
-          '鸟欲高飞先振翅，人求上进先读书',
-          '书籍是人类思想的宝库',
-          '书山有路勤为径，学海无涯苦作舟'
-        ]
-        let date = new Date()
-        let day = date.getDate() % 5
-        ctx.body = { ok: true, text: arr[day] }
+// qiniu上传设置
+const client = qn.create({
+  accessKey: config.accessKey,
+  secretKey: config.secretKey,
+  bucket: 'upload',
+  origin: 'https://fs.andylistudio.com',
+})
+
+
+export default function(router) {
+  router.get("/api/get_text", async (ctx, next) => {
+    let arr = [
+      "读万卷书,行万里路。 ——顾炎武",
+      "读过一本好书，像交了一个益友。 ——臧克家",
+      "鸟欲高飞先振翅，人求上进先读书",
+      "书籍是人类思想的宝库",
+      "书山有路勤为径，学海无涯苦作舟"
+    ]
+    let date = new Date()
+    let day = date.getDate() % 5
+    ctx.body = { ok: true, text: arr[day] }
+  })
+
+  // 下载上传模板文件
+  router.get("/download/upload_example", async (ctx, next) => {
+    //类型
+    ctx.type = ".xlsx"
+    //请求返回，生成的xlsx文件
+    ctx.body = fs.readFileSync(
+      path.join(__dirname + "/../public/upload_example.xlsx")
+    )
+  })
+
+  router.get("/help", async (ctx, next) => {
+    await ctx.render("help", {
+      title: "帮助与反馈"
     })
+  })
 
-    // 下载上传模板文件
-    router.get('/download/upload_example', async(ctx, next) => {
-        //类型
-        ctx.type = '.xlsx';
-        //请求返回，生成的xlsx文件
-        ctx.body = fs.readFileSync(path.join(__dirname + '/../public/upload_example.xlsx'));
+  router.get("/notice", async (ctx, next) => {
+    await ctx.render("notice", {
+      title: "关注公众号"
     })
+  })
 
-    router.get('/help', async(ctx, next) => {
-        await ctx.render('help', {
-            title: '帮助与反馈'
+  /**
+   * 生成分享图片，并上传到七牛云
+   * @method GET
+   * @param {String} share_type 分享类型：chapter，book，weapp
+   * @param {String}  book_id 书籍id
+   * @param {String}  chapter_id 章节id，当type为chapter的时候
+   * @param {String}  text 自定义的章节描述
+   **/
+  router.get("/api/share_generate", async (ctx, next) => {
+    const share_type = ctx.request.query.share_type
+    console.log(Canvas)
+    const canvas = new Canvas(300, 120) // 按照微信官方要求，长宽比5:4
+    const context = canvas.getContext('2d')
+    ctx.font = '14px "Microsoft YaHei"' // 统一使用微软雅黑字体
+    switch (share_type) {
+      case 'chapter':
+        // 查找书籍信息
+        const { book_id, chapter_id, text } = ctx.request.query
+        const thisBook = await Book.findById(book_id, 'name img_url author').populate({
+          path: 'chapters',
+          match: { _id: chapter_id },
+          options: { limit: 1 },
         })
-    })
-
-    router.get('/notice', async(ctx, next) => {
-        await ctx.render('notice', {
-            title: '关注公众号'
-        })
-    })
+        if (thisBook) {
+          if(thisBook.chapters.length === 1 && thisBook.chapters[0]._id.toString() === chapter_id) {
+            return new Promise((resolve, reject) => {
+              // 将封面图片转成buffer格式，用于canvas绘制图片
+              https.get(thisBook.img_url, imgRes => {
+                let chunks = [] // 用于保存网络请求不断加载传输的缓冲数据
+　　             let size = 0 // 保存缓冲数据的总长度
+                imgRes.on('data', chunk => {
+                  /**
+                   * 在进行网络请求时，会不断接收到数据(数据不是一次性获取到的)
+                   * node会把接收到的数据片段逐段的保存在缓冲区（Buffer）
+                   * 这些数据片段会形成一个个缓冲对象（即Buffer对象）
+                   * 而Buffer数据的拼接并不能像字符串那样拼接（因为一个中文字符占三个字节），
+                   * 如果一个数据片段携带着一个中文的两个字节，下一个数据片段携带着最后一个字节，
+                   * 直接字符串拼接会导致乱码，为避免乱码，所以将得到缓冲数据推入到chunks数组中，
+                   * 利用下面的node.js内置的Buffer.concat()方法进行拼接
+                   */
+                  chunks.push(chunk)
+                  size += chunk.length
+                })
+                imgRes.on('end', err => {
+                  if (err) {
+                    ctx.body = { ok: false, msg: '下载书籍封面图片失败' }
+                    reject('下载书籍封面图片失败')
+                    return
+                  }
+                  const buffer = Buffer.concat(chunks, size)
+                  // 判断是否是一个buffer对象
+                  if (Buffer.isBuffer(buffer)) {
+                    const factionImg = new Canvas.Image()
+                    factionImg.src = buffer
+                    context.drawImage(factionImg, 12, 12, 60, 96)
+                    context.textAlign = 'left'
+                    context.font = 'bold 16px "Microsoft YaHei"'
+                    context.fillText(thisBook.name, 84, 24, 204)
+                    context.font = 'bold 14px "Microsoft YaHei"'
+                    context.fillText('第' + thisBook.chapters[0].num + '章 ' + thisBook.chapters[0].name, 84, 44, 204)
+                    context.font = 'normal 12px "Microsoft YaHei"'
+                    let noSpaceContent = ''
+                    // 是否使用自定义文字
+                    if (text) {
+                      noSpaceContent = text.replace(/(\n|\t|\r)/g, '')
+                    } else {
+                      // 去除content中的换行符
+                      noSpaceContent = thisBook.chapters[0].content.replace(/(\n|\t|\r)/g, '')
+                    }
+                    const oneTextWidth = context.measureText('测').width
+                    const oneLineMaxTextNumber = Math.ceil(204 / oneTextWidth)
+                    // 小说描述最大行数
+                    let maxLineNumber = 4
+                    let current = 4
+                    while (current > 0) {
+                      let tmpText = noSpaceContent.substring(oneLineMaxTextNumber * (maxLineNumber - current), oneLineMaxTextNumber * (maxLineNumber + 1 - current))
+                      // 最后一行文字显示省略号
+                      if (current === 1) {
+                        tmpText = tmpText.substring(0, tmpText.length - 2) + '...'
+                      }
+                      context.fillText(tmpText, 84, 62 + (maxLineNumber - current) * 15, 204)
+                      current --
+                    }
+                    // 上传图片到七牛云
+                    client.upload(canvas.toBuffer(), {key: 'mbook/share/' + uuid.v1() + '.png' }, function (err, result) {
+                      if (err) {
+                        ctx.body = { ok: false, msg: '分享图片导出失败' }
+                        reject('分享图片导出失败')
+                        return
+                      }
+                      ctx.body = { ok: true, msg: '分享图片导出成功', url: result.url }
+                      resolve(next())
+                    });
+                  } else {
+                    ctx.body = { ok: false, msg: '下载书籍封面图片失败' }
+                    reject('下载书籍封面图片失败')
+                    return
+                  }
+                })
+              })
+            })
+          } else {
+            ctx.body = { ok: false, msg: '找不到对应的章节' }
+          }
+        } else {
+          ctx.body = { ok: false, msg: '找不到对应的书籍' }
+        }
+        break;
+      case 'book':
+        const book_id = ctx.request.query.book_id
+        const thisBook = await Book.findById(book_id, 'name img_url author des')
+        if (thisBook) {
+          return new Promise((resolve, reject) => {
+            // 将封面图片转成buffer格式，用于canvas绘制图片
+            https.get(thisBook.img_url, imgRes => {
+              let chunks = [] // 用于保存网络请求不断加载传输的缓冲数据
+　　           let size = 0　// 保存缓冲数据的总长度
+              imgRes.on('data', chunk => {
+                chunks.push(chunk)
+                size += chunk.length
+              })
+              imgRes.on('end', err => {
+                if (err) {
+                  ctx.body = { ok: false, msg: '下载书籍封面图片失败' }
+                  reject('下载书籍封面图片失败')
+                  return
+                }
+                const buffer = Buffer.concat(chunks, size)
+                // 判断是否是一个buffer对象
+                if (Buffer.isBuffer(buffer)) {
+                  const factionImg = new Canvas.Image()
+                  factionImg.src = buffer
+                  context.drawImage(factionImg, 12, 12, 60, 96)
+                  // 绘制图标
+                  const nameIconBuffer = Buffer.from('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAvUlEQVQ4T+2TUQ0CMRBE3zlAAigAFBwSkAAOkICUk4CEOwWAAnAAEsi7bElp4CDhhw+aNE1nd2c37UzFl6vK6sfAFDgC5wHeRcRaz0QwAgR2wAzwvg/sGpiFk8BsZm6TCAwugU3WWWwFmNxEgWQuY+5tTtADxej3xFf4n+DXHrHUwcN/v/tG4yrrFErrAEVT6kCV1sA6RNfmXpDEBCdxX8ITKlFvzIFDNFL2vSpLgnxS/eAESfdPDTZE8JHRbzsWNxFxsDgaAAAAAElFTkSuQmCC', 'base64')
+                  const authorIconBuffer = Buffer.from('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAA30lEQVQ4T6WTAQ3CQAxF3xwgAQlIwAHgAAlIQAIScMBwgAQkgAMkkLdcl+Nyt5GsSbOwu77294+OhdFN1O+BXTq/A33tbgtwAVaAT+MMPNPzh1MDrIErsC06PoAj8Mrf1wAWmnbNw99CzDFqgA1wSt3yu06lJKVMAjy0iwWm4ehmKYvWEnXglvS6TPNQc6IEeNHCdzFuyHLBwj+hIQdYrNexrJrtsdwRkgNckBaF961vzAXbbHApAL5wcY76T9hIOSOg5X0L5pTKfcQEWpR/unNTKMMp+qk/0xxkOF8M+AIi6CgR4+ZD4AAAAABJRU5ErkJggg==', 'base64')
+                  const classifyIconBuffer = Buffer.from('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABCklEQVQ4T32SARHCQAwErw6QAApAQiUgARwgAQl1QHGAA3BAcYAEJDDbyTFP+m1mmO/zucvlkkbzsZa0jeeXpHcttZnBHyTtJd3i3d99zq8R7CSdJEFSBmRnSUP5Z42AJCplyRCjhPdf1AgA5+oAVpK6/FYjQP4nVJTFIDXJogIeHyGVk2jjzvkXc1OgEr0ySgI/uKOsSmDnAZJ0l3RNubSAAufgx4ACg907OL6tgrurAyoN7SBgvrBneUzDI+PMk6FADwFGTcwJgHcBLyZbCHaJgKp5CtnDkcCJTnaPVGTziFqbqG49RhKeURG5xzDSe4/RGHiJkQLe0Ga5ByTxo+9STSkbIAUgHsm/Y/g+8fK69VMAAAAASUVORK5CYII=', 'base64')
+                  const desIconBuffer = Buffer.from('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAzklEQVQ4T7WTAQ3CMBBF3xzgAByABCSAAyQgAQlIQAISJgEcgIM5gDzoLaRbyxLCJcuS9v7r79+t4cdqKvoTcANa4JD17YGLayWAYktALl4BR2BdAij2VMU25QB17m+ALncQYt82eFoJ4Hr7CVD0AMK+NrfJSR5V5NIDtKowxArOEdRI0KMALb2CmVBVgHdfFiDX5KwKMLhZAdCla/33CjtgXnBwT0EPHGjZ1A1xkZ4xhsMV4z0YJKn9jFe+RHGUY8NhqpXD9/VnmjAK75Ynhm08EQ04VoYAAAAASUVORK5CYII=', 'base64')
+                  const nameIcon = new Canvas.Image()
+                  nameIcon.src = nameIconBuffer
+                  const authorIcon = new Canvas.Image()
+                  authorIcon.src = authorIconBuffer
+                  const classifyIcon = new Canvas.Image()
+                  classifyIcon.src = classifyIconBuffer
+                  const desIcon = new Canvas.Image()
+                  desIcon.src = desIconBuffer
+                  
+                  context.textAlign = 'left'
+                  context.font = 'bold 16px "Microsoft YaHei"'
+                  context.fillText(thisBook.name, 84, 24, 204)
+                  context.font = 'bold 14px "Microsoft YaHei"'
+                  context.fillText('第' + thisBook.chapters[0].num + '章 ' + thisBook.chapters[0].name, 84, 44, 204)
+                  context.font = 'normal 12px "Microsoft YaHei"'
+                  let noSpaceContent = ''
+                  // 是否使用自定义文字
+                  if (text) {
+                    noSpaceContent = text.replace(/(\n|\t|\r)/g, '')
+                  } else {
+                    // 去除content中的换行符
+                    noSpaceContent = thisBook.chapters[0].content.replace(/(\n|\t|\r)/g, '')
+                  }
+                  const oneTextWidth = context.measureText('测').width
+                  const oneLineMaxTextNumber = Math.ceil(204 / oneTextWidth)
+                  // 小说描述最大行数
+                  let maxLineNumber = 4
+                  let current = 4
+                  while (current > 0) {
+                    let tmpText = noSpaceContent.substring(oneLineMaxTextNumber * (maxLineNumber - current), oneLineMaxTextNumber * (maxLineNumber + 1 - current))
+                    // 最后一行文字显示省略号
+                    if (current === 1) {
+                      tmpText = tmpText.substring(0, tmpText.length - 2) + '...'
+                    }
+                    context.fillText(tmpText, 84, 62 + (maxLineNumber - current) * 15, 204)
+                    current --
+                  }
+                  // 上传图片到七牛云
+                  client.upload(canvas.toBuffer(), {key: 'mbook/share/' + uuid.v1() + '.png' }, function (err, result) {
+                    if (err) {
+                      ctx.body = { ok: false, msg: '分享图片导出失败' }
+                      reject('分享图片导出失败')
+                      return
+                    }
+                    ctx.body = { ok: true, msg: '分享图片导出成功', url: result.url }
+                    resolve(next())
+                  });
+                } else {
+                  ctx.body = { ok: false, msg: '下载书籍封面图片失败' }
+                  reject('下载书籍封面图片失败')
+                  return
+                }
+              })
+            })
+          })
+        } else {
+          ctx.body = { ok: false, msg: '找不到对应的书籍' }
+        }
+        break;
+      default:
+        break;
+    }
+  });
 }
