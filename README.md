@@ -43,3 +43,34 @@ choco install -y python2 gtk-runtime microsoft-build-tools libjpeg-turbo
 
 ```
 如果安装进度卡在visualstudio2017buildtools这里，需要自行下载[buildTools](https://www.visualstudio.com/zh-hans/downloads/)安装（搜索 Visual Studio 2017 生成工具）
+
+### 出现错误`E11000 duplicate key error index: mbook.chapters.$num_1`
+mongo数据库出现不该有的索引，这是恢复老数据的时候带过来的，需要在数据库中手动删除索引
+```
+mongo
+show db;
+use mbook;
+# 查看所有索引，并找到name为num_1的索引
+db.system.indexes.find()
+# 删除索引
+db.chapters.dropIndex("num_1")
+```
+
+### 导入章节接口出现 413 错误：request entity too large
+两方面原因：第一是因为ngxin的默认配置限制了只能传大于1M的文件，需要修改ngxin.conf
+```
+sudo vi /etc/ngxin/ngxin.conf
+# 在http下新增一行
+client_max_body_size 10M;
+```
+然后重启nginx
+
+第二是koa使用bodyParser默认限制的问题，修改koa目录下的app.js
+```
+app.use(bodyparser({
+  limit: '10mb',
+  formLimit: '10mb',
+  jsonLimit: '10mb',
+  textLimit: '10mb',
+}))
+```

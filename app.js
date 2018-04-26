@@ -18,7 +18,12 @@ const secret = 'mbook'
 // error handler
 onerror(app)
 
-app.use(bodyparser())
+app.use(bodyparser({
+  limit: '10mb',
+  formLimit: '10mb',
+  jsonLimit: '10mb',
+  textLimit: '10mb',
+}))
 app.use(jwtKoa({ secret }).unless({
     path: noAuthPathArr //数组中的路径不需要通过jwt验证
 }))
