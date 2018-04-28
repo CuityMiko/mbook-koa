@@ -6,7 +6,7 @@ import qn from 'qn'
 import https from 'https'
 import uuid from 'uuid'
 import config from '../config'
-import { Book } from '../models'
+import { Book, Setting } from '../models'
 
 // qiniu上传设置
 const client = qn.create({
@@ -61,17 +61,18 @@ export default function(router) {
    * @param {String}  chapter_id 章节id，当type为chapter的时候
    * @param {String}  text 自定义的章节描述
    **/
-  router.get("/api/share_generate", async (ctx, next) => {
+  router.get("/api/get_share_img", async (ctx, next) => {
     const share_type = ctx.request.query.share_type
-    console.log(Canvas)
+    const book_id = ctx.request.query.book_id;
     const canvas = new Canvas(300, 120) // 按照微信官方要求，长宽比5:4
     const context = canvas.getContext('2d')
     ctx.font = '14px "Microsoft YaHei"' // 统一使用微软雅黑字体
+    let thisBook = null;
     switch (share_type) {
       case 'chapter':
         // 查找书籍信息
-        const { book_id, chapter_id, text } = ctx.request.query
-        const thisBook = await Book.findById(book_id, 'name img_url author').populate({
+        const { chapter_id, text } = ctx.request.query
+        thisBook = await Book.findById(book_id, 'name img_url author').populate({
           path: 'chapters',
           match: { _id: chapter_id },
           options: { limit: 1 },
@@ -162,8 +163,7 @@ export default function(router) {
         }
         break;
       case 'book':
-        const book_id = ctx.request.query.book_id
-        const thisBook = await Book.findById(book_id, 'name img_url author des')
+        thisBook = await Book.findById(book_id, 'name img_url author des')
         if (thisBook) {
           return new Promise((resolve, reject) => {
             // 将封面图片转成buffer格式，用于canvas绘制图片
@@ -250,7 +250,12 @@ export default function(router) {
           ctx.body = { ok: false, msg: '找不到对应的书籍' }
         }
         break;
+      case 'index':
+        // 获取配置项中的图片地址
+        ctx.body = { ok: true, msg: '获取分享图片成功', url: await Setting.getSetting('index_share_img') }
+        break;
       default:
+        ctx.body = { ok: false, msg: '参数错误' }
         break;
     }
   });

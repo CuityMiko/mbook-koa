@@ -10,6 +10,7 @@ import pay from './pay'
 import buy from './buy'
 import charge from './charge'
 import attendance from './attendance'
+import setting from './setting'
 import other from './other'
 
 export default function(router) {
@@ -25,5 +26,6 @@ export default function(router) {
     buy(router)
     charge(router)
     attendance(router)
+    setting(router)
     other(router)
 }

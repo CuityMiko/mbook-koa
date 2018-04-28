@@ -1,0 +1,25 @@
+language: node_js
+node_js:
+ - '9'
+branchs:
+  only:
+  - master
+cache:
+  directories:
+    - "node_modules"
+install:
+ - npm install
+scripts:
+ - npm run test
+addons:
+  ssh_known_hosts:
+   - 193.112.196.41
+before_install:
+ - openssl aes-256-cbc -K $encrypted_c2df1cea7f22_key -iv $encrypted_c2df1cea7f22_iv
+   -in .travis/id_rsa.enc -out ~/.ssh/id_rsa -d
+ - sudo apt-get update -q
+ - sudo apt-get install libcairo2-dev libjpeg-dev libpango1.0-dev libgif-dev build-essential g++
+
+after_success:
+ - chmod 600 ~/.ssh/id_rsa
+ - ssh travis@193.112.196.41 "/home/ubuntu/mbook-koa/.travis/deploy.sh"

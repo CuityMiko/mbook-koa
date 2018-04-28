@@ -44,6 +44,12 @@ choco install -y python2 gtk-runtime microsoft-build-tools libjpeg-turbo
 ```
 如果安装进度卡在visualstudio2017buildtools这里，需要自行下载[buildTools](https://www.visualstudio.com/zh-hans/downloads/)安装（搜索 Visual Studio 2017 生成工具）
 
+如果出现未能加载 Visual C++ 组件“VCBuild.exe”的错误
+请打开powershell，并以管理员身份运行下面的命令：
+```
+npm install --global --production windows-build-tools
+npm install
+```
 ### 出现错误`E11000 duplicate key error index: mbook.chapters.$num_1`
 mongo数据库出现不该有的索引，这是恢复老数据的时候带过来的，需要在数据库中手动删除索引
 ```
