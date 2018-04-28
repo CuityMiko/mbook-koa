@@ -1,3 +1,4 @@
+import { checkAdminToken } from '../utils'
 import { Setting } from '../models'
 
 export default function (router) {
