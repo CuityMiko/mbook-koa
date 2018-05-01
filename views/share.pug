@@ -1,0 +1,37 @@
+extends layout
+block link
+  link(rel='stylesheet', type='text/css', href='/activities/share/styles/index.css')
+block head_script
+  script.
+    /* 自适应字体, 设置初始字体：root em */
+    function autoFontSize() {
+      var font_size = document.documentElement.clientWidth / 640.0 * 100;
+      font_size = font_size >= 50 ? font_size : 50;
+      var html = document.getElementsByTagName('html')[0];
+      html.style.fontSize = font_size + 'px';
+    }
+    window.onresize = function () {
+      autoFontSize()
+    };
+    autoFontSize();
+block content
+  //- img.pre-load(src='/activities/001/images/sprite.png', alt='')
+  .header-before
+  .header
+    p.info
+      span 今日获得书币 #{ todayGetNum }
+      span 累计获得的书币 #{ totalGetNum }
+    div.operation
+      button.invite-btn 去邀请
+      button.share-btn 去分享
+  .rule
+    p.title --&nbsp;分享规则&nbsp;--
+    p 1. 每天登陆获得10书币；
+    p 2. 邀请好友一次登录获得15书币；
+    p 3. 分享到微信群获得20书币；
+    p 4. 每天获得书币的最大上限为200；
+    p 5. 本活动的最终解释权归兰亭读书所有；
+block script
+  script(type='text/javascript', src='/js/zepto.min.js')
+  //- 请将document.ready中执行的代码写在initPage方法中，在loading结束之后会自动调用initPage
+  script(type='text/javascript', src='/activities/share/scripts/index.js')

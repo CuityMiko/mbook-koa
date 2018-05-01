@@ -34,9 +34,11 @@ router.get('/notice', async(ctx, next) => {
 })
 
 // 活动页面
-router.get('/activity/001', async(ctx, next) => {
-  await ctx.render('activity001', {
-      title: '同花顺品牌宣传活动'
+router.get('/activity/share', async(ctx, next) => {
+  let userid = ctx.request.query.uid
+  let shareid = ctx.request.query.sid
+  await ctx.render('share', {
+      title: '分享拿书币'
   })
 })
 

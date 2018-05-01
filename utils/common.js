@@ -228,6 +228,15 @@ const chineseParseInt = (function () {
   return main;
 })();
 
+const isJsonString = str => {  
+  try {
+    if (typeof JSON.parse(str) == "object") {
+      return true
+    }  
+  } catch(e) {}
+  return false
+}  
+
 module.exports = {
   formatTime: formatTime,
   formatTime2: formatTime2,
@@ -237,5 +246,6 @@ module.exports = {
   jsonToXml: jsonToXml,
   isEmpty: isEmpty,
   continueDays: continueDays,
-  chineseParseInt: chineseParseInt
+  chineseParseInt: chineseParseInt,
+  isJsonString: isJsonString
 }

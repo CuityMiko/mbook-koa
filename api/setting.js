@@ -2,6 +2,19 @@ import { checkAdminToken } from '../utils'
 import { Setting } from '../models'
 
 export default function (router) {
+  // 小程序获取配置项接口
+  router.get('/api/get_setting_items', async (ctx, next) => {
+    const items = ctx.request.query.items
+    const itemArray = items.split('|')
+    let result = {}
+    for (let i=0; i<itemArray.length; i++) {
+      if (itemArray[i]) {
+        result[itemArray[i]] = await Setting.getSetting(itemArray[i]) || ''
+      }
+    }
+    ctx.body = { ok: true, msg: '获取配置项成功', items: result }
+  })
+
 	// 后台获取所有的设置项
   router.get('/api/setting', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'setting_update')

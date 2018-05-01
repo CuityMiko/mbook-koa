@@ -8,7 +8,7 @@ import {resolve} from 'url';
 import {jwtVerify} from '../utils'
 
 const secret = 'mbook' // token秘钥
-// console.log(jwt.sign({ userid: '5a1272549f292c17118aba62'}, secret, { expiresIn: '2h' }))
+// console.log(jwt.sign({ userid: '5ae84e75eab61f4f98ff5902'}, secret, { expiresIn: '2h' }))
 // console.log(jwt.sign({ userid: '5a12728f9f292c17118aba74'}, secret, { expiresIn: '2h' }))
 
 
