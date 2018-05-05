@@ -1,4 +1,4 @@
-import { Book, BookList } from '../models'
+import { Book, BookList, Good } from '../models'
 import { checkAdminToken, jwtVerify, tool } from '../utils'
 
 export default function (router) {
@@ -92,17 +92,38 @@ export default function (router) {
 
   // 后台获取所有书籍的列表
   router.get('/api/book/all', async (ctx, next) => {
-    let userid = await checkAdminToken(ctx, next, 'theme_update')
+    const userid = await checkAdminToken(ctx, next, 'theme_update')
     if (userid) {
       let allBooks = await Book.find({}, 'id name author')
       ctx.body = { ok: true, list: allBooks, msg: '获取书籍列表成功'}
     }
   })
 
+  // 后台获取所有不在商品中的书籍
+  router.get('/api/book/sign_good', async (ctx, next) => {
+    const userid = await checkAdminToken(ctx, next, 'theme_update')
+    if (userid) {
+      const allBooks = await Book.find({}, 'id name author')
+      const allGoods = await Good.find({}, 'bookid')
+      const result = []
+      allBooks.forEach(item => {
+        result.push({
+          _id: item._id,
+          name: item.name,
+          author: item.author,
+          is_good: allGoods.some(item2 => {
+            return item2.bookid.toString() === item._id.toString()
+          })
+        })
+      })
+      ctx.body = { ok: true, list: result, msg: '获取书籍列表成功'}
+    }
+  })
+
   // 后台书籍管理
   router.get('/api/book', async (ctx, next) => {
     // check if the user has permission
-    let userid = await checkAdminToken(ctx, next, 'theme_update')
+    const userid = await checkAdminToken(ctx, next, 'theme_update')
     if (userid) {
       let {page, limit} = ctx.request.query
       // format page and limit

@@ -6,9 +6,9 @@ export default function (router) {
         if(bookid){
           if(type){
             type = parseInt(type)
-            if(type === 0){
+            if(type === 1 || type === 4){
               // do nothing
-            }else if(type === 1){
+            }else if(type === 2){
               if(!limit_start_time || !limit_end_time){
                 ctx.body = { ok: false, msg: "请指定书籍限时免费的起始时间和结束时间" }
                 await next()
@@ -17,7 +17,7 @@ export default function (router) {
                 limit_start_time = new Date(limit_start_time)
                 limit_end_time = new Date(limit_end_time)
               }
-            }else if(type === 2){
+            }else if(type === 3){
               if(!limit_chapter){
                 ctx.body = { ok: false, msg: "请指定书籍限定免费章节" }
                 await next()
@@ -26,7 +26,7 @@ export default function (router) {
                 limit_chapter = parseInt(limit_chapter)
               }
             }else{
-              ctx.body = { ok: false, msg: "type参数只能取0，1，2" }
+              ctx.body = { ok: false, msg: "type参数只能取1，2，3，4" }
               await next()
               return
             }
@@ -65,7 +65,7 @@ export default function (router) {
         }
     })
 
-    router.get('/api/good/list', async (ctx, next) => {
+    router.get('/api/good', async (ctx, next) => {
       let { page, limit } = ctx.request.query
       if(page){
         page = parseInt(page)
@@ -85,6 +85,10 @@ export default function (router) {
       }
       let allGoodNum = await Good.count()
       let goods = await Good.find()
+                            .populate({
+                              path: 'bookid',
+                              select: '_id name img_url author'
+                            })
                             .sort({ 'create_time': -1 })
                             .skip((page - 1) * limit)
                             .limit(limit)
@@ -113,9 +117,9 @@ export default function (router) {
           if(type){
             type = parseInt(type)
             updateObj.type = type
-            if(type === 0){
+            if(type === 1 || type === 4){
               // do nothing
-            }else if(type === 1){
+            }else if(type === 2){
               if(limit_start_time && limit_end_time){
                 updateObj.limit_start_time = new Date(limit_start_time)
                 updateObj.limit_end_time = new Date(limit_end_time)
@@ -124,7 +128,7 @@ export default function (router) {
                 await next()
                 return
               }
-            }else if(type === 2){
+            }else if(type === 3){
               if(limit_chapter){
                 updateObj.limit_chapter = limit_chapter
               }else{
@@ -133,7 +137,7 @@ export default function (router) {
                 return
               }
             }else{
-              ctx.body = { ok: false, msg: "type参数只能取0，1，2" }
+              ctx.body = { ok: false, msg: "type参数只能取1，2，3，4" }
               await next()
               return
             }
