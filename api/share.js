@@ -1,62 +1,148 @@
 import { checkAdminToken, jwtVerify, tool } from '../utils'
-import { Share, User } from '../models'
+import { Share, User, Setting } from '../models'
+import shortid from 'shortid'
+import moment from 'moment'
 
-export default function (router) {
-  // 创建一条分享记录
-  router.get('/api/share/new', async (ctx, next) => {
-    const source = ctx.request.query.source
-    if (source) {
-      if (ctx.header.authorization && ctx.header.authorization.split(' ').length > 0) {
-        const payload = await jwtVerify(ctx.header.authorization.split(' ')[1])
-        const launch_uid = payload.userid
-        const newShare = await Share.create({
-          launch_uid,
-          source,
+export default function(router) {
+  // 获取用户的分享信息
+  router.get('/api/share/info', async (ctx, next) => {
+    if (ctx.header.authorization && ctx.header.authorization.split(' ').length > 0) {
+      const payload = await jwtVerify(ctx.header.authorization.split(' ')[1])
+      const userid = payload.userid
+      // 查询当前用户的邀请信息，如果找不到则创建一个
+      let hisShareInfo = await Share.findOne({ userid })
+      if (!hisShareInfo) {
+        const code = shortid.generate()
+        hisShareInfo = await Share.create({
+          userid: await Share.transId(userid),
+          code,
+          award_records: [],
+          share_records: [],
           accept_records: [],
-          create_time: Date.now()
+          create_time: new Date()
         })
-        ctx.body = { ok: true, msg: '新增分享记录成功', share_id: newShare.id }
-      } else {
-        ctx.body = { ok: false, msg: '用户认证失败' }
+      }
+      // 统计用户邀请信息，今日邀请人数，以及累计邀请人数，累计获得书书币数
+      const nowDateStr = moment().format('YYYY/MM/DD')
+      const startTime = new Date(nowDateStr + ' 00:00:00')
+      const endTime = new Date(nowDateStr + ' 24:00:00')
+      let todayInviteNum = 0
+      let totalInviteNum = 0
+      let todayAwardNum = 0
+      let totalAwardNum = 0
+      let users = []
+      hisShareInfo.accept_records.forEach(item => {
+        const time = item.accept_time.getTime()
+        if (time >= startTime.getTime() && time <= endTime.getTime()) {
+          todayInviteNum++
+        }
+        const uid = item.uid.toString()
+        if (users.indexOf(uid) < 0) {
+          users.push(uid)
+          totalInviteNum++
+        }
+      })
+      hisShareInfo.award_records.forEach(item => {
+        const time = item.award_time.getTime()
+        if (time >= startTime.getTime() && time <= endTime.getTime()) {
+          todayAwardNum += item.amount
+        }
+        totalAwardNum += item.amount
+      })
+      // 获取设置中的分享设置
+      const shareSetting = await Setting.getSetting('share')
+      ctx.body = {
+        ok: true,
+        msg: '获取分享信息成功',
+        shareSetting,
+        shareInfo: {
+          todayAwardNum,
+          todayInviteNum,
+          totalAwardNum,
+          totalInviteNum
+        },
+        code: hisShareInfo.code
       }
     } else {
-      ctx.body = { ok: false, msg: '参数错误' }
+      ctx.body = { ok: false, msg: '用户认证失败' }
     }
   })
+
   // 更新分享记录，在每次被邀请用户登录之后
   router.get('/api/share/update', async (ctx, next) => {
-    const share_id = ctx.request.query.share_id
-    if (share_id) {
+    const shareId = ctx.request.query.share_id
+    const reg = /^[A-Za-z0-9-]+_\d+$/
+    if (shareId && reg.test(shareId)) {
+      const code = shareId.split('_')[0]
+      const time = new Date(parseInt(shareId.split('_')[1]))
       if (ctx.header.authorization && ctx.header.authorization.split(' ').length > 0) {
         const payload = await jwtVerify(ctx.header.authorization.split(' ')[1])
-        const accept_uid = payload.userid
-        const thisShareLog = await Share.findById(share_id)
+        const userid = payload.userid
+        const thisShareLog = await Share.findOne({ code })
         if (thisShareLog) {
           // 限制自己不能邀请自己
-          if (thisShareLog.launch_uid.toString() !== accept_uid) {
+          if (thisShareLog.userid.toString() !== userid) {
             const now = new Date()
-            const updateResult = await Share.update({ _id: share_id }, {
-              $addToSet: {
-                accept_records: {
-                  uid: await Share.transId(accept_uid),
-                  time: now
+            if (now.getTime() - time.getTime() < 24 * 60 * 60 * 1000) {
+              // 判断当前用户今天是否已经被别的用户邀请过了
+              const nowDateStr = moment().format('YYYY/MM/DD')
+              const startTime = new Date(nowDateStr + ' 00:00:00')
+              const endTime = new Date(nowDateStr + ' 24:00:00')
+              const hasInviteLog = await Share.find({ 'accept_records.uid': userid, 'accept_records.accept_time': { $gte: startTime, $lte: endTime } }, '_id accept_records')
+              const hasBeInvited = hasInviteLog.some(item => {
+                return item.accept_records.length > 0
+              })
+              // 新增分享记录
+              await Share.update(
+                { code },
+                {
+                  $addToSet: {
+                    accept_records: {
+                      uid: await Share.transId(userid),
+                      accept_time: now
+                    }
+                  }
                 }
-              }
-            })
-            if (updateResult.ok) {
-              // 判断是否分享和邀请关系是否处理24小时的有效期内
-              if ((now.getTime() - thisShareLog.create_time.getTime()) < 24 * 60 * 60 * 1000) {
-                // 分发奖励
-                const acceptAward = await User.addAmount(accept_uid, 15)
-                const launchAward = await User.addAmount(thisShareLog.launch_uid.toString(), 15)
-                if (acceptAward && launchAward) {
-                  ctx.body = { ok: true, msg: '更新记录成功' }
-                } else {
-                  ctx.body = { ok: false, msg: '发放奖励失败' }
-                }
+              )
+              if (hasBeInvited) {
+                ctx.body = { ok: false, msg: '您今天已经接受过邀请了' }
               } else {
-                ctx.body = { ok: false, msg: '邀请已经过期' }
+                // 分发奖励
+                const acceptAward = await User.addAmount(userid, 15, '接收他人邀请奖励')
+                const launchAward = await User.addAmount(thisShareLog.userid.toString(), 15, '邀请他人登录奖励')
+                if (acceptAward && launchAward) {
+                  // 新增奖励记录
+                  await Share.update(
+                    { userid },
+                    {
+                      $addToSet: {
+                        award_records: {
+                          name: '接受邀请奖励',
+                          amount: 15,
+                          award_time: new Date()
+                        }
+                      }
+                    }
+                  )
+                  await Share.update(
+                    { code },
+                    {
+                      $addToSet: {
+                        award_records: {
+                          name: '邀请别人奖励',
+                          amount: 15,
+                          award_time: new Date()
+                        }
+                      }
+                    }
+                  )
+                  ctx.body = { ok: true, msg: '成功接受邀请，奖励已发放' }
+                } else {
+                  ctx.body = { ok: false, msg: '成功接口邀请，奖励发放失败' }
+                }
               }
+            } else {
+              ctx.body = { ok: false, msg: '邀请已经过期' }
             }
           } else {
             ctx.body = { ok: false, msg: '参数错误，自己不能邀请自己' }

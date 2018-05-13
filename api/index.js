@@ -12,22 +12,24 @@ import charge from './charge'
 import attendance from './attendance'
 import setting from './setting'
 import share from './share'
+import award from './award'
 import other from './other'
 
 export default function(router) {
-    banner(router)
-    theme(router)
-    book(router)
-    chapter(router)
-    user(router)
-    booklist(router)
-    comment(router)
-    good(router)
-    pay(router)
-    buy(router)
-    charge(router)
-    attendance(router)
-    setting(router)
-    share(router)
-    other(router)
+  banner(router)
+  theme(router)
+  book(router)
+  chapter(router)
+  user(router)
+  booklist(router)
+  comment(router)
+  good(router)
+  pay(router)
+  buy(router)
+  charge(router)
+  attendance(router)
+  setting(router)
+  share(router)
+  award(router)
+  other(router)
 }

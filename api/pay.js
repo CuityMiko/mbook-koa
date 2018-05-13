@@ -3,7 +3,7 @@ import { createUnifiedOrder, weixinpay } from '../utils/weixin'
 import { jwtVerify, tool } from '../utils'
 import moment from 'moment'
 
-export default function (router) {
+export default function(router) {
   router.post('/api/pay', async (ctx, next) => {
     let { chargeids, pay_money, yuebi_num, spbill_create_ip } = ctx.request.body
     console.log('支付请求参数: ' + JSON.stringify(ctx.request.body))
@@ -70,80 +70,83 @@ export default function (router) {
   router.post('/api/pay/notify', async (ctx, next) => {
     console.log('微信回调...')
     // 处理商户业务逻辑
-    let promise = new Promise(function (resolve, reject) {
+    let promise = new Promise(function(resolve, reject) {
       let buf = ''
       ctx.req.setEncoding('utf8')
-      ctx.req.on('data', (chunk) => {
+      ctx.req.on('data', chunk => {
         buf += chunk
       })
       ctx.req.on('end', () => {
-        tool.xmlToJson(buf)
+        tool
+          .xmlToJson(buf)
           .then(resolve)
           .catch(reject)
       })
     })
 
-    await promise.then(async (result) => {
-      // console.log(result)
-      ctx.type = 'xml'
-      // 判断result是否为空，为空则返回fail
-      if(tool.isEmpty(result)){
-        ctx.body = `<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[支付失败]]></return_msg></xml>`
-      }else{
-        if(result.xml && result.xml.out_trade_no && result.xml.out_trade_no[0]){
-          let thisPay = await Pay.findById(result.xml.out_trade_no[0])
-          if(thisPay._id){
-            if(result.xml && result.xml.result_code && result.xml.result_code[0] === 'SUCCESS'){
-              // 为了防止多次回调重复修改用户书币数，这里限制订单status为1时不做增加书币处理
-              if(thisPay.status !== 1){
-                // 增加用户书币
-                let addAmontResult = await User.addAmount(thisPay.userid, thisPay.yuebi_num)
-                if(addAmontResult){
-                  // 处理订单状态, 修改status的值
-                  await Pay.updateStatus(result.xml.out_trade_no[0], 1)
-                  console.log('ID为' + thisPay._id + '的订单支付成功，为ID为' + thisPay.userid + '下发' + thisPay.yuebi_num + '书币')
-                }else{
-                  await Pay.updateStatus(result.xml.out_trade_no[0], 4)
-                  await Pay.updateDes(result.xml.out_trade_no[0], '支付成功，但下发书币失败', 1)
-                  console.log('ID为' + thisPay.userid + '的用户支付成功，但是下发书币失败')
+    await promise
+      .then(async result => {
+        // console.log(result)
+        ctx.type = 'xml'
+        // 判断result是否为空，为空则返回fail
+        if (tool.isEmpty(result)) {
+          ctx.body = `<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[支付失败]]></return_msg></xml>`
+        } else {
+          if (result.xml && result.xml.out_trade_no && result.xml.out_trade_no[0]) {
+            let thisPay = await Pay.findById(result.xml.out_trade_no[0])
+            if (thisPay._id) {
+              if (result.xml && result.xml.result_code && result.xml.result_code[0] === 'SUCCESS') {
+                // 为了防止多次回调重复修改用户书币数，这里限制订单status为1时不做增加书币处理
+                if (thisPay.status !== 1) {
+                  // 增加用户书币
+                  let addAmontResult = await User.addAmount(thisPay.userid, thisPay.yuebi_num, '充值书币')
+                  if (addAmontResult) {
+                    // 处理订单状态, 修改status的值
+                    await Pay.updateStatus(result.xml.out_trade_no[0], 1)
+                    console.log('ID为' + thisPay._id + '的订单支付成功，为ID为' + thisPay.userid + '下发' + thisPay.yuebi_num + '书币')
+                  } else {
+                    await Pay.updateStatus(result.xml.out_trade_no[0], 4)
+                    await Pay.updateDes(result.xml.out_trade_no[0], '支付成功，但下发书币失败', 1)
+                    console.log('ID为' + thisPay.userid + '的用户支付成功，但是下发书币失败')
+                  }
                 }
+                ctx.body = `<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>`
+              } else {
+                await Pay.updateStatus(result.xml.out_trade_no[0], 2)
+                ctx.body = `<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[支付失败]]></return_msg></xml>`
+                console.log('支付失败')
               }
-              ctx.body = `<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>`
-            }else{
-              await Pay.updateStatus(result.xml.out_trade_no[0], 2)
-              ctx.body = `<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[支付失败]]></return_msg></xml>`
-              console.log('支付失败')
+            } else {
+              ctx.body = `<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[订单不存在]]></return_msg></xml>`
+              console.log('订单支付失败，找不到ID为' + result.xml.out_trade_no[0] + '的订单，微信回调参数: ' + JSON.stringify(result))
             }
-          }else{
+          } else {
             ctx.body = `<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[订单不存在]]></return_msg></xml>`
-            console.log('订单支付失败，找不到ID为' + result.xml.out_trade_no[0] + '的订单，微信回调参数: ' + JSON.stringify(result))
+            console.log('订单支付失败，微信回调参数: ' + JSON.stringify(result))
           }
-        }else{
-          ctx.body = `<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[订单不存在]]></return_msg></xml>`
-          console.log('订单支付失败，微信回调参数: ' + JSON.stringify(result))
         }
-      }
-      await next()
-    }).catch((e) => {
-      e.status = 400
-    })
+        await next()
+      })
+      .catch(e => {
+        e.status = 400
+      })
   })
 
   // 小程序报告取消支付
   router.get('/api/pay/cancel', async (ctx, next) => {
     let payId = ctx.request.query.pay_id
-    if(payId){
+    if (payId) {
       let updateResult = await Pay.updateStatus(payId, 3)
       // 关闭订单
-      weixinpay.closeOrder({ out_trade_no: payId}, function(err, result){})
-      if(updateResult){
+      weixinpay.closeOrder({ out_trade_no: payId }, function(err, result) {})
+      if (updateResult) {
         console.log('ID为' + payId + '的订单被取消')
         ctx.body = { ok: true, msg: '取消订单成功' }
-      }else{
+      } else {
         console.log('ID为' + payId + '的订单取消失败，参数错误')
         ctx.body = { ok: false, msg: '取消订单失败，参数错误' }
       }
-    }else{
+    } else {
       console.log('ID为' + payId + '的订单取消失败，参数错误')
       ctx.body = { ok: false, msg: '取消订单失败，参数错误' }
     }

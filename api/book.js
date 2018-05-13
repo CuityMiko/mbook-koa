@@ -1,7 +1,7 @@
-import { Book, BookList, Good } from '../models'
+import { Book, BookList, Good, Setting } from '../models'
 import { checkAdminToken, jwtVerify, tool } from '../utils'
 
-export default function (router) {
+export default function(router) {
   // 获取书籍详情接口
   router.get('/api/book/get_detail', async (ctx, next) => {
     let result = null
@@ -18,17 +18,17 @@ export default function (router) {
         })
         // 格式化时间
         result = {
-          '_id': book._id,
-          'name': book.name,
-          'img_url': book.img_url,
-          'author': book.author,
-          'des': book.des,
-          'classification': book.classification,
-          'update_status': book.update_status === '已完结' ? '已完结' : '第' + book.newest_chapter + '章', // 这里日后最好加上章节名
-          'newest_chapter': book.newest_chapter,
-          'total_words': book.total_words,
-          'hot_value': book.hot_value,
-          'update_time': tool.formatTime(book.update_time),
+          _id: book._id,
+          name: book.name,
+          img_url: book.img_url,
+          author: book.author,
+          des: book.des,
+          classification: book.classification,
+          update_status: book.update_status === '已完结' ? '已完结' : '第' + book.newest_chapter + '章', // 这里日后最好加上章节名
+          newest_chapter: book.newest_chapter,
+          total_words: book.total_words,
+          hot_value: book.hot_value,
+          update_time: tool.formatTime(book.update_time)
         }
         ctx.body = { ok: true, msg: '获取书籍详情成功', data: result, isInList: isInList }
       } else {
@@ -47,7 +47,7 @@ export default function (router) {
       index = parseInt(index)
       page = parseInt(page)
       let chineseName = '其他类别'
-      switch(index){
+      switch (index) {
         case 0:
           chineseName = '玄幻·奇幻'
           break
@@ -78,10 +78,13 @@ export default function (router) {
         default:
           break
       }
-      let books = await Book.find({classification: chineseName}, '_id name img_url author des').sort({classify_order: 1, hot_value: -1}).skip((page-1)*8).limit(8)
+      let books = await Book.find({ classification: chineseName }, '_id name img_url author des')
+        .sort({ classify_order: 1, hot_value: -1 })
+        .skip((page - 1) * 8)
+        .limit(8)
       let total = await Book.count({ classification: chineseName })
       if (books) {
-        ctx.body = { ok: true, msg: '获取书籍详情成功', total: total, list: books}
+        ctx.body = { ok: true, msg: '获取书籍详情成功', total: total, list: books }
       } else {
         ctx.body = { ok: true, msg: '获取分类成功', list: [] }
       }
@@ -90,12 +93,110 @@ export default function (router) {
     }
   })
 
+  // 小程序搜索书籍接口
+  router.get('/api/book/search', async (ctx, next) => {
+    const keyword = ctx.request.query.keyword
+    let page = ctx.request.query.page
+    let limit = ctx.request.query.limit
+    // 格式化page和limit
+    if (page) {
+      page = parseInt(page)
+      if (page < 1) {
+        page = 1
+      }
+    } else {
+      page = 1
+    }
+    if (limit) {
+      limit = parseInt(limit)
+    } else {
+      limit = 10
+    }
+    if (keyword) {
+      const reg = new RegExp(keyword, 'i')
+      const result = await Book.find(
+        {
+          $or: [{ name: reg }, { author: reg }]
+        },
+        '_id name author img_url des classification'
+      ).sort({ hot_value: -1, create_time: -1 })
+      let classification = []
+      result.forEach(item => {
+        if (classification.indexOf(item.classification) < 0) {
+          classification.push(item.classification)
+        }
+      })
+      ctx.body = { ok: true, msg: '搜索成功', list: result, classification }
+    } else {
+      ctx.body = { ok: false, msg: '请输入关键字' }
+    }
+  })
+
+  // 小程序获取热门搜索选项
+  router.get('/api/book/search_hot', async (ctx, next) => {
+    const hotSetting = await Setting.getSetting('hot_search')
+    const defaultKeyword = (await Setting.getSetting('default_keyword')) || ''
+    let result = []
+    if (hotSetting) {
+      result = hotSetting.split('|')
+    }
+    ctx.body = { ok: true, msg: '获取热门搜索成功', list: result, default: defaultKeyword }
+  })
+
+  // 小程序获取搜索提示接口
+  router.get('/api/book/search_help', async (ctx, next) => {
+    const keyword = ctx.request.query.keyword
+    if (keyword) {
+      const reg = new RegExp(keyword, 'i')
+      const result = await Book.find(
+        {
+          $or: [{ name: reg }, { author: reg }]
+        },
+        'name author'
+      ).sort({ hot_value: -1, create_time: -1 })
+      let nameArr = []
+      let authorArr = []
+      result.forEach(item => {
+        if (item.name.match(reg)) {
+          nameArr.push(item.name)
+        }
+        if (item.author.match(reg)) {
+          authorArr.push(item.author)
+        }
+      })
+      ctx.body = { ok: true, msg: '获取搜索提示成功', list: nameArr.concat(authorArr) }
+    } else {
+      ctx.body = { ok: false, msg: '请输入关键字' }
+    }
+  })
+
   // 后台获取所有书籍的列表
   router.get('/api/book/all', async (ctx, next) => {
     const userid = await checkAdminToken(ctx, next, 'theme_update')
     if (userid) {
       let allBooks = await Book.find({}, 'id name author')
-      ctx.body = { ok: true, list: allBooks, msg: '获取书籍列表成功'}
+      ctx.body = { ok: true, list: allBooks, msg: '获取书籍列表成功' }
+    }
+  })
+
+  // 后台获取所有不在商品中的书籍
+  router.get('/api/book/sign_good', async (ctx, next) => {
+    const userid = await checkAdminToken(ctx, next, 'theme_update')
+    if (userid) {
+      const allBooks = await Book.find({}, 'id name author')
+      const allGoods = await Good.find({}, 'bookid')
+      const result = []
+      allBooks.forEach(item => {
+        result.push({
+          _id: item._id,
+          name: item.name,
+          author: item.author,
+          is_good: allGoods.some(item2 => {
+            return item2.bookid.toString() === item._id.toString()
+          })
+        })
+      })
+      ctx.body = { ok: true, list: result, msg: '获取书籍列表成功' }
     }
   })
 
@@ -125,27 +226,31 @@ export default function (router) {
     // check if the user has permission
     const userid = await checkAdminToken(ctx, next, 'theme_update')
     if (userid) {
-      let {page, limit} = ctx.request.query
+      let { page, limit } = ctx.request.query
       // format page and limit
-      if(page){
+      if (page) {
         page = parseInt(page)
-      }else{
+      } else {
         page = 1
       }
-      if(limit){
+      if (limit) {
         limit = parseInt(limit)
-      }else{
+      } else {
         limit = 10
       }
       const total = await Book.count()
       // query book
-      let books = await Book.find({}).sort({hot_value: -1}).populate({
-        path: 'chapters',
-        model: 'Chapter',
-        select: {content: 0},
-        options: {limit: 5, sort: {'num': -1}}
-      }).skip((page-1)*limit).limit(limit)
-      ctx.body = { ok: true, total, list: books, msg: '获取书籍列表成功'}
+      let books = await Book.find({})
+        .sort({ hot_value: -1 })
+        .populate({
+          path: 'chapters',
+          model: 'Chapter',
+          select: { content: 0 },
+          options: { limit: 5, sort: { num: -1 } }
+        })
+        .skip((page - 1) * limit)
+        .limit(limit)
+      ctx.body = { ok: true, total, list: books, msg: '获取书籍列表成功' }
     }
   })
 
@@ -154,21 +259,21 @@ export default function (router) {
     // check if the user has permission
     let userid = await checkAdminToken(ctx, next, 'theme_update')
     if (userid) {
-      let {name, img_url, author, des, classification, classify_order, update_status, newest_chapter, total_words, hot_value} = ctx.request.body
+      let { name, img_url, author, des, classification, classify_order, update_status, newest_chapter, total_words, hot_value } = ctx.request.body
       // format page and limit
-      if(classify_order){
+      if (classify_order) {
         classify_order = parseInt(classify_order)
-      }else{
+      } else {
         classify_order = 1
       }
-      if(hot_value){
+      if (hot_value) {
         hot_value = parseInt(hot_value)
-      }else{
+      } else {
         hot_value = 0
       }
-      if(newest_chapter){
+      if (newest_chapter) {
         newest_chapter = parseInt(newest_chapter)
-      }else{
+      } else {
         newest_chapter = 0
       }
       // query book
@@ -187,10 +292,10 @@ export default function (router) {
         update_time: new Date(),
         create_time: new Date()
       })
-      if(book){
-        ctx.body = { ok: true, data: book, msg: '添加书籍成功'}
-      }else{
-        ctx.body = { ok: false, data: data, msg: '添加书籍失败'}
+      if (book) {
+        ctx.body = { ok: true, data: book, msg: '添加书籍成功' }
+      } else {
+        ctx.body = { ok: false, data: data, msg: '添加书籍失败' }
       }
     }
   })
@@ -199,9 +304,10 @@ export default function (router) {
   router.patch('/api/book/:id', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'theme_update')
     if (userid) {
-      let {name, img_url, author, des, classification, classify_order, update_status, newest_chapter, total_words, hot_value} = ctx.request.body
+      let { name, img_url, author, des, classification, classify_order, update_status, newest_chapter, total_words, hot_value } = ctx.request.body
       let id = ctx.params.id
-      let result = await Book.update({ _id: id },
+      let result = await Book.update(
+        { _id: id },
         {
           $set: {
             name: name,
@@ -216,7 +322,8 @@ export default function (router) {
             hot_value: hot_value,
             update_time: new Date()
           }
-        })
+        }
+      )
       if (result.ok === 1) {
         let newest = await Book.findById(id)
         ctx.body = { ok: true, msg: '更新书籍成功', data: newest }
@@ -232,10 +339,10 @@ export default function (router) {
     if (userid) {
       let id = ctx.params.id
       let thisBook = await Book.findById(id)
-      if(thisBook){
+      if (thisBook) {
         // 清除对应的章节
         thisBook.chapters.forEach(async item => {
-          await Chapter.remove({_id: item.toString()})
+          await Chapter.remove({ _id: item.toString() })
         })
         let result = await Book.remove({ _id: id })
         if (result.result.ok === 1) {
@@ -243,7 +350,7 @@ export default function (router) {
         } else {
           ctx.body = { ok: false, msg: '删除失败', data: result.result }
         }
-      }else{
+      } else {
         ctx.body = { ok: false, msg: '删除失败，找不到此书籍' }
       }
     }

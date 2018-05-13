@@ -1,55 +1,48 @@
-import send from "koa-send";
-import path from "path";
-import fs from "fs";
-import Canvas  from 'canvas'
+import send from 'koa-send'
+import path from 'path'
+import fs from 'fs'
+import Canvas from 'canvas'
 import qn from 'qn'
 import https from 'https'
 import uuid from 'uuid'
 import config from '../config'
-import { Book, Setting } from '../models'
+import { Book, Setting, User } from '../models'
+import { jwtVerify } from '../utils'
+import { requestWxCode } from '../utils/wxCode'
 
 // qiniu上传设置
 const client = qn.create({
   accessKey: config.accessKey,
   secretKey: config.secretKey,
   bucket: 'upload',
-  origin: 'https://fs.andylistudio.com',
+  origin: 'https://fs.andylistudio.com'
 })
 
-
 export default function(router) {
-  router.get("/api/get_text", async (ctx, next) => {
-    let arr = [
-      "读万卷书,行万里路。 ——顾炎武",
-      "读过一本好书，像交了一个益友。 ——臧克家",
-      "鸟欲高飞先振翅，人求上进先读书",
-      "书籍是人类思想的宝库",
-      "书山有路勤为径，学海无涯苦作舟"
-    ]
+  router.get('/api/get_text', async (ctx, next) => {
+    let arr = ['读万卷书,行万里路。 ——顾炎武', '读过一本好书，像交了一个益友。 ——臧克家', '鸟欲高飞先振翅，人求上进先读书', '书籍是人类思想的宝库', '书山有路勤为径，学海无涯苦作舟']
     let date = new Date()
     let day = date.getDate() % 5
     ctx.body = { ok: true, text: arr[day] }
   })
 
   // 下载上传模板文件
-  router.get("/download/upload_example", async (ctx, next) => {
+  router.get('/download/upload_example', async (ctx, next) => {
     //类型
-    ctx.type = ".xlsx"
+    ctx.type = '.xlsx'
     //请求返回，生成的xlsx文件
-    ctx.body = fs.readFileSync(
-      path.join(__dirname + "/../public/upload_example.xlsx")
-    )
+    ctx.body = fs.readFileSync(path.join(__dirname + '/../public/upload_example.xlsx'))
   })
 
-  router.get("/help", async (ctx, next) => {
-    await ctx.render("help", {
-      title: "帮助与反馈"
+  router.get('/help', async (ctx, next) => {
+    await ctx.render('help', {
+      title: '帮助与反馈'
     })
   })
 
-  router.get("/notice", async (ctx, next) => {
-    await ctx.render("notice", {
-      title: "关注公众号"
+  router.get('/notice', async (ctx, next) => {
+    await ctx.render('notice', {
+      title: '关注公众号'
     })
   })
 
@@ -61,13 +54,13 @@ export default function(router) {
    * @param {String}  chapter_id 章节id，当type为chapter的时候
    * @param {String}  text 自定义的章节描述
    **/
-  router.get("/api/get_share_img", async (ctx, next) => {
+  router.get('/api/get_share_img', async (ctx, next) => {
     const share_type = ctx.request.query.share_type
-    const book_id = ctx.request.query.book_id;
+    const book_id = ctx.request.query.book_id
     const canvas = new Canvas(300, 120) // 按照微信官方要求，长宽比5:4
     const context = canvas.getContext('2d')
     ctx.font = '14px "Microsoft YaHei"' // 统一使用微软雅黑字体
-    let thisBook = null;
+    let thisBook = null
     switch (share_type) {
       case 'chapter':
         // 查找书籍信息
@@ -75,15 +68,15 @@ export default function(router) {
         thisBook = await Book.findById(book_id, 'name img_url author').populate({
           path: 'chapters',
           match: { _id: chapter_id },
-          options: { limit: 1 },
+          options: { limit: 1 }
         })
         if (thisBook) {
-          if(thisBook.chapters.length === 1 && thisBook.chapters[0]._id.toString() === chapter_id) {
+          if (thisBook.chapters.length === 1 && thisBook.chapters[0]._id.toString() === chapter_id) {
             return new Promise((resolve, reject) => {
               // 将封面图片转成buffer格式，用于canvas绘制图片
               https.get(thisBook.img_url, imgRes => {
                 let chunks = [] // 用于保存网络请求不断加载传输的缓冲数据
-　　             let size = 0 // 保存缓冲数据的总长度
+                let size = 0 // 保存缓冲数据的总长度
                 imgRes.on('data', chunk => {
                   /**
                    * 在进行网络请求时，会不断接收到数据(数据不是一次性获取到的)
@@ -135,10 +128,10 @@ export default function(router) {
                         tmpText = tmpText.substring(0, tmpText.length - 2) + '...'
                       }
                       context.fillText(tmpText, 84, 62 + (maxLineNumber - current) * 15, 204)
-                      current --
+                      current--
                     }
                     // 上传图片到七牛云
-                    client.upload(canvas.toBuffer(), {key: 'mbook/share/' + uuid.v1() + '.png' }, function (err, result) {
+                    client.upload(canvas.toBuffer(), { key: 'mbook/share/' + uuid.v1() + '.png' }, function(err, result) {
                       if (err) {
                         ctx.body = { ok: false, msg: '分享图片导出失败' }
                         reject('分享图片导出失败')
@@ -146,7 +139,7 @@ export default function(router) {
                       }
                       ctx.body = { ok: true, msg: '分享图片导出成功', url: result.url }
                       resolve(next())
-                    });
+                    })
                   } else {
                     ctx.body = { ok: false, msg: '下载书籍封面图片失败' }
                     reject('下载书籍封面图片失败')
@@ -161,7 +154,7 @@ export default function(router) {
         } else {
           ctx.body = { ok: false, msg: '找不到对应的书籍' }
         }
-        break;
+        break
       case 'book':
         thisBook = await Book.findById(book_id, 'name img_url author des')
         if (thisBook) {
@@ -169,7 +162,7 @@ export default function(router) {
             // 将封面图片转成buffer格式，用于canvas绘制图片
             https.get(thisBook.img_url, imgRes => {
               let chunks = [] // 用于保存网络请求不断加载传输的缓冲数据
-　　           let size = 0　// 保存缓冲数据的总长度
+              let size = 0 // 保存缓冲数据的总长度
               imgRes.on('data', chunk => {
                 chunks.push(chunk)
                 size += chunk.length
@@ -187,10 +180,22 @@ export default function(router) {
                   factionImg.src = buffer
                   context.drawImage(factionImg, 12, 12, 60, 96)
                   // 绘制图标
-                  const nameIconBuffer = Buffer.from('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAvUlEQVQ4T+2TUQ0CMRBE3zlAAigAFBwSkAAOkICUk4CEOwWAAnAAEsi7bElp4CDhhw+aNE1nd2c37UzFl6vK6sfAFDgC5wHeRcRaz0QwAgR2wAzwvg/sGpiFk8BsZm6TCAwugU3WWWwFmNxEgWQuY+5tTtADxej3xFf4n+DXHrHUwcN/v/tG4yrrFErrAEVT6kCV1sA6RNfmXpDEBCdxX8ITKlFvzIFDNFL2vSpLgnxS/eAESfdPDTZE8JHRbzsWNxFxsDgaAAAAAElFTkSuQmCC', 'base64')
-                  const authorIconBuffer = Buffer.from('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAA30lEQVQ4T6WTAQ3CQAxF3xwgAQlIwAHgAAlIQAIScMBwgAQkgAMkkLdcl+Nyt5GsSbOwu77294+OhdFN1O+BXTq/A33tbgtwAVaAT+MMPNPzh1MDrIErsC06PoAj8Mrf1wAWmnbNw99CzDFqgA1wSt3yu06lJKVMAjy0iwWm4ehmKYvWEnXglvS6TPNQc6IEeNHCdzFuyHLBwj+hIQdYrNexrJrtsdwRkgNckBaF961vzAXbbHApAL5wcY76T9hIOSOg5X0L5pTKfcQEWpR/unNTKMMp+qk/0xxkOF8M+AIi6CgR4+ZD4AAAAABJRU5ErkJggg==', 'base64')
-                  const classifyIconBuffer = Buffer.from('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABCklEQVQ4T32SARHCQAwErw6QAApAQiUgARwgAQl1QHGAA3BAcYAEJDDbyTFP+m1mmO/zucvlkkbzsZa0jeeXpHcttZnBHyTtJd3i3d99zq8R7CSdJEFSBmRnSUP5Z42AJCplyRCjhPdf1AgA5+oAVpK6/FYjQP4nVJTFIDXJogIeHyGVk2jjzvkXc1OgEr0ySgI/uKOsSmDnAZJ0l3RNubSAAufgx4ACg907OL6tgrurAyoN7SBgvrBneUzDI+PMk6FADwFGTcwJgHcBLyZbCHaJgKp5CtnDkcCJTnaPVGTziFqbqG49RhKeURG5xzDSe4/RGHiJkQLe0Ga5ByTxo+9STSkbIAUgHsm/Y/g+8fK69VMAAAAASUVORK5CYII=', 'base64')
-                  const desIconBuffer = Buffer.from('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAzklEQVQ4T7WTAQ3CMBBF3xzgAByABCSAAyQgAQlIQAISJgEcgIM5gDzoLaRbyxLCJcuS9v7r79+t4cdqKvoTcANa4JD17YGLayWAYktALl4BR2BdAij2VMU25QB17m+ALncQYt82eFoJ4Hr7CVD0AMK+NrfJSR5V5NIDtKowxArOEdRI0KMALb2CmVBVgHdfFiDX5KwKMLhZAdCla/33CjtgXnBwT0EPHGjZ1A1xkZ4xhsMV4z0YJKn9jFe+RHGUY8NhqpXD9/VnmjAK75Ynhm08EQ04VoYAAAAASUVORK5CYII=', 'base64')
+                  const nameIconBuffer = Buffer.from(
+                    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAvUlEQVQ4T+2TUQ0CMRBE3zlAAigAFBwSkAAOkICUk4CEOwWAAnAAEsi7bElp4CDhhw+aNE1nd2c37UzFl6vK6sfAFDgC5wHeRcRaz0QwAgR2wAzwvg/sGpiFk8BsZm6TCAwugU3WWWwFmNxEgWQuY+5tTtADxej3xFf4n+DXHrHUwcN/v/tG4yrrFErrAEVT6kCV1sA6RNfmXpDEBCdxX8ITKlFvzIFDNFL2vSpLgnxS/eAESfdPDTZE8JHRbzsWNxFxsDgaAAAAAElFTkSuQmCC',
+                    'base64'
+                  )
+                  const authorIconBuffer = Buffer.from(
+                    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAA30lEQVQ4T6WTAQ3CQAxF3xwgAQlIwAHgAAlIQAIScMBwgAQkgAMkkLdcl+Nyt5GsSbOwu77294+OhdFN1O+BXTq/A33tbgtwAVaAT+MMPNPzh1MDrIErsC06PoAj8Mrf1wAWmnbNw99CzDFqgA1wSt3yu06lJKVMAjy0iwWm4ehmKYvWEnXglvS6TPNQc6IEeNHCdzFuyHLBwj+hIQdYrNexrJrtsdwRkgNckBaF961vzAXbbHApAL5wcY76T9hIOSOg5X0L5pTKfcQEWpR/unNTKMMp+qk/0xxkOF8M+AIi6CgR4+ZD4AAAAABJRU5ErkJggg==',
+                    'base64'
+                  )
+                  const classifyIconBuffer = Buffer.from(
+                    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABCklEQVQ4T32SARHCQAwErw6QAApAQiUgARwgAQl1QHGAA3BAcYAEJDDbyTFP+m1mmO/zucvlkkbzsZa0jeeXpHcttZnBHyTtJd3i3d99zq8R7CSdJEFSBmRnSUP5Z42AJCplyRCjhPdf1AgA5+oAVpK6/FYjQP4nVJTFIDXJogIeHyGVk2jjzvkXc1OgEr0ySgI/uKOsSmDnAZJ0l3RNubSAAufgx4ACg907OL6tgrurAyoN7SBgvrBneUzDI+PMk6FADwFGTcwJgHcBLyZbCHaJgKp5CtnDkcCJTnaPVGTziFqbqG49RhKeURG5xzDSe4/RGHiJkQLe0Ga5ByTxo+9STSkbIAUgHsm/Y/g+8fK69VMAAAAASUVORK5CYII=',
+                    'base64'
+                  )
+                  const desIconBuffer = Buffer.from(
+                    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAzklEQVQ4T7WTAQ3CMBBF3xzgAByABCSAAyQgAQlIQAISJgEcgIM5gDzoLaRbyxLCJcuS9v7r79+t4cdqKvoTcANa4JD17YGLayWAYktALl4BR2BdAij2VMU25QB17m+ALncQYt82eFoJ4Hr7CVD0AMK+NrfJSR5V5NIDtKowxArOEdRI0KMALb2CmVBVgHdfFiDX5KwKMLhZAdCla/33CjtgXnBwT0EPHGjZ1A1xkZ4xhsMV4z0YJKn9jFe+RHGUY8NhqpXD9/VnmjAK75Ynhm08EQ04VoYAAAAASUVORK5CYII=',
+                    'base64'
+                  )
                   const nameIcon = new Canvas.Image()
                   nameIcon.src = nameIconBuffer
                   const authorIcon = new Canvas.Image()
@@ -199,7 +204,7 @@ export default function(router) {
                   classifyIcon.src = classifyIconBuffer
                   const desIcon = new Canvas.Image()
                   desIcon.src = desIconBuffer
-                  
+
                   context.textAlign = 'left'
                   context.font = 'bold 16px "Microsoft YaHei"'
                   context.fillText(thisBook.name, 84, 24, 204)
@@ -226,10 +231,10 @@ export default function(router) {
                       tmpText = tmpText.substring(0, tmpText.length - 2) + '...'
                     }
                     context.fillText(tmpText, 84, 62 + (maxLineNumber - current) * 15, 204)
-                    current --
+                    current--
                   }
                   // 上传图片到七牛云
-                  client.upload(canvas.toBuffer(), {key: 'mbook/share/' + uuid.v1() + '.png' }, function (err, result) {
+                  client.upload(canvas.toBuffer(), { key: 'mbook/share/' + uuid.v1() + '.png' }, function(err, result) {
                     if (err) {
                       ctx.body = { ok: false, msg: '分享图片导出失败' }
                       reject('分享图片导出失败')
@@ -237,7 +242,7 @@ export default function(router) {
                     }
                     ctx.body = { ok: true, msg: '分享图片导出成功', url: result.url }
                     resolve(next())
-                  });
+                  })
                 } else {
                   ctx.body = { ok: false, msg: '下载书籍封面图片失败' }
                   reject('下载书籍封面图片失败')
@@ -249,14 +254,69 @@ export default function(router) {
         } else {
           ctx.body = { ok: false, msg: '找不到对应的书籍' }
         }
-        break;
+        break
       case 'index':
         // 获取配置项中的图片地址
         ctx.body = { ok: true, msg: '获取分享图片成功', url: await Setting.getSetting('index_share_img') }
-        break;
+        break
+      case 'friendQ':
+        const shareId = ctx.request.query.share_id
+        if (shareId) {
+          let imgUrl = await requestWxCode(shareId)
+          if (typeof imgUrl === 'string') {
+            ctx.body = { ok: true, msg: '获取分享图片成功', img_url: imgUrl }
+          } else {
+            ctx.body = { ok: false, msg: '获取分享图片失败' }
+          }
+        } else {
+          ctx.body = { ok: false, msg: '参数错误' }
+        }
+        break
       default:
         ctx.body = { ok: false, msg: '参数错误' }
-        break;
+        break
     }
-  });
+  })
+
+  // 获取个人阅读时长
+  router.get('/api/read_time/my', async (ctx, next) => {
+    if (ctx.header.authorization && ctx.header.authorization.split(' ').length > 0) {
+      const payload = await jwtVerify(ctx.header.authorization.split(' ')[1])
+      const userid = payload.userid
+      const readTime = (await User.findById(userid, 'read_time')).read_time
+      const minute = parseInt(readTime / (1000 * 60))
+      // 可兑换个书币数
+      const num = parseInt(minute * (10 / 60))
+      ctx.body = { ok: true, minute, num, msg: '获取我的阅读时长成功' }
+    } else {
+      ctx.body = { ok: false, msg: '用户认证失败' }
+    }
+  })
+
+  // 兑换书币
+  router.get('/api/read_time/exchange', async (ctx, next) => {
+    if (ctx.header.authorization && ctx.header.authorization.split(' ').length > 0) {
+      const payload = await jwtVerify(ctx.header.authorization.split(' ')[1])
+      const userid = payload.userid
+      const readTime = (await User.findById(userid, 'read_time')).read_time
+      const minute = parseInt(readTime / (1000 * 60))
+      // 可兑换个书币数
+      const num = parseInt(minute * (10 / 60))
+      const awardResult = await User.addAmount(userid, num, '阅读时长兑换奖励')
+      if (awardResult) {
+        const updateResult = await User.update({ _id: userid }, { $set: { read_time: 0 } })
+        if (updateResult.ok === 1 && updateResult.nModified === 1) {
+          ctx.body = { ok: true, msg: '兑换书币成功' }
+        } else {
+          await User.reduceAmount(userid, num)
+          ctx.body = { ok: false, msg: '兑换书币失败' }
+        }
+      } else {
+        ctx.body = { ok: false, msg: '发送书币失败' }
+      }
+      ctx.body = { ok: true, minute, num, msg: '获取我的阅读时长成功' }
+    } else {
+      ctx.body = { ok: false, msg: '用户认证失败' }
+    }
+  })
 }
