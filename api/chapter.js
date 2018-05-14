@@ -735,7 +735,7 @@ export default function(router) {
       ctx.body = { ok: true, msg: '购买成功' }
     } else {
       await Buy.remove({ id: newBuy.id })
-      ctx.body = { ok: false, msg: '购买失败' }
+      ctx.body = { ok: false, msg: '购买失败', nomoney: true }
     }
   })
 }
