@@ -720,21 +720,20 @@ export default function(router) {
         return
       }
     }
-    // 开始生成购买订单
-    const newBuy = await Buy.create({
-      goodid: await Buy.transId(thisGood.id),
-      userid: await Buy.transId(userid),
-      amount: parseInt(thisGood.prise),
-      chapter: chapter_num,
-      des: moment().format('YYYY-MM-DD hh:mm:ss') + ' 购买章节 ' + chapter_num,
-      create_time: new Date()
-    })
     // 扣除用户书币
     const reduceResult = await User.reduceAmount(userid, thisGood.prise)
     if (reduceResult) {
+      // 开始生成购买订单
+      const newBuy = await Buy.create({
+        goodid: await Buy.transId(thisGood.id),
+        userid: await Buy.transId(userid),
+        amount: parseInt(thisGood.prise),
+        chapter: chapter_num,
+        des: moment().format('YYYY-MM-DD hh:mm:ss') + ' 购买章节 ' + chapter_num,
+        create_time: new Date()
+      })
       ctx.body = { ok: true, msg: '购买成功' }
     } else {
-      await Buy.remove({ id: newBuy.id })
       ctx.body = { ok: false, msg: '购买失败', nomoney: true }
     }
   })
