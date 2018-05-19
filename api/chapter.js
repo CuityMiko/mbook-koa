@@ -1,4 +1,4 @@
-import { Book, Chapter, BookList, Good, User, Buy } from '../models'
+import { Book, Chapter, BookList, Good, User, Buy, Secret } from '../models'
 import { checkAdminToken, checkUserToken, tool } from '../utils'
 import moment from 'moment'
 import convert from 'koa-convert'
@@ -120,37 +120,44 @@ export default function(router) {
           autoBuy = true
         }
         const hasBuyHistory = async function() {
-          const thisBuy = await Buy.findOne({ goodid: goodInfo._id, userid, chapter: num })
-          if (!thisBuy) {
-            if (autoBuy) {
-              // 检验余额是否充足
-              if (parseInt(thisUser.amount) >= parseInt(goodInfo.prise)) {
-                const newBuy = await Buy.create({
-                  goodid: await Buy.transId(goodInfo._id),
-                  userid: await Buy.transId(userid),
-                  amount: goodInfo.prise,
-                  chapter: num,
-                  des: moment().format('YYYY-MM-DD hh:mm:ss') + ' 自动购买章节 ' + num,
-                  create_time: new Date()
-                })
-                // 扣除用户书币
-                const reduceResult = await User.reduceAmount(userid, parseInt(goodInfo.prise))
-                if (reduceResult) {
-                  canRead = true
-                  doAutoBuy = true
+          // 首先检测是否解锁书籍
+          const thisSecret = await Secret.findOne({ userid, bookid, active: true })
+          if(thisSecret) {
+            // 用户已经解锁该书籍
+            canRead = true
+          } else {
+            const thisBuy = await Buy.findOne({ goodid: goodInfo._id, userid, chapter: num })
+            if (!thisBuy) {
+              if (autoBuy) {
+                // 检验余额是否充足
+                if (parseInt(thisUser.amount) >= parseInt(goodInfo.prise)) {
+                  const newBuy = await Buy.create({
+                    goodid: await Buy.transId(goodInfo._id),
+                    userid: await Buy.transId(userid),
+                    amount: goodInfo.prise,
+                    chapter: num,
+                    des: moment().format('YYYY-MM-DD hh:mm:ss') + ' 自动购买章节 ' + num,
+                    create_time: new Date()
+                  })
+                  // 扣除用户书币
+                  const reduceResult = await User.reduceAmount(userid, parseInt(goodInfo.prise))
+                  if (reduceResult) {
+                    canRead = true
+                    doAutoBuy = true
+                  } else {
+                    canRead = false
+                    doAutoBuy = false
+                    await Buy.remove({_id: newBuy._id})
+                  }
                 } else {
                   canRead = false
-                  doAutoBuy = false
-                  await Buy.remove({_id: newBuy._id})
                 }
               } else {
                 canRead = false
               }
             } else {
-              canRead = false
+              canRead = true
             }
-          } else {
-            canRead = true
           }
         }
         switch (goodInfo.type) {

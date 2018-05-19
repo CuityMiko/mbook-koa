@@ -13,6 +13,7 @@ import attendance from './attendance'
 import setting from './setting'
 import share from './share'
 import award from './award'
+import secret from './secret'
 import other from './other'
 
 export default function(router) {
@@ -31,5 +32,6 @@ export default function(router) {
   setting(router)
   share(router)
   award(router)
+  secret(router)
   other(router)
 }

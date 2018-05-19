@@ -3,7 +3,7 @@ import request from 'request'
 import querystring from 'querystring'
 import Promise from 'bluebird'
 import config from '../config'
-import { User, BookList } from '../models'
+import { User, BookList, Pay, Share, Attendance, Award, Buy, Comment } from '../models'
 import { resolve } from 'url'
 import { checkUserToken, checkAdminToken } from '../utils'
 
@@ -297,7 +297,7 @@ export default function(router) {
     }
   })
 
-  // 后台获取用户列表
+  // 后台手动充值书币
   router.post('/api/user/addmount', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'user_search')
     if (userid) {
@@ -314,6 +314,68 @@ export default function(router) {
       } else {
         ctx.body = { ok: false, msg: '参数错误' }
       }
+    }
+  })
+
+  // 后台用户管理--获取用户列表
+  router.get('/api/user', async (ctx, next) => {
+    let userid = await checkAdminToken(ctx, next, 'user_list')
+    if (userid) {
+      let { page, limit, search } = ctx.request.query
+      if (page) {
+        page = parseInt(page)
+      } else {
+        page = 1
+      }
+      if (limit) {
+        limit = parseInt(limit)
+      } else {
+        limit = 10
+      }
+      if (!search) {
+        search = ''
+      }
+      const total = await User.count({ username: new RegExp(search, 'i'), identity: 1 })
+      const users = await User.find({ username: new RegExp(search, 'i'), identity: 1 }).skip((page - 1 ) * limit).limit(limit).sort({ 'create_time': -1 })
+      ctx.body = { ok: true, msg: '获取用户列表成功', list: users, total }
+    }
+  })
+
+  // 后台更新用户信息
+  router.put('/api/user/:id', async (ctx, next) => {
+    let userid = await checkAdminToken(ctx, next, 'user_update')
+    if (userid) {
+      let { amount } = ctx.request.body
+      let id = ctx.params.id
+      let result = await User.update(
+        { _id: id },
+        {
+          $set: {
+            amount: amount
+          }
+        }
+      )
+      if (result.ok === 1) {
+        ctx.body = { ok: true, msg: '更新用户成功' }
+      } else {
+        ctx.body = { ok: false, msg: '更新用户失败' }
+      }
+    }
+  })
+
+  router.delete('/api/user/:id', async (ctx, next) => {
+    let userid = await checkAdminToken(ctx, next, 'user_delete')
+    if (userid) {
+      let id = ctx.params.id
+      let chapter_id = ctx.params.chapter_id
+      await Award.remove({ userid: id })
+      await Comment.remove({ userid: id })
+      await BookList.remove({ userid: id })
+      await Pay.remove({ userid: id })
+      await Share.remove({ userid: id })
+      await Attendance.remove({ userid: id })
+      await User.remove({ _id: id })
+      ctx.body = { ok: true, msg: '删除用户成功' }
     }
   })
 }
