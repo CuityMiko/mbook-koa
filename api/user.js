@@ -169,10 +169,10 @@ export default function(router) {
           setting: {
             updateNotice: true,
             reader: {
-              fontSize: 14,
+              fontSize: 32,
               fontFamily: '使用系统字体',
               bright: 1,
-              mode: 0 // 模式
+              mode: '默认' // 模式
             }
           },
           read_time: 0,
@@ -242,7 +242,8 @@ export default function(router) {
     if (userid) {
       let thisUser = await User.findById(userid)
       let result = {
-        updateNotice: thisUser.setting.updateNotice,
+        updateNotice: !!thisUser.setting.updateNotice,
+        autoBuy: !!thisUser.setting.autoBuy,
         reader: {
           fontSize: thisUser.setting.reader.fontSize,
           fontFamily: thisUser.setting.reader.fontFamily,
@@ -259,27 +260,29 @@ export default function(router) {
   })
 
   // 小程序更新个人设置
-  router.post('/api/user/update_user_setting', async (ctx, next) => {
+  router.put('/api/user/put_user_setting', async (ctx, next) => {
     let userid = await checkUserToken(ctx, next)
     if (userid) {
-      const updateResult = await User.update({ _id: userid }, {
-        $set: {
-
+      let setting = ctx.request.body.setting
+      if (setting) {
+        let thisUser = await User.findById(userid, 'setting')
+        if (thisUser) {
+          const updateResult = await User.update({ _id: userid }, {
+            $set: {
+              setting: Object.assign(thisUser.setting, setting)
+            }
+          })
+          if (updateResult.ok === 1) {
+            ctx.body = { ok: true, msg: '更新设置成功'}
+          } else {
+            ctx.body = { ok: false, msg: '更新设置失败'}
+          }
+        } else {
+          ctx.status = 401
+          ctx.body = { ok: false, msg: '无效token', authfail: true }
         }
-      })
-      let result = {
-        updateNotice: thisUser.setting.updateNotice,
-        reader: {
-          fontSize: thisUser.setting.reader.fontSize,
-          fontFamily: thisUser.setting.reader.fontFamily,
-          bright: thisUser.setting.reader.bright,
-          mode: thisUser.setting.reader.mode // 模式
-        }
-      }
-      ctx.body = {
-        ok: true,
-        msg: '获取个人信息成功',
-        data: result
+      } else {
+        ctx.body = { ok: false, msg: '参数错误' }
       }
     }
   })

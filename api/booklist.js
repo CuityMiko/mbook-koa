@@ -80,8 +80,8 @@ export default function(router) {
   router.post('/api/booklist/update_read', async (ctx, next) => {
     let userid = await checkUserToken(ctx, next)
     if (userid) {
-      let { bookid, chapter_num, chapter_page_index, read_time } = ctx.request.body
-      if (bookid && chapter_num && (chapter_page_index || chapter_page_index == 0)) {
+      let { bookid, chapter_num, chapter_page_index, read_time, setting } = ctx.request.body
+      if (bookid && chapter_num && (chapter_page_index || chapter_page_index == 0) && setting.reader) {
         let thisBookList = await BookList.findOne({ userid })
         let newBooks = thisBookList.books.map(item => {
           if (item.bookid.toString() == bookid) {
@@ -95,7 +95,7 @@ export default function(router) {
           }
         })
         let updateResult = await BookList.update({ userid }, { $set: { books: newBooks } })
-        let updateReadTime = await User.update({ _id: userid }, { $inc: { read_time: parseInt(read_time) } })
+        let updateReadTime = await User.update({ _id: userid }, { $inc: { read_time: parseInt(read_time) }, $set: { 'setting.reader': setting.reader } })
         if (updateResult.ok === 1 && updateReadTime.ok === 1) {
           if (updateResult.nModified === 1) {
             ctx.body = { ok: true, msg: '更新阅读进度成功，最新进度第' + chapter_num + '章，第' + chapter_page_index + '页' }

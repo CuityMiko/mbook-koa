@@ -19,7 +19,8 @@ const UserSchema = new mongoose.Schema(
         fontFamily: String,
         bright: Number,
         mode: String // 模式
-      }
+      },
+      autoBuy: false
     },
     is_active: Boolean, // 后台管理账号是否激活标志
     permission: [], // 后台管理系统权限配置字段
