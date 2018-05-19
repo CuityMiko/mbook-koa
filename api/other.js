@@ -7,7 +7,7 @@ import https from 'https'
 import uuid from 'uuid'
 import config from '../config'
 import { Book, Setting, User } from '../models'
-import { jwtVerify } from '../utils'
+import { checkUserToken } from '../utils'
 import { requestWxCode } from '../utils/wxCode'
 
 // qiniu上传设置
@@ -280,24 +280,20 @@ export default function(router) {
 
   // 获取个人阅读时长
   router.get('/api/read_time/my', async (ctx, next) => {
-    if (ctx.header.authorization && ctx.header.authorization.split(' ').length > 0) {
-      const payload = await jwtVerify(ctx.header.authorization.split(' ')[1])
-      const userid = payload.userid
+    let userid = await checkUserToken(ctx, next)
+    if (userid) {
       const readTime = (await User.findById(userid, 'read_time')).read_time
       const minute = parseInt(readTime / (1000 * 60))
       // 可兑换个书币数
       const num = parseInt(minute * (10 / 60))
       ctx.body = { ok: true, minute, num, msg: '获取我的阅读时长成功' }
-    } else {
-      ctx.body = { ok: false, msg: '用户认证失败' }
     }
   })
 
   // 兑换书币
   router.get('/api/read_time/exchange', async (ctx, next) => {
-    if (ctx.header.authorization && ctx.header.authorization.split(' ').length > 0) {
-      const payload = await jwtVerify(ctx.header.authorization.split(' ')[1])
-      const userid = payload.userid
+    let userid = await checkUserToken(ctx, next)
+    if (userid) {
       const readTime = (await User.findById(userid, 'read_time')).read_time
       const minute = parseInt(readTime / (1000 * 60))
       // 可兑换个书币数
@@ -315,8 +311,6 @@ export default function(router) {
         ctx.body = { ok: false, msg: '发送书币失败' }
       }
       ctx.body = { ok: true, minute, num, msg: '获取我的阅读时长成功' }
-    } else {
-      ctx.body = { ok: false, msg: '用户认证失败' }
     }
   })
 }

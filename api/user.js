@@ -5,7 +5,7 @@ import Promise from 'bluebird'
 import config from '../config'
 import { User, BookList } from '../models'
 import { resolve } from 'url'
-import { jwtVerify, checkAdminToken } from '../utils'
+import { checkUserToken, checkAdminToken } from '../utils'
 
 const secret = 'mbook' // token秘钥
 // console.log(jwt.sign({ userid: '5a1272549f292c17118aba62' }, secret, { expiresIn: '2h' }))
@@ -50,7 +50,7 @@ export default function(router) {
             userid: user._id
           }
           const token = jwt.sign(userToken, secret, {
-            expiresIn: '2h'
+            expiresIn: '4h'
           }) //token签名 有效期为2小时
           console.log('用户 ' + user._id + ' 于 ' + user.create_time.toDateString() + ' 登录')
           const booklist = await BookList.findOne({ userid: user._id }, 'books')
@@ -102,7 +102,7 @@ export default function(router) {
                   let userToken = { userid: user._id, identity: identity }
                   //token签名 有效期为2小时
                   const token = jwt.sign(userToken, secret, {
-                    expiresIn: '2h'
+                    expiresIn: '4h'
                   })
                   console.log('用户 ' + user._id + ' 于 ' + new Date().toDateString() + ' 登录后台管理系统')
                   ctx.body = {
@@ -218,11 +218,10 @@ export default function(router) {
   /**
    * 获取用户书币数以及当日格言
    */
-  router.get('/api/user/amount', async ctx => {
-    let token = ctx.header.authorization.split(' ')[1]
-    let payload = await jwtVerify(token)
-    if (payload.userid) {
-      let thisUser = await User.findById(payload.userid)
+  router.get('/api/user/amount', async (ctx, next) => {
+    let userid = await checkUserToken(ctx, next)
+    if (userid) {
+      let thisUser = await User.findById(userid)
       let arr = ['读万卷书,行万里路。 ——顾炎武', '读过一本好书，像交了一个益友。 ——臧克家', '鸟欲高飞先振翅，人求上进先读书', '书籍是人类思想的宝库', '书山有路勤为径，学海无涯苦作舟']
       let date = new Date()
       let day = date.getDate() % 5
@@ -234,19 +233,14 @@ export default function(router) {
           amount: thisUser.amount
         }
       }
-    } else {
-      ctx.body = {
-        ok: false,
-        msg: '认证失败，token不合法'
-      }
     }
   })
 
-  router.get('/api/user/get_user_setting', async ctx => {
-    let token = ctx.header.authorization.split(' ')[1]
-    let payload = await jwtVerify(token)
-    if (payload.userid) {
-      let thisUser = await User.findById(payload.userid)
+  // 小程序获取个人设置
+  router.get('/api/user/get_user_setting', async (ctx, next) => {
+    let userid = await checkUserToken(ctx, next)
+    if (userid) {
+      let thisUser = await User.findById(userid)
       let result = {
         updateNotice: thisUser.setting.updateNotice,
         reader: {
@@ -261,10 +255,31 @@ export default function(router) {
         msg: '获取个人信息成功',
         data: result
       }
-    } else {
+    }
+  })
+
+  // 小程序更新个人设置
+  router.post('/api/user/update_user_setting', async (ctx, next) => {
+    let userid = await checkUserToken(ctx, next)
+    if (userid) {
+      const updateResult = await User.update({ _id: userid }, {
+        $set: {
+
+        }
+      })
+      let result = {
+        updateNotice: thisUser.setting.updateNotice,
+        reader: {
+          fontSize: thisUser.setting.reader.fontSize,
+          fontFamily: thisUser.setting.reader.fontFamily,
+          bright: thisUser.setting.reader.bright,
+          mode: thisUser.setting.reader.mode // 模式
+        }
+      }
       ctx.body = {
-        ok: false,
-        msg: 'token不合法'
+        ok: true,
+        msg: '获取个人信息成功',
+        data: result
       }
     }
   })

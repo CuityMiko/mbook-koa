@@ -1,4 +1,4 @@
-import { checkAdminToken, jwtVerify, tool } from '../utils'
+import { checkAdminToken, checkUserToken, tool } from '../utils'
 import { Share, User, Setting } from '../models'
 import shortid from 'shortid'
 import moment from 'moment'
@@ -6,9 +6,8 @@ import moment from 'moment'
 export default function(router) {
   // 获取用户的分享信息
   router.get('/api/share/info', async (ctx, next) => {
-    if (ctx.header.authorization && ctx.header.authorization.split(' ').length > 0) {
-      const payload = await jwtVerify(ctx.header.authorization.split(' ')[1])
-      const userid = payload.userid
+    let userid = await checkUserToken(ctx, next)
+    if (userid) {
       // 查询当前用户的邀请信息，如果找不到则创建一个
       let hisShareInfo = await Share.findOne({ userid })
       if (!hisShareInfo) {
@@ -63,21 +62,18 @@ export default function(router) {
         },
         code: hisShareInfo.code
       }
-    } else {
-      ctx.body = { ok: false, msg: '用户认证失败' }
     }
   })
 
   // 更新分享记录，在每次被邀请用户登录之后
   router.get('/api/share/update', async (ctx, next) => {
-    const shareId = ctx.request.query.share_id
-    const reg = /^[A-Za-z0-9-]+_\d+$/
-    if (shareId && reg.test(shareId)) {
-      const code = shareId.split('_')[0]
-      const time = new Date(parseInt(shareId.split('_')[1]))
-      if (ctx.header.authorization && ctx.header.authorization.split(' ').length > 0) {
-        const payload = await jwtVerify(ctx.header.authorization.split(' ')[1])
-        const userid = payload.userid
+    let userid = await checkUserToken(ctx, next)
+    if (userid) {
+      const shareId = ctx.request.query.share_id
+      const reg = /^[A-Za-z0-9-]+_\d+$/
+      if (shareId && reg.test(shareId)) {
+        const code = shareId.split('_')[0]
+        const time = new Date(parseInt(shareId.split('_')[1]))
         const thisShareLog = await Share.findOne({ code })
         if (thisShareLog) {
           // 限制自己不能邀请自己
@@ -151,10 +147,8 @@ export default function(router) {
           ctx.body = { ok: false, msg: '参数错误' }
         }
       } else {
-        ctx.body = { ok: false, msg: '用户认证失败' }
+        ctx.body = { ok: false, msg: '参数错误' }
       }
-    } else {
-      ctx.body = { ok: false, msg: '参数错误' }
     }
   })
 }

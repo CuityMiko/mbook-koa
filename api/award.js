@@ -1,11 +1,10 @@
 import { Award } from '../models'
-import { jwtVerify } from '../utils'
+import { checkUserToken } from '../utils'
 
 export default function(router) {
   router.get('/api/award/list', async (ctx, next) => {
-    if (ctx.header.authorization && ctx.header.authorization.split(' ').length > 0) {
-      const payload = await jwtVerify(ctx.header.authorization.split(' ')[1])
-      const userid = payload.userid
+    let userid = await checkUserToken(ctx, next)
+    if (userid) {
       let { page, limit } = ctx.request.query
       if (page) {
         page = parseInt(page)
@@ -26,8 +25,6 @@ export default function(router) {
         .skip((page - 1) * limit)
         .limit(limit)
       ctx.body = { ok: true, total, list: awards, msg: '获取奖励记录成功' }
-    } else {
-      ctx.body = { ok: false, msg: '用户认证失败' }
     }
   })
 }

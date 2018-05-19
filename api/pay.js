@@ -1,16 +1,16 @@
 import { Pay, Good, User, Charge } from '../models'
 import { createUnifiedOrder, weixinpay } from '../utils/weixin'
-import { jwtVerify, tool } from '../utils'
+import { checkUserToken, tool } from '../utils'
 import moment from 'moment'
 
 export default function(router) {
   router.post('/api/pay', async (ctx, next) => {
-    let { chargeids, pay_money, yuebi_num, spbill_create_ip } = ctx.request.body
-    console.log('支付请求参数: ' + JSON.stringify(ctx.request.body))
-    let payload = await jwtVerify(ctx.header.authorization.split(' ')[1])
-    if (payload && payload.userid) {
+    let userid = await checkUserToken(ctx, next)
+    if (userid) {
+      let { chargeids, pay_money, yuebi_num, spbill_create_ip } = ctx.request.body
+      console.log('支付请求参数: ' + JSON.stringify(ctx.request.body))
       // 查询得到用户的openid
-      let thisUser = await User.findById(payload.userid)
+      let thisUser = await User.findById(userid)
       // 参数验证
       if (!(chargeids instanceof Array) || chargeids.length < 1) {
         ctx.body = { ok: false, msg: 'chargeids参数错误' }
@@ -39,7 +39,7 @@ export default function(router) {
       // 创建充值订单
       let thisPay = await Pay.create({
         chargeids: chargeids,
-        userid: payload.userid,
+        userid: userid,
         pay_money: pay_money,
         yuebi_num: yuebi_num,
         status: 0,
@@ -61,9 +61,6 @@ export default function(router) {
       } else {
         ctx.body = { ok: false, msg: '生成微信订单失败', params: payParams }
       }
-    } else {
-      ctx.throw('token过期', 401)
-      await next()
     }
   })
 

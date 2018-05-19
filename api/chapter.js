@@ -1,5 +1,5 @@
 import { Book, Chapter, BookList, Good, User, Buy } from '../models'
-import { checkAdminToken, jwtVerify, tool } from '../utils'
+import { checkAdminToken, checkUserToken, tool } from '../utils'
 import moment from 'moment'
 import convert from 'koa-convert'
 import body from 'koa-better-body'
@@ -98,9 +98,8 @@ export default function(router) {
   })
 
   router.get('/api/chapter/detail', async (ctx, next) => {
-    if (ctx.header.authorization && ctx.header.authorization.split(' ')[1]) {
-      const token = ctx.header.authorization.split(' ')[1]
-      const payload = await jwtVerify(token)
+    let userid = await checkUserToken(ctx, next)
+    if (userid) {
       // url参数
       let { bookid, chapter_id, chapter_num } = ctx.request.query
       // 章节号转化成数据
@@ -115,12 +114,12 @@ export default function(router) {
         }
         // 获取用户是否设置了自动购买
         let autoBuy = false
-        const thisUser = await User.findById(payload.userid)
+        const thisUser = await User.findById(userid)
         if (thisUser && thisUser.setting.autoBuy) {
           autoBuy = true
         }
         const hasBuyHistory = async function() {
-          const thisBuy = await Buy.findOne({ goodid: goodInfo._id, userid: payload.userid, chapter: num })
+          const thisBuy = await Buy.findOne({ goodid: goodInfo._id, userid, chapter: num })
           if (!thisBuy) {
             if (autoBuy) {
               const newBuy = await Buy.create({
@@ -214,7 +213,7 @@ export default function(router) {
         }
       } else {
         // 去booklist里读取用户阅读进度
-        let thisBookList = await BookList.findOne({ userid: payload.userid })
+        let thisBookList = await BookList.findOne({ userid })
         let readChapterNum = 1
         let readChapterScrollTop = 0
         thisBookList.books.forEach(item => {
@@ -245,8 +244,6 @@ export default function(router) {
           ctx.body = { ok: false, msg: '获取章节详情失败' }
         }
       }
-    } else {
-      ctx.body = { ok: false, msg: '请先登录' }
     }
   })
 
@@ -685,20 +682,14 @@ export default function(router) {
   router.get('/api/chapter/buy', async (ctx, next) => {
     const bookid = ctx.request.query.bookid
     const chapter_num = parseInt(ctx.request.query.chapter_num)
-    let userid = ''
     if (!bookid || !chapter_num) {
       ctx.body = { ok: false, msg: '参数错误' }
       next()
       return
     }
-    if (!ctx.header.authorization || !ctx.header.authorization.split(' ')[1]) {
-      ctx.body = { ok: false, msg: '请先登录' }
-      next()
+    let userid = await checkUserToken(ctx, next)
+    if (!userid) {
       return
-    } else {
-      const token = ctx.header.authorization.split(' ')[1]
-      const payload = await jwtVerify(token)
-      userid = payload.userid
     }
     // 获取查询得到商品id
     const thisGood = await Good.findOne({ bookid })

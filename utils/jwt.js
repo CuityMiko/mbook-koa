@@ -16,8 +16,39 @@ const jwtVerify = str => {
 }
 
 // 检查用户接口的token值是否有效，如果有效返回userid, 否则报无效token的错误
-const checkUserToken = str => {
-  return
+const checkUserToken = async (ctx, next) => {
+  if(ctx.header.authorization && ctx.header.authorization.split(' ').length === 2){
+    let token = ctx.header.authorization.split(' ')[1]
+    if(token){
+      return new Promise((resolve, reject) => {
+        jwt.verify(token, secret, async function(err, decoded){
+          if(err){
+            ctx.status = 401
+            ctx.body = { ok: false, msg: '无效token', err: err, authfail: true}
+            await next()
+            resolve(null)
+            return
+          }
+          if(decoded && decoded.userid){
+            resolve(decoded.userid)
+          }else{
+            resolve(null)
+            ctx.status = 401
+            ctx.body = {ok: false, msg: '无效token', authfail: true}
+            await next()
+          }
+        })
+      })
+    } else {
+      ctx.status = 401
+      ctx.body = {ok: false, msg: '无效token', authfail: true}
+      await next()
+    }
+  } else {
+    ctx.status = 401
+    ctx.body = { ok: false, msg: '无效token', authfail: true }
+    await next()
+  }
 }
 
 /**
