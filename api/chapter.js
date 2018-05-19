@@ -107,6 +107,7 @@ export default function(router) {
       // 用户是否有权限查看该章节
       const canReadFunc = async function(num) {
         let canRead = false
+        let doAutoBuy = false
         // 获取书籍的商品信息
         const goodInfo = await Good.findOne({ bookid })
         if (!goodInfo) {
@@ -122,15 +123,29 @@ export default function(router) {
           const thisBuy = await Buy.findOne({ goodid: goodInfo._id, userid, chapter: num })
           if (!thisBuy) {
             if (autoBuy) {
-              const newBuy = await Buy.create({
-                gooid: await Buy.transId(goodInfo._id),
-                bookid: await Buy.transId(bookid),
-                amount: goodInfo.prise,
-                chapter: num,
-                des: moment().format('YYYY-MM-DD hh:mm:ss') + ' 自动购买章节 ' + num,
-                create_time: new Date()
-              })
-              canRead = true
+              // 检验余额是否充足
+              if (parseInt(thisUser.amount) >= parseInt(goodInfo.prise)) {
+                const newBuy = await Buy.create({
+                  goodid: await Buy.transId(goodInfo._id),
+                  userid: await Buy.transId(userid),
+                  amount: goodInfo.prise,
+                  chapter: num,
+                  des: moment().format('YYYY-MM-DD hh:mm:ss') + ' 自动购买章节 ' + num,
+                  create_time: new Date()
+                })
+                // 扣除用户书币
+                const reduceResult = await User.reduceAmount(userid, parseInt(goodInfo.prise))
+                if (reduceResult) {
+                  canRead = true
+                  doAutoBuy = true
+                } else {
+                  canRead = false
+                  doAutoBuy = false
+                  await Buy.remove({_id: newBuy._id})
+                }
+              } else {
+                canRead = false
+              }
             } else {
               canRead = false
             }
@@ -166,7 +181,11 @@ export default function(router) {
             canRead = false
             break
         }
-        return canRead
+        return {
+          canRead,
+          autoBuy,
+          doAutoBuy
+        }
       }
       // 判断canRead结束，开始查询本书的具体内容
       if (chapter_id) {
@@ -174,9 +193,12 @@ export default function(router) {
         const thisChapter = await Chapter.findById(chapter_id)
         const thisBook = await Book.findById(bookid, 'name img_url author newest_chapter')
         if (thisChapter._id) {
+          const canReadResult = await canReadFunc(thisChapter.num)
           ctx.body = {
             ok: true,
-            canRead: await canReadFunc(thisChapter.num),
+            canRead: canReadResult.canRead,
+            autoBuy: canReadResult.autoBuy,
+            doAutoBuy: canReadResult.doAutoBuy,
             msg: '获取章节详情成功',
             bookname: thisBook.name,
             headimg: thisBook.img_url,
@@ -197,9 +219,12 @@ export default function(router) {
           }
         })
         if (thisBook.chapters[0]) {
+          const canReadResult = await canReadFunc(thisBook.chapters[0].num)
           ctx.body = {
             ok: true,
-            canRead: await canReadFunc(thisBook.chapters[0].num),
+            canRead: canReadResult.canRead,
+            autoBuy: canReadResult.autoBuy,
+            doAutoBuy: canReadResult.doAutoBuy,
             msg: '获取章节详情成功',
             top: 0,
             bookname: thisBook.name,
@@ -229,9 +254,12 @@ export default function(router) {
           }
         })
         if (thisBook.chapters[0]) {
+          const canReadResult = await canReadFunc(thisBook.chapters[0].num)
           ctx.body = {
             ok: true,
-            canRead: await canReadFunc(thisBook.chapters[0].num),
+            canRead: canReadResult.canRead,
+            autoBuy: canReadResult.autoBuy,
+            doAutoBuy: canReadResult.doAutoBuy,
             msg: '获取章节详情成功',
             top: readChapterScrollTop,
             bookname: thisBook.name,
