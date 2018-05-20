@@ -4,7 +4,7 @@ const SecretSchema = new mongoose.Schema(
   {
     userid: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     bookid: { type: mongoose.Schema.Types.ObjectId, ref: 'Book' },
-    secret: { type: String, unique: true },
+    // secret: { type: String, unique: true },
     active: Boolean, // 秘钥是否被激活
     create_time: Date // 创建时间
   },
