@@ -321,7 +321,7 @@ export default function(router) {
   router.get('/api/user', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'user_list')
     if (userid) {
-      let { page, limit, search } = ctx.request.query
+      let { page, limit, name, id } = ctx.request.query
       if (page) {
         page = parseInt(page)
       } else {
@@ -332,11 +332,21 @@ export default function(router) {
       } else {
         limit = 10
       }
-      if (!search) {
-        search = ''
+      if (!name) {
+        name = ''
       }
-      const total = await User.count({ username: new RegExp(search, 'i'), identity: 1 })
-      const users = await User.find({ username: new RegExp(search, 'i'), identity: 1 }).skip((page - 1 ) * limit).limit(limit).sort({ 'create_time': -1 })
+      if (!id) {
+        id = ''
+      }
+      let total = 0
+      let users = []
+      if (id) {
+        total = await User.count({ _id: id, username: new RegExp(name, 'i'), identity: 1 })
+        users = await User.find({ _id: id, username: new RegExp(name, 'i'), identity: 1 }).skip((page - 1 ) * limit).limit(limit).sort({ 'create_time': -1 })
+      } else {
+        total = await User.count({ username: new RegExp(name, 'i'), identity: 1 })
+        users = await User.find({ username: new RegExp(name, 'i'), identity: 1 }).skip((page - 1 ) * limit).limit(limit).sort({ 'create_time': -1 })
+      }
       ctx.body = { ok: true, msg: '获取用户列表成功', list: users, total }
     }
   })
