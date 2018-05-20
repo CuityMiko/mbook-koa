@@ -5,6 +5,7 @@ const BookListSchema = new mongoose.Schema({
   books: [{
     bookid: { type: mongoose.Schema.Types.ObjectId, ref: 'Book' },
     read: Object, // {"num": 2, "page": 1}
+    time: Date,
     index: Number
   }], // 所有书籍
   create_time: Date

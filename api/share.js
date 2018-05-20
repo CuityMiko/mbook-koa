@@ -50,6 +50,8 @@ export default function(router) {
       })
       // 获取设置中的分享设置
       const shareSetting = await Setting.getSetting('share')
+      const wxcode = await Setting.getSetting('wxcode')
+      const indexDialog = await Setting.getSetting('index_dialog')
       ctx.body = {
         ok: true,
         msg: '获取分享信息成功',
@@ -60,6 +62,8 @@ export default function(router) {
           totalAwardNum,
           totalInviteNum
         },
+        indexDialog,
+        wxcode,
         code: hisShareInfo.code
       }
     }

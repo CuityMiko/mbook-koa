@@ -59,6 +59,7 @@ export default function(router) {
                 books: {
                   index: hisBookList.books.length,
                   bookid: await BookList.transId(id),
+                  time: new Date(),
                   read: { num: 1, top: 0 }
                 }
               }
@@ -89,6 +90,7 @@ export default function(router) {
               num: chapter_num,
               top: chapter_page_index
             }
+            item.time = new Date()
             return item
           } else {
             return item
@@ -118,7 +120,7 @@ export default function(router) {
         path: 'books',
         options: {
           sort: {
-            index: 1
+            time: 1
           }
         }
       })
@@ -131,11 +133,16 @@ export default function(router) {
           index: thisBookList.books[i].index,
           read_num: thisBookList.books[i].read.num,
           read_top: thisBookList.books[i].read.top,
+          time: thisBookList.books[i].time,
           name: bookInfo.name,
           author: bookInfo.author,
           img_url: bookInfo.img_url
         })
       }
+      // 手动排序
+      newThisBook.sort((book1, book2) => {
+        return book2.time.getTime() - book1.time.getTime()
+      })
       if (thisBookList) {
         ctx.body = { ok: true, msg: '获取书单信息成功', list: newThisBook }
       } else {

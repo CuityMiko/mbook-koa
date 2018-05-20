@@ -16,6 +16,31 @@ export default function(router) {
           let isInList = hisBookList.books.some(item => {
             return item.bookid.toString() === id
           })
+          // 获取书籍的商品属性
+          let good = {}
+          let thisGood = await Good.findOne({ bookid: book._id })
+          if (thisGood) {
+            if (thisGood.type === 4) {
+              good.type = 'free'
+            } else if (thisGood.type === 2) {
+              good.type = 'limit_date'
+              good.limit_start_time = tool.formatTime(thisGood.limit_start_time)
+              good.limit_end_time = tool.formatTime(thisGood.limit_end_time)
+              good.prise = thisGood.prise
+            } else if (thisGood.type === 3) {
+              good.type = 'limit_chapter'
+              good.limit_chapter = thisGood.limit_chapter
+              good.prise = thisGood.prise
+            } else if (thisGood.type === 1) {
+              good.type = 'normal'
+              good.prise = thisGood.prise
+            } else {
+              good.type = 'free'
+            }
+          } else {
+            // 非商品默认免费
+            good.type = 'free'
+          }
           // 格式化时间
           result = {
             _id: book._id,
@@ -28,7 +53,8 @@ export default function(router) {
             newest_chapter: book.newest_chapter,
             total_words: book.total_words,
             hot_value: book.hot_value,
-            update_time: tool.formatTime(book.update_time)
+            update_time: tool.formatTime(book.update_time),
+            good
           }
           ctx.body = { ok: true, msg: '获取书籍详情成功', data: result, isInList: isInList }
         } else {

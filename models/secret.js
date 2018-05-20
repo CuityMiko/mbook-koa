@@ -18,18 +18,6 @@ SecretSchema.statics.transId = async function(id) {
   return mongoose.Types.ObjectId(id)
 }
 
-/**
- * 获取设置项的值
- */
-SecretSchema.statics.getSetting = async function(key) {
-  const thisSetting = await this.findOne({ key }, 'value')
-  if (thisSetting) {
-    return thisSetting.value
-  } else {
-    return ''
-  }
-}
-
 let Secret = mongoose.model('Secret', SecretSchema)
 
 export { Secret }
