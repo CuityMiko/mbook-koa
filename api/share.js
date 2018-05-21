@@ -52,7 +52,6 @@ export default function(router) {
       const shareSetting = await Setting.getSetting('share')
       const wxcode = await Setting.getSetting('wxcode')
       const indexDialog = await Setting.getSetting('index_dialog')
-      const indexDialog = await Setting.getSetting('index_dialog')
       ctx.body = {
         ok: true,
         msg: '获取分享信息成功',
