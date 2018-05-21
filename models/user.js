@@ -20,7 +20,7 @@ const UserSchema = new mongoose.Schema(
         bright: Number,
         mode: String // 模式
       },
-      autoBuy: false
+      autoBuy: { type: Boolean, default: true } // 是否自动购买下一章
     },
     is_active: Boolean, // 后台管理账号是否激活标志
     permission: [], // 后台管理系统权限配置字段

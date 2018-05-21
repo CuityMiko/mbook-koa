@@ -168,6 +168,7 @@ export default function(router) {
           amount: 0, //
           setting: {
             updateNotice: true,
+            autoBuy: true,
             reader: {
               fontSize: 32,
               fontFamily: '使用系统字体',
