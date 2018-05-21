@@ -52,6 +52,7 @@ export default function(router) {
       const shareSetting = await Setting.getSetting('share')
       const wxcode = await Setting.getSetting('wxcode')
       const indexDialog = await Setting.getSetting('index_dialog')
+      const indexDialog = await Setting.getSetting('index_dialog')
       ctx.body = {
         ok: true,
         msg: '获取分享信息成功',
@@ -145,7 +146,7 @@ export default function(router) {
               ctx.body = { ok: false, msg: '邀请已经过期' }
             }
           } else {
-            ctx.body = { ok: false, msg: '参数错误，自己不能邀请自己' }
+            ctx.body = { ok: false, msg: '参数错误，自己不能邀请自己', inviteself: true }
           }
         } else {
           ctx.body = { ok: false, msg: '参数错误' }
