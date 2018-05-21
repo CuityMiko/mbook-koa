@@ -144,7 +144,6 @@ export default function(router) {
       	ctx.body = { ok: false, msg: '秘钥错误' }
       	return false
       }
-      console.log(bookid, secret)
       const thisBook2 = await Book.findOne({ _id: bookid, secret }, '_id')
       if (!thisBook2) {
       	ctx.body = { ok: false, msg: '秘钥错误' }

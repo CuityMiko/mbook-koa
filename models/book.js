@@ -1,6 +1,5 @@
 import mongoose from 'mongoose'
 import shortid from 'shortid'
-console.log(shortid.generate())
 
 const BookSchema = new mongoose.Schema({
     name: String, // 书名
