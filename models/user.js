@@ -38,18 +38,22 @@ const UserSchema = new mongoose.Schema(
 UserSchema.statics.addAmount = async function(userid, num, des) {
   if (userid && num) {
     let current = await this.findById(userid)
-    let updateResult = await this.update({ _id: userid }, { $set: { amount: parseInt(current.amount + num) } })
-      .sort({ priority: -1 })
-      .limit(3)
-    // 新奖励记录
-    const awardLog = await Award.create({
-      userid: await Award.transId(userid),
-      des,
-      amount: num,
-      create_time: new Date()
-    })
-    if (updateResult.ok == 1 && updateResult.nModified == 1) {
-      return true
+    if (current) {
+      let updateResult = await this.update({ _id: userid }, { $set: { amount: parseInt(current.amount + num) } })
+        .sort({ priority: -1 })
+        .limit(3)
+      // 新奖励记录
+      const awardLog = await Award.create({
+        userid: await Award.transId(userid),
+        des,
+        amount: num,
+        create_time: new Date()
+      })
+      if (updateResult.ok == 1 && updateResult.nModified == 1) {
+        return true
+      } else {
+        return false
+      }
     } else {
       return false
     }
@@ -66,13 +70,17 @@ UserSchema.statics.addAmount = async function(userid, num, des) {
 UserSchema.statics.reduceAmount = async function(userid, num) {
   if (userid && num) {
     let current = await this.findById(userid)
-    let amount = parseInt(current.amount - num)
-    if (amount >= 0) {
-      let updateResult = await this.update({ _id: userid }, { $set: { amount: amount } })
-        .sort({ priority: -1 })
-        .limit(3)
-      if (updateResult.ok == 1 && updateResult.nModified == 1) {
-        return true
+    if (current) {
+      let amount = parseInt(current.amount - num)
+      if (amount >= 0) {
+        let updateResult = await this.update({ _id: userid }, { $set: { amount: amount } })
+          .sort({ priority: -1 })
+          .limit(3)
+        if (updateResult.ok == 1 && updateResult.nModified == 1) {
+          return true
+        } else {
+          return false
+        }
       } else {
         return false
       }
