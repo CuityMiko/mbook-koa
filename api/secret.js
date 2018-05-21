@@ -144,20 +144,18 @@ export default function(router) {
       	ctx.body = { ok: false, msg: '秘钥错误' }
       	return false
       }
-      console.log(bookid, userid, secret)
-      const thisSecret = await Secret.findOne({ userid, bookid, secret }, '_id')
-      if (!thisSecret) {
+      const thisBook2 = await Book.findOne({ _id: bookid, secret }, '_id')
+      if (!thisBook2) {
       	ctx.body = { ok: false, msg: '秘钥错误' }
       	return false
       }
-      const updateResult = await Secret.update({
-      	_id: thisSecret._id
-      }, {
-      	$set: {
-      	  active: true
-      	}
+      const thisSecret = await Secret.create({
+        userid: await Secret.transId(userid),
+        bookid: await Secret.transId(bookid),
+        active: true,
+        create_time: new Date()
       })
-      if (updateResult.ok === 1) {
+      if (thisSecret) {
       	ctx.body = { ok: true, msg: '解锁成功' }
       } else {
       	ctx.body = { ok: false, msg: '解锁失败' }

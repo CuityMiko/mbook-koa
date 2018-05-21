@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import shortid from 'shortid'
 
 const BookSchema = new mongoose.Schema({
     name: String, // 书名
@@ -15,6 +16,7 @@ const BookSchema = new mongoose.Schema({
     chapters: [
         {type: mongoose.Schema.Types.ObjectId, ref: 'Chapter'}
     ],
+    secret: { type: String, unique: true }, // 书籍秘钥
     create_time: Date // 创建时间
 }, { versionKey: false })
 

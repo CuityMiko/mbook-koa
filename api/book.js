@@ -1,5 +1,6 @@
 import { Book, BookList, Good, Setting } from '../models'
 import { checkAdminToken, checkUserToken, tool } from '../utils'
+import shortid from 'shortid'
 
 export default function(router) {
   // 获取书籍详情接口
@@ -316,6 +317,7 @@ export default function(router) {
         total_words: total_words,
         hot_value: hot_value,
         chapters: [], // empty chapter
+        secret: shortid.generate(),
         update_time: new Date(),
         create_time: new Date()
       })
