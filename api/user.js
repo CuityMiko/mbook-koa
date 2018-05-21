@@ -183,7 +183,7 @@ export default function(router) {
           userid: user._id
         }
         const token = jwt.sign(userToken, secret, {
-          expiresIn: '2h'
+          expiresIn: '4h'
         }) //token签名 有效期为2小时
         // 初始化书架
         let booklist = await BookList.create({
