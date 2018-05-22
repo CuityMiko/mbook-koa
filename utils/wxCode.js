@@ -83,7 +83,7 @@ async function requestWxCode(shareId) {
           width: 430,
           auto_color: false,
           line_color: { r: '0', g: '0', b: '0' },
-          is_hyaline: false
+          is_hyaline: true
         }),
         encoding: null
       },
