@@ -54,6 +54,7 @@ export default function(router) {
       const indexDialog = await Setting.getSetting('index_dialog')
       const chargeTips = await Setting.getSetting('charge_tips')
       const secretTips = await Setting.getSetting('secret_tips')
+      const shutCheck = await Setting.getSetting('shut_check')
       ctx.body = {
         ok: true,
         msg: '获取分享信息成功',
@@ -68,6 +69,7 @@ export default function(router) {
         chargeTips,
         secretTips,
         wxcode,
+        shutCheck,
         code: hisShareInfo.code
       }
     }
