@@ -32,6 +32,7 @@ export default function (router) {
           break
         }else{
           let tmpBook = await Book.findById(allThemes[i].books[k].bookid)
+          tmpBook.des = tmpBook.des.replace(/\s/g, '').replace(/\n/g, '').replace(/\r/g, '')
           if(tmpBook){
             bookList.push(tmpBook)
           }

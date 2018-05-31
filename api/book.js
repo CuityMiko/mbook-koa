@@ -48,7 +48,7 @@ export default function(router) {
             name: book.name,
             img_url: book.img_url,
             author: book.author,
-            des: book.des,
+            des: book.des.replace(/\n/g, '').replace(/\r/g, '').replace(/\s/g, ''),
             classification: book.classification,
             update_status: book.update_status === '已完结' ? '已完结' : '第' + book.newest_chapter + '章', // 这里日后最好加上章节名
             newest_chapter: book.newest_chapter,
@@ -123,7 +123,7 @@ export default function(router) {
 
   // 小程序搜索书籍接口
   router.get('/api/book/search', async (ctx, next) => {
-    const keyword = ctx.request.query.keyword
+    const keyword = ctx.request.query.keyword.toString('utf8')
     let page = ctx.request.query.page
     let limit = ctx.request.query.limit
     // 格式化page和limit
