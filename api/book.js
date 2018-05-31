@@ -1,4 +1,4 @@
-import { Book, BookList, Good, Setting } from '../models'
+import { Book, BookList, Good, Setting, Theme, Secret, Comment } from '../models'
 import { checkAdminToken, checkUserToken, tool } from '../utils'
 import shortid from 'shortid'
 
@@ -372,6 +372,64 @@ export default function(router) {
         // 清除对应的章节
         thisBook.chapters.forEach(async item => {
           await Chapter.remove({ _id: item.toString() })
+        })
+        // 清除对应的商品
+        await Good.remove({ bookid: thisBook.id })
+        // 清除书籍对应的评论
+        await Comment.remove({ bookid: thisBook.id })
+        // 清除书籍对应的秘钥
+        await Secret.remove({ bookid: thisBook.id })
+        // 从主题中删除对应的书籍
+        let allTheme = await Theme.find({}, 'books').populate({
+          path: 'books',
+          options: {
+            sort: {
+              index: 1
+            }
+          }
+        })
+        allTheme.forEach(async item => {
+          const isCurrentBookInTheme = item.books.some(bookItem => {
+            return bookItem.bookid.toString() === thisBook.id
+          })
+          if (isCurrentBookInTheme) {
+            let newBooks = []
+            let currentIndex = 0
+            item.books.forEach((bookItem, bookIndex)=> {
+              if (bookItem.bookid.toString() !== thisBook.id) {
+                bookItem.index = currentIndex
+                currentIndex ++
+                newBooks.push(bookItem)
+              }
+            })
+            await Theme.update({ _id: item._id }, { $set: { books: newBooks }})
+          }
+        })
+        // 移除书架存储的书
+        let allBookList = await BookList.find({}, 'books').populate({
+          path: 'books',
+          options: {
+            sort: {
+              index: 1
+            }
+          }
+        })
+        allBookList.forEach(async item => {
+          const isCurrentBookInList = item.books.some(bookItem => {
+            return bookItem.bookid.toString() === thisBook.id
+          })
+          if (isCurrentBookInList) {
+            let newBooks = []
+            let currentIndex = 0
+            item.books.forEach((bookItem, bookIndex)=> {
+              if (bookItem.bookid.toString() !== thisBook.id) {
+                bookItem.index = currentIndex
+                currentIndex ++
+                newBooks.push(bookItem)
+              }
+            })
+            await BookList.update({ _id: item._id }, { $set: { books: newBooks }})
+          }
         })
         let result = await Book.remove({ _id: id })
         if (result.result.ok === 1) {

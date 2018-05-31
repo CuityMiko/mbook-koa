@@ -128,16 +128,18 @@ export default function(router) {
       // 获取书籍详情
       for (let i = 0; i < thisBookList.books.length; i++) {
         let bookInfo = await Book.findById(thisBookList.books[i].bookid, 'name img_url author')
-        newThisBook.push({
-          bookid: thisBookList.books[i].bookid,
-          index: thisBookList.books[i].index,
-          read_num: thisBookList.books[i].read.num,
-          read_top: thisBookList.books[i].read.top,
-          time: thisBookList.books[i].time,
-          name: bookInfo.name,
-          author: bookInfo.author,
-          img_url: bookInfo.img_url
-        })
+        if (bookInfo) {
+          newThisBook.push({
+            bookid: thisBookList.books[i].bookid,
+            index: thisBookList.books[i].index,
+            read_num: thisBookList.books[i].read.num,
+            read_top: thisBookList.books[i].read.top,
+            time: thisBookList.books[i].time,
+            name: bookInfo.name,
+            author: bookInfo.author,
+            img_url: bookInfo.img_url
+          })
+        }
       }
       // 手动排序
       newThisBook.sort((book1, book2) => {
