@@ -13,10 +13,12 @@ const cors = require('koa2-cors')
 const noAuthPathArr = require('./config/noauth')
 const index = require('./routes/index')
 const schedule = require('./bin/shedule')
+const createAdmin = require('./bin/createAdmin')
 const secret = 'mbook'
 // error handler
 onerror(app)
 schedule.run()
+// createAdmin()
 
 app.use(
   bodyparser({

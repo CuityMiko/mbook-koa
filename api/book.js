@@ -270,12 +270,12 @@ export default function(router) {
       // query book
       let books = await Book.find({})
         .sort({ hot_value: -1 })
-        .populate({
-          path: 'chapters',
-          model: 'Chapter',
-          select: { content: 0 },
-          options: { limit: 5, sort: { num: -1 } }
-        })
+        //.populate({
+        //  path: 'chapters',
+        //  model: 'Chapter',
+        //  select: { content: 0 },
+        //  options: { limit: 5, sort: { num: -1 } }
+        //})
         .skip((page - 1) * limit)
         .limit(limit)
       ctx.body = { ok: true, total, list: books, msg: '获取书籍列表成功' }
