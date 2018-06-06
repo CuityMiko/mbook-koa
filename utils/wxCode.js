@@ -10,7 +10,7 @@ const redis = new Redis({
   port: 6379, // Redis port
   host: '193.112.196.41', // Redis host
   family: 4, // 4 (IPv4) or 6 (IPv6)
-  password: 'redis'
+  // password: 'redis'
 })
 
 // qiniu上传设置
