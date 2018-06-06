@@ -15,6 +15,7 @@ export default function(router) {
             newBookList.push({
               bookid: hisBookList.books[i].bookid,
               index: count,
+              time: hisBookList.books[i].time,
               read: { num: hisBookList.books[i].read.num, top: hisBookList.books[i].read.top }
             })
             count++
@@ -143,7 +144,11 @@ export default function(router) {
       }
       // 手动排序
       newThisBook.sort((book1, book2) => {
-        return book2.time.getTime() - book1.time.getTime()
+        if (book2.time instanceOf Date && book1.time instanceOf Date) {
+          return book2.time.getTime() - book1.time.getTime()
+        } else {
+          return (new Date(book2.time)).getTime() - (new Date(book1.time)).getTime() 
+        }
       })
       if (thisBookList) {
         ctx.body = { ok: true, msg: '获取书单信息成功', list: newThisBook }

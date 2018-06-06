@@ -1,6 +1,9 @@
 ### **微书--后端项目**
 新版微书后端代码，基于强大的Koa2.
 
+### TODO
++ 上传书籍的时候自动更新最新章节
+
 ### 常见问题
 #### 接口报错：`errmsg: 'E11000 duplicate key error collection: mbook.chapters index: num_1 dup key: { : 130 }'`
 打开robomongo删除chapters表下的num_1的index，它的属性是unique，所以新增相同num的chapter的时候会出现这种错误，后来我删除了chapter表，并不在会出现chapter的num_1的索引，所以推断应该是数据恢复的时候带来的
@@ -50,7 +53,7 @@ choco install -y python2 gtk-runtime microsoft-build-tools libjpeg-turbo
 npm install --global --production windows-build-tools
 npm install
 ```
-### 出现错误`E11000 duplicate key error index: mbook.chapters.$num_1`
+#### 出现错误`E11000 duplicate key error index: mbook.chapters.$num_1`
 mongo数据库出现不该有的索引，这是恢复老数据的时候带过来的，需要在数据库中手动删除索引
 ```
 mongo
@@ -62,7 +65,7 @@ db.system.indexes.find()
 db.chapters.dropIndex("num_1")
 ```
 
-### 导入章节接口出现 413 错误：request entity too large
+#### 导入章节接口出现 413 错误：request entity too large
 两方面原因：第一是因为ngxin的默认配置限制了只能传大于1M的文件，需要修改ngxin.conf
 ```
 sudo vi /etc/ngxin/ngxin.conf
@@ -81,7 +84,7 @@ app.use(bodyparser({
 }))
 ```
 
-### 实现分享的逻辑
+#### 实现分享的逻辑
 在用户登录的时候调用获取用户分享信息的接口，接口会返回后台的分享配置，已经用户的邀请码、和分享朋友圈的图片地址、以及用户邀请获得的奖励信息
 一个用户在share表中只能有一行
 邀请码是唯一的
