@@ -42,6 +42,9 @@ export default function(router) {
             // 非商品默认免费
             good.type = 'free'
           }
+          // 用户是否已经解锁过该书籍
+          // 首先检测是否解锁书籍
+          const hasUnLock = await Secret.findOne({ userid, bookid: id, active: true })
           // 格式化时间
           result = {
             _id: book._id,
@@ -55,7 +58,8 @@ export default function(router) {
             total_words: book.total_words,
             hot_value: book.hot_value,
             update_time: tool.formatTime(book.update_time),
-            good
+            good,
+            hasUnLock: !!hasUnLock
           }
           ctx.body = { ok: true, msg: '获取书籍详情成功', data: result, isInList: isInList }
         } else {
