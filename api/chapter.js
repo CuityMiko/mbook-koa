@@ -160,38 +160,46 @@ export default function(router) {
             }
           }
         }
-        switch (goodInfo.type) {
-          case 4: // 全书免费
-            canRead = true
-            break
-          case 3: // 限章免费
-            // 判断当前章节是否在免费章节内
-            if (num <= goodInfo.limit_chapter) {
+        if (goodInfo) {
+          switch (goodInfo.type) {
+            case 4: // 全书免费
               canRead = true
-            } else {
+              break
+            case 3: // 限章免费
+              // 判断当前章节是否在免费章节内
+              if (num <= goodInfo.limit_chapter) {
+                canRead = true
+              } else {
+                await hasBuyHistory()
+              }
+              break
+            case 2: // 限时免费
+              // 判断当前是否在免费时间段内
+              const now = new Date().getTime()
+              if (now >= goodInfo.limit_start_time.getTime() && now <= goodInfo.limit_end_time.getTime()) {
+                canRead = true
+              } else {
+                await hasBuyHistory()
+              }
+              break
+            case 1:
               await hasBuyHistory()
-            }
-            break
-          case 2: // 限时免费
-            // 判断当前是否在免费时间段内
-            const now = new Date().getTime()
-            if (now >= goodInfo.limit_start_time.getTime() && now <= goodInfo.limit_end_time.getTime()) {
-              canRead = true
-            } else {
-              await hasBuyHistory()
-            }
-            break
-          case 1:
-            await hasBuyHistory()
-            break
-          default:
-            canRead = false
-            break
-        }
-        return {
-          canRead,
-          autoBuy,
-          doAutoBuy
+              break
+            default:
+              canRead = false
+              break
+          }
+          return {
+            canRead,
+            autoBuy,
+            doAutoBuy
+          }
+        } else {
+          return {
+            canRead: true,
+            autoBuy: false,
+            doAutoBuy: false
+          }
         }
       }
       // 判断canRead结束，开始查询本书的具体内容

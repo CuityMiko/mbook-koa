@@ -126,10 +126,10 @@ export default function(router) {
   })
 
   // 小程序搜索书籍接口
-  router.get('/api/book/search', async (ctx, next) => {
-    const keyword = ctx.request.query.keyword.toString('utf8')
-    let page = ctx.request.query.page
-    let limit = ctx.request.query.limit
+  router.post('/api/book/search', async (ctx, next) => {
+    const keyword = ctx.request.body.keyword.toString('utf8')
+    let page = ctx.request.body.page
+    let limit = ctx.request.body.limit
     // 格式化page和limit
     if (page) {
       page = parseInt(page)
@@ -145,20 +145,24 @@ export default function(router) {
       limit = 10
     }
     if (keyword) {
-      const reg = new RegExp(keyword, 'i')
-      const result = await Book.find(
-        {
-          $or: [{ name: reg }, { author: reg }]
-        },
-        '_id name author img_url des classification'
-      ).sort({ hot_value: -1, create_time: -1 })
-      let classification = []
-      result.forEach(item => {
-        if (classification.indexOf(item.classification) < 0) {
-          classification.push(item.classification)
-        }
-      })
-      ctx.body = { ok: true, msg: '搜索成功', list: result, classification }
+      try {
+        const reg = new RegExp(keyword, 'i')
+        const result = await Book.find(
+          {
+            $or: [{ name: reg }, { author: reg }]
+          },
+          '_id name author img_url des classification'
+        ).sort({ hot_value: -1, create_time: -1 })
+        let classification = []
+        result.forEach(item => {
+          if (classification.indexOf(item.classification) < 0) {
+            classification.push(item.classification)
+          }
+        })
+        ctx.body = { ok: true, msg: '搜索成功', list: result, classification }
+      } catch (err) {
+        ctx.body = { ok: false, msg: '搜索失败' }
+      }
     } else {
       ctx.body = { ok: false, msg: '请输入关键字' }
     }
