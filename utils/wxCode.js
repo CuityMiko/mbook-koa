@@ -5,10 +5,11 @@ const fs = require('fs')
 const path = require('path')
 const qn = require('qn')
 const config = require('../config')
+const sign = require('./wxSign')
 
 const redis = new Redis({
-  port: 6379, // Redis port
-  host: '193.112.196.41', // Redis host
+  port: config.redis_port, // Redis port
+  host: config.redis_host, // Redis host
   family: 4, // 4 (IPv4) or 6 (IPv6)
   // password: 'redis'
 })
@@ -21,10 +22,10 @@ const client = qn.create({
   origin: 'https://fs.andylistudio.com'
 })
 
-async function getWxToken() {
+async function getWxToken(noredis) {
   // 查看redis中是否存在token值
   const wxTokenInRedis = await redis.get('wxToken')
-  if (wxTokenInRedis) {
+  if (wxTokenInRedis && !noredis) {
     return wxTokenInRedis
   } else {
     let newToken = await requestWxToken()
@@ -106,9 +107,40 @@ async function requestWxCode(shareId) {
   })
 }
 
+// 签名
+async function signTicket() {
+  const ticket = await getTicket()
+  console.log(ticket)
+  const url = config.link_url
+  return sign(ticket, url)
+}
+
+// 获取ticket
+async function getTicket() {
+  // 查看redis中是否存在token值
+  const wxTicketInRedis = await redis.get('wxTicket')
+  if (wxTicketInRedis) {
+    return wxTicketInRedis
+  } else {
+    let newTicket = await requestWxTicket()
+    console.log(newTicket)
+    if (typeof newTicket === 'string') {
+      newTicket = JSON.parse(newTicket)
+    }
+    if (newTicket.ticket) {
+      // 存储新的token
+      redis.set('wxToken', newTicket.ticket, 'EX', 2 * 60 * 60)
+      return newTicket.ticket
+    } else {
+      console.error('获取ticket失败')
+      return ''
+    }
+  }
+}
+
 // 获取网页跳转的微信ticket
 async function requestWxTicket(url) {
-  const token = await getWxToken()
+  const token = await getWxToken(true)
   return new Promise((resolve, reject) => {
     // 请求方式以及参数说明见https://developers.weixin.qq.com/miniprogram/dev/api/qrcode.html
     request(
@@ -124,11 +156,15 @@ async function requestWxTicket(url) {
           reject(error)
           return
         }
-        console.log(response)
+        resolve(body)
       }
     )
   })
 }
+
+(async function(){
+  console.log(await signTicket())
+})()
 
 module.exports = {
   requestWxCode

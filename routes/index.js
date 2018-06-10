@@ -44,6 +44,7 @@ router.get('/activity/share', async(ctx, next) => {
 
 // 活动页面
 router.get('/link', async(ctx, next) => {
+  
   await ctx.render('link', {
       title: '言情微阅读'
   })
