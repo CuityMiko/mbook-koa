@@ -106,6 +106,30 @@ async function requestWxCode(shareId) {
   })
 }
 
+// 获取网页跳转的微信ticket
+async function requestWxTicket(url) {
+  const token = await getWxToken()
+  return new Promise((resolve, reject) => {
+    // 请求方式以及参数说明见https://developers.weixin.qq.com/miniprogram/dev/api/qrcode.html
+    request(
+      {
+        method: 'POST',
+        url: 'https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token='+ token +'&type=jsapi',
+        headers: {
+          'Content-type': 'application/json'
+        }
+      },
+      (error, response, body) => {
+        if (error) {
+          reject(error)
+          return
+        }
+        console.log(response)
+      }
+    )
+  })
+}
+
 module.exports = {
   requestWxCode
 }
