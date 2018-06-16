@@ -32,7 +32,7 @@ const sign = (ticket, url) => {
     url,
   }
   const string = raw(ret)
-  let shaObj = new JsSHA("SHA-512", "TEXT");
+  let shaObj = new JsSHA("SHA-1", "TEXT");
   shaObj.update(string);
   ret.signature = shaObj.getHash("HEX");
 

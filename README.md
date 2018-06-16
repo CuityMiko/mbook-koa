@@ -83,6 +83,9 @@ app.use(bodyparser({
   textLimit: '10mb',
 }))
 ```
+#### redis出现错误`MISCONF Redis is configured to save RDB snapshots, but is currently not able to persist on disk.`
+
+打开redis-cli输入`config set stop-writes-on-bgsave-error no`
 
 #### 实现分享的逻辑
 在用户登录的时候调用获取用户分享信息的接口，接口会返回后台的分享配置，已经用户的邀请码、和分享朋友圈的图片地址、以及用户邀请获得的奖励信息
