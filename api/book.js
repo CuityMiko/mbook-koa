@@ -262,7 +262,7 @@ export default function(router) {
     // check if the user has permission
     const userid = await checkAdminToken(ctx, next, 'theme_update')
     if (userid) {
-      let { page, limit } = ctx.request.query
+      let { page, limit, name } = ctx.request.query
       // format page and limit
       if (page) {
         page = parseInt(page)
@@ -274,9 +274,12 @@ export default function(router) {
       } else {
         limit = 10
       }
-      const total = await Book.count()
+      if (!name) {
+        name = ''
+      }
+      const total = await Book.count({ name: new RegExp(name, 'i') })
       // query book
-      let books = await Book.find({})
+      let books = await Book.find({ name: new RegExp(name, 'i') })
         .sort({ hot_value: -1 })
         //.populate({
         //  path: 'chapters',

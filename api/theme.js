@@ -31,7 +31,7 @@ export default function (router) {
         if(k >= num){
           break
         }else{
-          let tmpBook = await Book.findById(allThemes[i].books[k].bookid)
+          let tmpBook = await Book.findById(allThemes[i].books[k].bookid, 'name img_url des author')
           tmpBook.des = tmpBook.des.replace(/\s/g, '').replace(/\n/g, '').replace(/\r/g, '')
           if(tmpBook){
             bookList.push(tmpBook)

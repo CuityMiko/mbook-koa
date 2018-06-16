@@ -5,7 +5,6 @@
   "scripts": {
     "start": "node bin/run",
     "dev": "./node_modules/.bin/nodemon bin/run",
-    "dev2": "./node_modules/.bin/nodemon test.js",
     "prd": "pm2 start bin/run --name 'mbook-koa'",
     "test": "echo \"No test, Thanks\" && exit 0"
   },
