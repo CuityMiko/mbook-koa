@@ -1,5 +1,5 @@
 import { Secret, User, Book } from '../models'
-import shortid from 'shortid' 
+import shortid from 'shortid'
 import { checkAdminToken, checkUserToken } from '../utils'
 
 export default function(router) {
@@ -20,14 +20,13 @@ export default function(router) {
       if (!search) {
         search = ''
       }
-      const total = await Secret.count()
-        .populate({
-          path: 'userid',
-          select: 'username',
-          match: {
-            username: new RegExp(search, 'i')
-          }
-        })
+      const total = await Secret.count().populate({
+        path: 'userid',
+        select: 'username',
+        match: {
+          username: new RegExp(search, 'i')
+        }
+      })
       const users = await Secret.find()
         .populate({
           path: 'userid',
@@ -40,9 +39,9 @@ export default function(router) {
           path: 'bookid',
           select: 'name'
         })
-        .skip((page - 1 ) * limit)
+        .skip((page - 1) * limit)
         .limit(limit)
-        .sort({ 'active': 1, 'create_time': -1 })
+        .sort({ active: 1, create_time: -1 })
       ctx.body = { ok: true, msg: '获取秘钥列表成功', list: users, total }
     }
   })
@@ -54,20 +53,20 @@ export default function(router) {
       // 校验id合法性
       const thisUser = await User.findById(userid, '_id')
       if (!thisUser) {
-      	ctx.body = { ok: false, msg: '用户不存在' }
-      	return false
+        ctx.body = { ok: false, msg: '用户不存在' }
+        return false
       }
       const thisBook = await Book.findById(bookid, '_id')
       if (!thisBook) {
-      	ctx.body = { ok: false, msg: '书籍不存在' }
-      	return false
+        ctx.body = { ok: false, msg: '书籍不存在' }
+        return false
       }
       const newSecret = await Secret.create({
-      	userid: await Secret.transId(userid),
-      	bookid: await Secret.transId(bookid),
-      	secret: shortid.generate(),
-      	active: false,
-      	create_time: new Date()
+        userid: await Secret.transId(userid),
+        bookid: await Secret.transId(bookid),
+        secret: shortid.generate(),
+        active: false,
+        create_time: new Date()
       })
       ctx.body = { ok: true, msg: '创建秘钥成功', data: newSecret }
     }
@@ -81,34 +80,39 @@ export default function(router) {
       // 校验id合法性
       const thisUser = await User.findById(userid, '_id')
       if (!thisUser) {
-      	ctx.body = { ok: false, msg: '用户不存在' }
-      	return false
+        ctx.body = { ok: false, msg: '用户不存在' }
+        return false
       }
       const thisBook = await Book.findById(bookid, '_id')
       if (!thisBook) {
-      	ctx.body = { ok: false, msg: '书籍不存在' }
-      	return false
+        ctx.body = { ok: false, msg: '书籍不存在' }
+        return false
       }
       const thisSecret = await Secret.findById(id, '_id')
       if (!thisSecret) {
-      	ctx.body = { ok: false, msg: '秘钥不存在' }
-      	return false
+        ctx.body = { ok: false, msg: '秘钥不存在' }
+        return false
       }
       const secretReg = /^[A-Za-z0-9_\-]{7,14}$/
       if (!secretReg.test(secret)) {
-      	ctx.body = { ok: false, msg: '秘钥格式错误' }
-      	return false
+        ctx.body = { ok: false, msg: '秘钥格式错误' }
+        return false
       }
-      const updateResult = await Secret.update({ _id: id }, { $set: {
-      	userid: await Secret.transId(userid),
-      	bookid: await Secret.transId(bookid),
-      	secret,
-      	active: !!active
-      }})
+      const updateResult = await Secret.update(
+        { _id: id },
+        {
+          $set: {
+            userid: await Secret.transId(userid),
+            bookid: await Secret.transId(bookid),
+            secret,
+            active: !!active
+          }
+        }
+      )
       if (updateResult.ok === 1) {
-      	ctx.body = { ok: true, msg: '更新秘钥成功' }
+        ctx.body = { ok: true, msg: '更新秘钥成功' }
       } else {
-      	ctx.body = { ok: false, msg: '更新秘钥失败' }
+        ctx.body = { ok: false, msg: '更新秘钥失败' }
       }
     }
   })
@@ -119,11 +123,11 @@ export default function(router) {
       let id = ctx.params.id
       const thisSecret = await Secret.findById(id, '_id')
       if (!thisSecret) {
-      	ctx.body = { ok: false, msg: '秘钥不存在' }
-      	return false
+        ctx.body = { ok: false, msg: '秘钥不存在' }
+        return false
       }
       await Secret.remove({
-      	_id: id
+        _id: id
       })
       ctx.body = { ok: true, msg: '删除秘钥成功' }
     }
@@ -136,18 +140,18 @@ export default function(router) {
       let secret = ctx.request.query.secret
       const thisBook = await Book.findById(bookid, '_id')
       if (!thisBook) {
-      	ctx.body = { ok: false, msg: '书籍不存在' }
-      	return false
+        ctx.body = { ok: false, msg: '书籍不存在' }
+        return false
       }
       const secretReg = /^[A-Za-z0-9_\-]{7,14}$/
       if (!secretReg.test(secret)) {
-      	ctx.body = { ok: false, msg: '秘钥错误' }
-      	return false
+        ctx.body = { ok: false, msg: '秘钥错误' }
+        return false
       }
       const thisBook2 = await Book.findOne({ _id: bookid, secret }, '_id')
       if (!thisBook2) {
-      	ctx.body = { ok: false, msg: '秘钥错误' }
-      	return false
+        ctx.body = { ok: false, msg: '秘钥错误' }
+        return false
       }
       const thisSecret = await Secret.create({
         userid: await Secret.transId(userid),
@@ -156,9 +160,9 @@ export default function(router) {
         create_time: new Date()
       })
       if (thisSecret) {
-      	ctx.body = { ok: true, msg: '解锁成功' }
+        ctx.body = { ok: true, msg: '解锁成功' }
       } else {
-      	ctx.body = { ok: false, msg: '解锁失败' }
+        ctx.body = { ok: false, msg: '解锁失败' }
       }
     }
   })

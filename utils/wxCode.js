@@ -10,7 +10,7 @@ const sign = require('./wxSign')
 const redis = new Redis({
   port: config.redis_port, // Redis port
   host: config.redis_host, // Redis host
-  family: 4, // 4 (IPv4) or 6 (IPv6)
+  family: 4 // 4 (IPv4) or 6 (IPv6)
   // password: 'redis'
 })
 
@@ -146,7 +146,7 @@ async function requestWxTicket(url) {
     request(
       {
         method: 'POST',
-        url: 'https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token='+ token +'&type=jsapi',
+        url: 'https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=' + token + '&type=jsapi',
         headers: {
           'Content-type': 'application/json'
         }
@@ -162,7 +162,7 @@ async function requestWxTicket(url) {
   })
 }
 
-(async function(){
+;(async function() {
   console.log(await signTicket())
 })()
 

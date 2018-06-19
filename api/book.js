@@ -51,7 +51,10 @@ export default function(router) {
             name: book.name,
             img_url: book.img_url,
             author: book.author,
-            des: book.des.replace(/\n/g, '').replace(/\r/g, '').replace(/\s/g, ''),
+            des: book.des
+              .replace(/\n/g, '')
+              .replace(/\r/g, '')
+              .replace(/\s/g, ''),
             classification: book.classification,
             update_status: book.update_status === '已完结' ? '已完结' : '第' + book.newest_chapter + '章', // 这里日后最好加上章节名
             newest_chapter: book.newest_chapter,
@@ -253,7 +256,7 @@ export default function(router) {
           })
         })
       })
-      ctx.body = { ok: true, list: result, msg: '获取书籍列表成功'}
+      ctx.body = { ok: true, list: result, msg: '获取书籍列表成功' }
     }
   })
 
@@ -406,14 +409,14 @@ export default function(router) {
           if (isCurrentBookInTheme) {
             let newBooks = []
             let currentIndex = 0
-            item.books.forEach((bookItem, bookIndex)=> {
+            item.books.forEach((bookItem, bookIndex) => {
               if (bookItem.bookid.toString() !== thisBook.id) {
                 bookItem.index = currentIndex
-                currentIndex ++
+                currentIndex++
                 newBooks.push(bookItem)
               }
             })
-            await Theme.update({ _id: item._id }, { $set: { books: newBooks }})
+            await Theme.update({ _id: item._id }, { $set: { books: newBooks } })
           }
         })
         // 移除书架存储的书
@@ -432,14 +435,14 @@ export default function(router) {
           if (isCurrentBookInList) {
             let newBooks = []
             let currentIndex = 0
-            item.books.forEach((bookItem, bookIndex)=> {
+            item.books.forEach((bookItem, bookIndex) => {
               if (bookItem.bookid.toString() !== thisBook.id) {
                 bookItem.index = currentIndex
-                currentIndex ++
+                currentIndex++
                 newBooks.push(bookItem)
               }
             })
-            await BookList.update({ _id: item._id }, { $set: { books: newBooks }})
+            await BookList.update({ _id: item._id }, { $set: { books: newBooks } })
           }
         })
         let result = await Book.remove({ _id: id })

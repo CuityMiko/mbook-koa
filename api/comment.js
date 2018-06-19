@@ -145,7 +145,6 @@ export default function(router) {
         ctx.body = { ok: false, msg: '缺少bookid参数' }
       }
     }
-    
   })
 
   // 小程序获取回复自己的评论

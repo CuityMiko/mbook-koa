@@ -1,10 +1,10 @@
 import { checkAdminToken } from '../utils'
 import { Banner } from '../models'
 
-export default function (router) {
+export default function(router) {
   router.get('/api/banner/list', async (ctx, next) => {
     // 获取url参数
-    let result = await Banner.find({ show: true }, 'type url img_url des').sort({priority: 1})
+    let result = await Banner.find({ show: true }, 'type url img_url des').sort({ priority: 1 })
     ctx.body = { ok: true, msg: '获取banner成功', list: result }
   })
 
@@ -26,7 +26,10 @@ export default function (router) {
       } else {
         limit = 10
       }
-      let result = await Banner.find().skip((page - 1) * limit).limit(limit).sort({ priority: 1 })
+      let result = await Banner.find()
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .sort({ priority: 1 })
       let total = await Banner.count()
       ctx.body = { ok: true, msg: '查询成功', total: total, list: result }
     }
@@ -54,10 +57,12 @@ export default function (router) {
     let userid = await checkAdminToken(ctx, next, 'banner_update')
     if (userid) {
       let id = ctx.params.id
-      let result = await Banner.update({ _id: id },
+      let result = await Banner.update(
+        { _id: id },
         {
           $set: ctx.request.body
-        })
+        }
+      )
       if (result.ok === 1) {
         let newest = await Banner.findById(id)
         ctx.body = { ok: true, msg: '更新成功', data: newest }

@@ -147,7 +147,7 @@ export default function(router) {
         if (book2.time instanceof Date && book1.time instanceof Date) {
           return book2.time.getTime() - book1.time.getTime()
         } else {
-          return (new Date(book2.time)).getTime() - (new Date(book1.time)).getTime() 
+          return new Date(book2.time).getTime() - new Date(book1.time).getTime()
         }
       })
       if (thisBookList) {

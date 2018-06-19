@@ -268,15 +268,18 @@ export default function(router) {
       if (setting) {
         let thisUser = await User.findById(userid, 'setting')
         if (thisUser) {
-          const updateResult = await User.update({ _id: userid }, {
-            $set: {
-              setting: Object.assign(thisUser.setting, setting)
+          const updateResult = await User.update(
+            { _id: userid },
+            {
+              $set: {
+                setting: Object.assign(thisUser.setting, setting)
+              }
             }
-          })
+          )
           if (updateResult.ok === 1) {
-            ctx.body = { ok: true, msg: '更新设置成功'}
+            ctx.body = { ok: true, msg: '更新设置成功' }
           } else {
-            ctx.body = { ok: false, msg: '更新设置失败'}
+            ctx.body = { ok: false, msg: '更新设置失败' }
           }
         } else {
           ctx.status = 401
@@ -343,10 +346,16 @@ export default function(router) {
       let users = []
       if (id) {
         total = await User.count({ _id: id, username: new RegExp(name, 'i'), identity: 1 })
-        users = await User.find({ _id: id, username: new RegExp(name, 'i'), identity: 1 }).skip((page - 1 ) * limit).limit(limit).sort({ 'create_time': -1 })
+        users = await User.find({ _id: id, username: new RegExp(name, 'i'), identity: 1 })
+          .skip((page - 1) * limit)
+          .limit(limit)
+          .sort({ create_time: -1 })
       } else {
         total = await User.count({ username: new RegExp(name, 'i'), identity: 1 })
-        users = await User.find({ username: new RegExp(name, 'i'), identity: 1 }).skip((page - 1 ) * limit).limit(limit).sort({ 'create_time': -1 })
+        users = await User.find({ username: new RegExp(name, 'i'), identity: 1 })
+          .skip((page - 1) * limit)
+          .limit(limit)
+          .sort({ create_time: -1 })
       }
       ctx.body = { ok: true, msg: '获取用户列表成功', list: users, total }
     }

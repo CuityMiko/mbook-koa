@@ -52,7 +52,7 @@ export default function(router) {
               keep_times: keep_times,
               total: totalCount.length,
               records: hisAttendance.records,
-              present: 100 - parseInt(myCount.length / totalCount.length * 100)
+              present: 100 - parseInt((myCount.length / totalCount.length) * 100)
             }
           } else {
             // 回退签到记录
@@ -80,7 +80,7 @@ export default function(router) {
           if (changeResult) {
             let totalCount = await Attendance.distinct('userid')
             let myCount = await Attendance.distinct('userid', { keep_times: { $gt: 1 } })
-            ctx.body = { ok: true, msg: '签到成功', keep_times: 1, total: totalCount.length, records: thisAttendance.records, present: 100 - parseInt(myCount.length / totalCount.length * 100) }
+            ctx.body = { ok: true, msg: '签到成功', keep_times: 1, total: totalCount.length, records: thisAttendance.records, present: 100 - parseInt((myCount.length / totalCount.length) * 100) }
           } else {
             let hisNewAttendance = await Attendance.findOne({ userid: userid })
             let records = hisNewAttendance.records.filter(item => {
@@ -117,7 +117,7 @@ export default function(router) {
           keep_times: hisAttendance.keep_times,
           records: hisAttendance.records,
           total: totalCount.length,
-          present: 100 - parseInt(myCount.length / totalCount.length * 100)
+          present: 100 - parseInt((myCount.length / totalCount.length) * 100)
         }
       } else {
         ctx.body = { ok: true, msg: '没有签到记录', keep_times: 0, records: [], total: totalCount, present: 0 }

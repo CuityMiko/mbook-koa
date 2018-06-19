@@ -122,7 +122,7 @@ export default function(router) {
         const hasBuyHistory = async function() {
           // 首先检测是否解锁书籍
           const thisSecret = await Secret.findOne({ userid, bookid, active: true })
-          if(thisSecret) {
+          if (thisSecret) {
             // 用户已经解锁该书籍
             canRead = true
           } else {
@@ -147,7 +147,7 @@ export default function(router) {
                   } else {
                     canRead = false
                     doAutoBuy = false
-                    await Buy.remove({_id: newBuy._id})
+                    await Buy.remove({ _id: newBuy._id })
                   }
                 } else {
                   canRead = false
