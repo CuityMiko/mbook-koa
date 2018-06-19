@@ -162,10 +162,7 @@ async function requestWxTicket(url) {
   })
 }
 
-;(async function() {
-  console.log(await signTicket())
-})()
-
 module.exports = {
-  requestWxCode
+  requestWxCode,
+  signTicket
 }

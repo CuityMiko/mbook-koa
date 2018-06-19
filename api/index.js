@@ -14,6 +14,7 @@ import setting from './setting'
 import share from './share'
 import award from './award'
 import secret from './secret'
+import formid from './formid'
 import other from './other'
 
 export default function(router) {
@@ -33,5 +34,6 @@ export default function(router) {
   share(router)
   award(router)
   secret(router)
+  formid(router)
   other(router)
 }
