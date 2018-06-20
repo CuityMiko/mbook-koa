@@ -164,13 +164,15 @@ async function signTicket() {
 
 // 发送微信模板消息
 async function sendWxMessage(openid, templateId, page, formId, data) {
-  const token = await getWxToken(true)
+  const token = await getWxToken()
+  console.log(token, openid, templateId, page, formId, data)
   return new Promise((resolve, reject) => {
     // 请求方式以及参数说明见https://developers.weixin.qq.com/miniprogram/dev/api/qrcode.html
     request(
       {
         method: 'POST',
         url: 'https://api.weixin.qq.com/cgi-bin/message/wxopen/template/send?access_token=' + token + '&type=jsapi',
+        json: true,
         body: {
           touser: openid,
           template_id: templateId,

@@ -17,6 +17,6 @@ FormIdSchema.statics.transId = async function(id) {
   return mongoose.Types.ObjectId(id)
 }
 
-let FormId = mongoose.model('Good', FormIdSchema)
+let FormId = mongoose.model('FormId', FormIdSchema)
 
 export { FormId }

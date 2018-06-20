@@ -10,17 +10,17 @@ import { checkUserToken, checkAdminToken } from '../utils'
 const secret = 'mbook' // token秘钥
 // console.log(jwt.sign({ userid: '5a1272549f292c17118aba62' }, secret, { expiresIn: '2h' }))
 // console.log(jwt.sign({ userid: '5a12728f9f292c17118aba74'}, secret, { expiresIn: '2h' }))
-User.sendMessage('5b17b93b85054c0523685202', 'accept', {
-  keyword1: {
-    value: '测试用户1'
-  },
-  keyword2: {
-    value: '您的好友--测试用户1已经接受您的阅读邀请，您获得15书币'
-  },
-  keyword3: {
-    value: '2018-06-20 21:59:00'
-  }
-})
+//User.sendMessage('5b17b93b85054c0523685202', 'accept', {
+//  keyword1: {
+//    value: '测试用户1'
+//  },
+//  keyword2: {
+//    value: '您的好友--测试用户1已经接受您的阅读邀请，您获得15书币'
+//  },
+//  keyword3: {
+//    value: '2018-06-20 21:59:00'
+//  }
+//})
 
 function doRequest(url) {
   return new Promise((resolve, reject) => {

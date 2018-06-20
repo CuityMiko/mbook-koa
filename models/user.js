@@ -100,7 +100,7 @@ UserSchema.statics.reduceAmount = async function(userid, num) {
  * @param type {String} 发送消息的类型，比如好友接受邀请的通知，或者书籍解锁成功的通知
  */
 UserSchema.statics.sendMessage = async function(userid, type, data) {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     if (userid && type && data) {
       let current = await this.findById(userid, 'openid')
       if (current) {
