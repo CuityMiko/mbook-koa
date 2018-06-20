@@ -107,14 +107,6 @@ async function requestWxCode(shareId) {
   })
 }
 
-// 签名
-async function signTicket() {
-  const ticket = await getTicket()
-  console.log(ticket)
-  const url = config.link_url
-  return sign(ticket, url)
-}
-
 // 获取ticket
 async function getTicket() {
   // 查看redis中是否存在token值
@@ -162,7 +154,47 @@ async function requestWxTicket(url) {
   })
 }
 
+// 签名
+async function signTicket() {
+  const ticket = await getTicket()
+  console.log(ticket)
+  const url = config.link_url
+  return sign(ticket, url)
+}
+
+// 发送微信模板消息
+async function sendWxMessage(openid, templateId, page, formId, data) {
+  const token = await getWxToken(true)
+  return new Promise((resolve, reject) => {
+    // 请求方式以及参数说明见https://developers.weixin.qq.com/miniprogram/dev/api/qrcode.html
+    request(
+      {
+        method: 'POST',
+        url: 'https://api.weixin.qq.com/cgi-bin/message/wxopen/template/send?access_token=' + token + '&type=jsapi',
+        body: {
+          touser: openid,
+          template_id: templateId,
+          page,
+          form_id: formId,
+          data
+        },
+        headers: {
+          'Content-type': 'application/json'
+        }
+      },
+      (error, response, body) => {
+        if (error) {
+          reject(error)
+          return
+        }
+        resolve(body)
+      }
+    )
+  })
+}
+
 module.exports = {
   requestWxCode,
-  signTicket
+  signTicket,
+  sendWxMessage
 }

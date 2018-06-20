@@ -1,6 +1,8 @@
 import mongoose from 'mongoose'
 import bcrypt from 'bcrypt-nodejs'
 import { Award } from './award'
+import { FormId } from './formid'
+import { sendWxMessage } from '../utils/wxCode'
 const SALT_WORK_FACTOR = 10
 
 const UserSchema = new mongoose.Schema(
@@ -90,6 +92,47 @@ UserSchema.statics.reduceAmount = async function(userid, num) {
   } else {
     return false
   }
+}
+
+/**
+ * 发送模板消息
+ * @param userid {String} 用户id
+ * @param type {String} 发送消息的类型，比如好友接受邀请的通知，或者书籍解锁成功的通知
+ */
+UserSchema.statics.sendMessage = async function(userid, type, data) {
+  return new Promise((resolve, reject) => {
+    if (userid && type && data) {
+      let current = await this.findById(userid, 'openid')
+      if (current) {
+        // 查找user的formId
+        const thisFormId = await FormId.findOne({ userid }, 'formid')
+        if (thisFormId) {
+          if (type === 'accept') {
+            sendWxMessage(current.openid, 'P3vzJen2UH4JA_YKxCP9qgoYEyipzKno5AMap8VIyT0', '/pages/activities/share/share', thisFormId.formid, data).then(res => {
+              if (res.errcode === 0) {
+                resolve({ok: true, msg: '发送模板消息成功'})
+              } else {
+                reject({ ok: false, msg: res.errmsg })
+              }
+            }).catch(err => {
+              reject({ ok: false, msg: '发送模板消息失败', err })
+            })
+          } else if (type === 'secret') {
+            // todo
+          }
+        } else {
+          // formId不存在
+          reject({ ok: false, msg: 'formId不存在' })
+        }
+      } else {
+        // 用户不存在
+        reject({ ok: false, msg: '用户不存在' })
+      }
+    } else {
+      // 参数错误
+      reject({ ok: false, msg: '参数错误' })
+    }
+  })
 }
 
 // 存储密码之前将其转换成hash值
