@@ -130,7 +130,7 @@ export default function(router) {
 
   // 小程序搜索书籍接口
   router.post('/api/book/search', async (ctx, next) => {
-    const keyword = ctx.request.body.keyword.toString('utf8')
+    const keyword = ctx.request.body.keyword.toString('utf8').trim()
     let page = ctx.request.body.page
     let limit = ctx.request.body.limit
     // 格式化page和limit

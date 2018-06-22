@@ -7,7 +7,7 @@ const SALT_WORK_FACTOR = 10
 
 const UserSchema = new mongoose.Schema(
   {
-    username: { type: String, unique: true, required: true },
+    username: { type: String, required: true },
     password: String,
     avatar: String,
     identity: Number, // 区分用户是普通用户还是系统管理员，1：小程序用户，2：系统管理员
