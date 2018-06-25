@@ -3,7 +3,7 @@ import request from 'request'
 import querystring from 'querystring'
 import Promise from 'bluebird'
 import config from '../config'
-import { User, BookList, Pay, Share, Attendance, Award, Buy, Comment } from '../models'
+import { User, BookList, Pay, Share, Attendance, Award, Buy, Comment, FormId } from '../models'
 import { resolve } from 'url'
 import { checkUserToken, checkAdminToken } from '../utils'
 
@@ -405,6 +405,7 @@ export default function(router) {
       await Pay.remove({ userid: id })
       await Share.remove({ userid: id })
       await Attendance.remove({ userid: id })
+      await FormId.remove({ userid: id })
       await User.remove({ _id: id })
       ctx.body = { ok: true, msg: '删除用户成功' }
     }
