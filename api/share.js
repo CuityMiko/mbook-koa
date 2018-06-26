@@ -134,6 +134,31 @@ export default function(router) {
                       }
                     }
                   )
+                  // 使用微信小程序模板消息通知用户邀请他人成功
+                  const currentUser = await User.findById(userid, 'username')
+                  User.sendMessage(thisShareLog.userid.toString(), 'accept', {
+                    keyword1: {
+                      value: currentUser.username
+                    },
+                    keyword2: {
+                      value: '您的好友--' + currentUser.username + '已经接受您的阅读邀请，您获得15书币。'
+                    },
+                    keyword3: {
+                      value: moment().format('YYYY年MMMDo h:mm:ss')
+                    }
+                  })
+                    .then(res => {
+                      if (res.ok) {
+                        console.log('消息发送成功!')
+                      } else {
+                        console.error(res.msg)
+                        console.err('消息发送失败!')
+                      }
+                    })
+                    .catch(err => {
+                      console.err(err)
+                      console.err('消息发送失败!')
+                    })
                   ctx.body = { ok: true, msg: '成功接受邀请，奖励已发放' }
                 } else {
                   ctx.body = { ok: false, msg: '成功接口邀请，奖励发放失败' }
