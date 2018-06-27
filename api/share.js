@@ -144,7 +144,7 @@ export default function(router) {
                       value: '您的好友--' + currentUser.username + '已经接受您的阅读邀请，您获得15书币。'
                     },
                     keyword3: {
-                      value: moment().format('YYYY年MMMDo h:mm:ss')
+                      value: moment().format('YYYY年MM月DD日 hh:mm:ss')
                     }
                   })
                     .then(res => {
