@@ -148,7 +148,8 @@ export default function(router) {
       limit = 10
     }
     if (keyword) {
-      try {
+      let corret = /^[\u4e00-\u9fa5_a-zA-Z0-9]+$/
+      if (corret.test(keyword)) {
         const reg = new RegExp(keyword, 'i')
         const result = await Book.find(
           {
@@ -163,11 +164,11 @@ export default function(router) {
           }
         })
         ctx.body = { ok: true, msg: '搜索成功', list: result, classification }
-      } catch (err) {
-        ctx.body = { ok: false, msg: '搜索失败' }
+      } else {
+        ctx.body = { ok: false, msg: '请输入正确的搜索关键字' }
       }
     } else {
-      ctx.body = { ok: false, msg: '请输入关键字' }
+      ctx.body = { ok: false, msg: '请输入正确的搜索关键字' }
     }
   })
 
@@ -183,29 +184,34 @@ export default function(router) {
   })
 
   // 小程序获取搜索提示接口
-  router.get('/api/book/search_help', async (ctx, next) => {
-    const keyword = ctx.request.query.keyword
+  router.post('/api/book/search_help', async (ctx, next) => {
+    const keyword = ctx.request.body.keyword.toString('utf8').trim()
     if (keyword) {
-      const reg = new RegExp(keyword, 'i')
-      const result = await Book.find(
-        {
-          $or: [{ name: reg }, { author: reg }]
-        },
-        'name author'
-      ).sort({ hot_value: -1, create_time: -1 })
-      let nameArr = []
-      let authorArr = []
-      result.forEach(item => {
-        if (item.name.match(reg)) {
-          nameArr.push(item.name)
-        }
-        if (item.author.match(reg)) {
-          authorArr.push(item.author)
-        }
-      })
-      ctx.body = { ok: true, msg: '获取搜索提示成功', list: nameArr.concat(authorArr) }
+      let corret = /^[\u4e00-\u9fa5_a-zA-Z0-9]+$/
+      if (corret.test(keyword)) {
+        const reg = new RegExp(keyword, 'i')
+        const result = await Book.find(
+          {
+            $or: [{ name: reg }, { author: reg }]
+          },
+          'name author'
+        ).sort({ hot_value: -1, create_time: -1 })
+        let nameArr = []
+        let authorArr = []
+        result.forEach(item => {
+          if (item.name.match(reg)) {
+            nameArr.push(item.name)
+          }
+          if (item.author.match(reg)) {
+            authorArr.push(item.author)
+          }
+        })
+        ctx.body = { ok: true, msg: '获取搜索提示成功', list: nameArr.concat(authorArr) }
+      } else {
+        ctx.body = { ok: false, msg: '请输入正确的搜索关键字' }
+      }
     } else {
-      ctx.body = { ok: false, msg: '请输入关键字' }
+      ctx.body = { ok: false, msg: '请输入正确的搜索关键字' }
     }
   })
 
