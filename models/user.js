@@ -11,7 +11,7 @@ const UserSchema = new mongoose.Schema(
     password: String,
     avatar: String,
     identity: Number, // 区分用户是普通用户还是系统管理员，1：小程序用户，2：系统管理员
-    openid: String, // 小程序openid
+    openid: { type: String, unique: true }, // 小程序openid
     // unionid: String, // 小程序unionid
     amount: 0, // 书币数量
     setting: {
@@ -31,6 +31,8 @@ const UserSchema = new mongoose.Schema(
   },
   { versionKey: false }
 )
+
+UserSchema.index({ openid: 1 }, { unique: true })
 
 /**
  * 增加用户书币数的静态函数
