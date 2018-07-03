@@ -186,46 +186,72 @@ export default function(router) {
       let content = querystring.stringify(qsdata)
       let wxdata = await doRequest('https://api.weixin.qq.com/sns/jscode2session?' + content)
       if (wxdata.session_key && wxdata.openid) {
-        let user = await User.create({
-          username: nickName, // 用户名就使用昵称
-          password: null,
-          avatar: avatarUrl,
-          identity: 1, // 区分用户是普通用户还是系统管理员
-          openid: wxdata.openid, // 小程序openid
-          amount: 0, //
-          setting: {
-            updateNotice: true,
-            autoBuy: true,
-            reader: {
-              fontSize: 32,
-              fontFamily: '使用系统字体',
-              bright: 1,
-              mode: '默认' // 模式
-            }
-          },
-          read_time: 0,
-          create_time: new Date()
-        })
-        // 已注册，生成token并返回
-        let userToken = {
-          userid: user._id
-        }
-        const token = jwt.sign(userToken, secret, {
-          expiresIn: '4h'
-        }) //token签名 有效期为2小时
-        // 初始化书架
-        let booklist = await BookList.create({
-          userid: user.id,
-          books: []
-        })
-        console.log('用户 ' + user._id + ' 于 ' + user.create_time.toDateString() + ' 注册, 并初始化书架')
-        ctx.body = {
-          ok: true,
-          msg: '注册成功',
-          token: token,
-          userinfo: user,
-          // 额外信息
-          allbooks: []
+        let isUserExit = await User.findOne({ openid: wxdata.openid })
+        if (!isUserExit) {
+          let user = await User.create({
+            username: nickName, // 用户名就使用昵称
+            password: null,
+            avatar: avatarUrl,
+            identity: 1, // 区分用户是普通用户还是系统管理员
+            openid: wxdata.openid, // 小程序openid
+            amount: 0, //
+            setting: {
+              updateNotice: true,
+              autoBuy: true,
+              reader: {
+                fontSize: 32,
+                fontFamily: '使用系统字体',
+                bright: 1,
+                mode: '默认' // 模式
+              }
+            },
+            read_time: 0,
+            create_time: new Date()
+          })
+          // 已注册，生成token并返回
+          let userToken = {
+            userid: user._id
+          }
+          const token = jwt.sign(userToken, secret, {
+            expiresIn: '4h'
+          }) //token签名 有效期为2小时
+          // 初始化书架
+          let booklist = await BookList.create({
+            userid: user.id,
+            books: []
+          })
+          console.log('用户 ' + user._id + ' 于 ' + user.create_time.toDateString() + ' 注册, 并初始化书架')
+          ctx.body = {
+            ok: true,
+            msg: '注册成功',
+            token: token,
+            userinfo: user,
+            // 额外信息
+            allbooks: []
+          }
+        } else {
+          // 产生token
+          let userToken = { userid: isUserExit._id }
+          //token签名 有效期为2小时
+          const token = jwt.sign(userToken, secret, {
+            expiresIn: '4h'
+          })
+          console.log('用户 ' + user._id + ' 于 ' + new Date().toDateString() + ' 登录')
+          const booklist = await BookList.findOne({ userid: isUserExit._id }, 'books')
+          let allBooks = []
+          if (booklist) {
+            allBooks = booklist.books.map(item => {
+              return item.bookid
+            })
+          }
+          ctx.body = {
+            ok: true,
+            msg: '登录成功',
+            token: token,
+            userinfo: isUserExit,
+            // 额外返回信息
+            allbooks: allBooks
+          }
         }
       } else {
         ctx.body = {
