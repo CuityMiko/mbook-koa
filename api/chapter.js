@@ -529,7 +529,7 @@ export default function(router) {
                 // addErrors.push('第' + ++index + '行章节序号重复')
                 // 不再提示错误，自动覆盖原来章节
                 let updateResult = await Chapter.update({
-                  id: tmp.id
+                  _id: tmp.id
                 }, {
                   $set: {
                     name: name,
