@@ -491,8 +491,14 @@ export default function(router) {
                 path: 'chapters',
                 select: 'num'
               })
+              let tmp = {}
               let isExist = oldChapter.chapters.some(item => {
-                return item.num == num
+                if (item.num === num) {
+                  tmp = item
+                  return true
+                } else {
+                  return false                 
+                }
               })
               if (!isExist) {
                 let addResult = await Chapter.create({
@@ -520,7 +526,22 @@ export default function(router) {
                   addErrors.push('第' + ++index + '行新增章节失败')
                 }
               } else {
-                addErrors.push('第' + ++index + '行章节序号重复')
+                // addErrors.push('第' + ++index + '行章节序号重复')
+                // 不再提示错误，自动覆盖原来章节
+                let updateResult = await Chapter.update({
+                  id: tmp.id
+                }, {
+                  $set: {
+                    name: name,
+                    content: content,
+                    create_time: new Date()
+                  }
+                })
+                if (updateResult.ok) {
+                  rightNum++
+                } else {
+                  addErrors.push('第' + ++index + '行章节更新失败')
+                }
               }
             } else {
               addErrors.push('第' + ++index + '行章节内容不能为空')
@@ -554,7 +575,7 @@ export default function(router) {
               stream.on('data', async function(chunk) {
                 const hasReadText = chunk.toString()
                 // 只要匹配的第一项不是章节开头的，说明上一个章节是断章，需要剩余内容补回到原章节中
-                const chapterTitleReg = /第?[零一二三四五六七八九十百千万0-9]+章(\s*|、*).*/gim
+                const chapterTitleReg = /第?[零一二两三叁四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰0-9]+章(\s*|、*).*/gim
                 const firstLine = hasReadText
                   .substring(0, 1000)
                   .split('\n')[0]
@@ -589,7 +610,7 @@ export default function(router) {
                       // }
                     }
                   }
-                  const num = tool.chineseParseInt(result[0].match(/第?[零一二三四五六七八九十百千万0-9]+章/)[0])
+                  const num = tool.chineseParseInt(result[0].match(/第?[零一二两三叁四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰0-9]+章/)[0])
                   const name = result[0]
                     .match(/(?<=章).*$/)[0]
                     .replace(/、/, '')
@@ -697,9 +718,10 @@ export default function(router) {
         } else if (type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
           // 用户上传了excel
           const uploadData = xlsx.parse(inputPath)
+
           // 保存章节
           if (uploadData && uploadData[0] && uploadData[0].data) {
-            if (uploadData[0].data[0] instanceof Array && uploadData[0].data[0][0] === '章节序号') {
+            if (uploadData[0].data[0] instanceof Array && uploadData[0].data[0][0] === '章节数') {
               for (let i = 1; i < uploadData[0].data.length; i++) {
                 // console.log(i, uploadData[0].data[i][0], uploadData[0].data[i][1], uploadData[0].data[i][2])
                 await saveChapter(i, uploadData[0].data[i][0], uploadData[0].data[i][1], uploadData[0].data[i][2])
@@ -711,7 +733,7 @@ export default function(router) {
           } else {
             ctx.body = { ok: false, msg: 'excel文件格式错误' }
           }
-        } else {
+        }else {
           ctx.body = { ok: false, msg: '上传的文件格式错误' }
         }
       } catch (err) {
