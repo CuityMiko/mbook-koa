@@ -721,7 +721,7 @@ export default function(router) {
 
           // 保存章节
           if (uploadData && uploadData[0] && uploadData[0].data) {
-            if (uploadData[0].data[0] instanceof Array && uploadData[0].data[0][0] === '章节数') {
+            if (uploadData[0].data[0] instanceof Array && uploadData[0].data[0][0] === '章节序号') {
               for (let i = 1; i < uploadData[0].data.length; i++) {
                 // console.log(i, uploadData[0].data[i][0], uploadData[0].data[i][1], uploadData[0].data[i][2])
                 await saveChapter(i, uploadData[0].data[i][0], uploadData[0].data[i][1], uploadData[0].data[i][2])
