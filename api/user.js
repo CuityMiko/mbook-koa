@@ -3,8 +3,9 @@ import request from 'request'
 import querystring from 'querystring'
 import Promise from 'bluebird'
 import config from '../config'
-import { User, BookList, Pay, Share, Attendance, Award, Buy, Comment, FormId } from '../models'
-import { resolve } from 'url'
+import moment from 'moment'
+import shortid from 'shortid'
+import { User, BookList, Pay, Share, Attendance, Award, Buy, Comment, FormId, Setting } from '../models'
 import { checkUserToken, checkAdminToken } from '../utils'
 
 const secret = 'mbook' // token秘钥

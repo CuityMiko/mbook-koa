@@ -27,7 +27,8 @@ SettingSchema.statics.getSetting = async function(key) {
   let result = {}
   let count = 0
   for (let i = 0; i < keys.length; i++) {
-    result[keys[i]] = await this.findOne({ key: keys[i] }, 'value')
+    let current = await this.findOne({ key: keys[i] }, 'value')
+    result[keys[i]] = current ? current.value : ''
     count++
   }
   if (result && count === 1) {
