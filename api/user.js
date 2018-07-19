@@ -76,9 +76,10 @@ export default function(router) {
           let userToken = {
             userid: user._id
           }
+          //token签名 有效期为4小时
           const token = jwt.sign(userToken, secret, {
             expiresIn: '4h'
-          }) //token签名 有效期为2小时
+          })
           console.log('用户 ' + user._id + ' 于 ' + user.create_time.toDateString() + ' 登录')
           const booklist = await BookList.findOne({ userid: user._id }, 'books')
           let allBooks = []
@@ -87,13 +88,64 @@ export default function(router) {
               return item.bookid
             })
           }
+          // 获取用户邀请信息
+          // 查询当前用户的邀请信息，如果找不到则创建一个
+          let hisShareInfo = await Share.findOne({ userid: user._id })
+          if (!hisShareInfo) {
+            const code = shortid.generate()
+            hisShareInfo = await Share.create({
+              userid: await Share.transId(user._id),
+              code,
+              award_records: [],
+              share_records: [],
+              accept_records: [],
+              create_time: new Date()
+            })
+          }
+          // 统计用户邀请信息，今日邀请人数，以及累计邀请人数，累计获得书书币数
+          const nowDateStr = moment().format('YYYY/MM/DD')
+          const startTime = new Date(nowDateStr + ' 00:00:00')
+          const endTime = new Date(nowDateStr + ' 24:00:00')
+          let todayInviteNum = 0
+          let totalInviteNum = 0
+          let todayAwardNum = 0
+          let totalAwardNum = 0
+          let users = []
+          hisShareInfo.accept_records.forEach(item => {
+            const time = item.accept_time.getTime()
+            if (time >= startTime.getTime() && time <= endTime.getTime()) {
+              todayInviteNum++
+            }
+            const uid = item.uid.toString()
+            if (users.indexOf(uid) < 0) {
+              users.push(uid)
+              totalInviteNum++
+            }
+          })
+          hisShareInfo.award_records.forEach(item => {
+            const time = item.award_time.getTime()
+            if (time >= startTime.getTime() && time <= endTime.getTime()) {
+              todayAwardNum += item.amount
+            }
+            totalAwardNum += item.amount
+          })
+          // 获取设置中的分享设置
+          const globalSetting = await Setting.getSetting('share|wxcode|index_dialog|charge_tips|secret_tips|shut_check')
           ctx.body = {
             ok: true,
             msg: '登录成功',
             token: token,
             userinfo: user,
             // 额外返回信息
-            allbooks: allBooks
+            allbooks: allBooks,
+            code: hisShareInfo.code,
+            shareInfo: {
+              todayAwardNum: 0,
+              todayInviteNum: 0,
+              totalAwardNum: 0,
+              totalInviteNum: 0
+            },
+            globalSetting
           }
         } else {
           // 未注册，重定向到注册页面
@@ -221,13 +273,33 @@ export default function(router) {
             books: []
           })
           console.log('用户 ' + user._id + ' 于 ' + user.create_time.toDateString() + ' 注册, 并初始化书架')
+          // 创建分享记录
+          const code = shortid.generate()
+          let hisShareInfo = await Share.create({
+            userid: await Share.transId(user._id),
+            code,
+            award_records: [],
+            share_records: [],
+            accept_records: [],
+            create_time: new Date()
+          })
+          // 获取设置中的分享设置
+          const globalSetting = await Setting.getSetting('share|wxcode|index_dialog|charge_tips|secret_tips|shut_check')
           ctx.body = {
             ok: true,
             msg: '注册成功',
             token: token,
             userinfo: user,
             // 额外信息
-            allbooks: []
+            allbooks: [],
+            code: hisShareInfo.code,
+            shareInfo: {
+              todayAwardNum: 0,
+              todayInviteNum: 0,
+              totalAwardNum: 0,
+              totalInviteNum: 0
+            },
+            globalSetting
           }
         } else {
           // 产生token
@@ -244,13 +316,64 @@ export default function(router) {
               return item.bookid
             })
           }
+          // 获取用户邀请信息
+          // 查询当前用户的邀请信息，如果找不到则创建一个
+          let hisShareInfo = await Share.findOne({ userid: isUserExit._id })
+          if (!hisShareInfo) {
+            const code = shortid.generate()
+            hisShareInfo = await Share.create({
+              userid: await Share.transId(isUserExit._id),
+              code,
+              award_records: [],
+              share_records: [],
+              accept_records: [],
+              create_time: new Date()
+            })
+          }
+          // 统计用户邀请信息，今日邀请人数，以及累计邀请人数，累计获得书书币数
+          const nowDateStr = moment().format('YYYY/MM/DD')
+          const startTime = new Date(nowDateStr + ' 00:00:00')
+          const endTime = new Date(nowDateStr + ' 24:00:00')
+          let todayInviteNum = 0
+          let totalInviteNum = 0
+          let todayAwardNum = 0
+          let totalAwardNum = 0
+          let users = []
+          hisShareInfo.accept_records.forEach(item => {
+            const time = item.accept_time.getTime()
+            if (time >= startTime.getTime() && time <= endTime.getTime()) {
+              todayInviteNum++
+            }
+            const uid = item.uid.toString()
+            if (users.indexOf(uid) < 0) {
+              users.push(uid)
+              totalInviteNum++
+            }
+          })
+          hisShareInfo.award_records.forEach(item => {
+            const time = item.award_time.getTime()
+            if (time >= startTime.getTime() && time <= endTime.getTime()) {
+              todayAwardNum += item.amount
+            }
+            totalAwardNum += item.amount
+          })
+          // 获取设置中的分享设置
+          const globalSetting = await Setting.getSetting('share|wxcode|index_dialog|charge_tips|secret_tips|shut_check')
           ctx.body = {
             ok: true,
             msg: '登录成功',
             token: token,
             userinfo: isUserExit,
             // 额外返回信息
-            allbooks: allBooks
+            allbooks: allBooks,
+            code: hisShareInfo.code,
+            shareInfo: {
+              todayAwardNum,
+              todayInviteNum,
+              totalAwardNum,
+              totalInviteNum
+            },
+            globalSetting
           }
         }
       } else {

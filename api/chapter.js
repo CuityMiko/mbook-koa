@@ -497,7 +497,7 @@ export default function(router) {
                   tmp = item
                   return true
                 } else {
-                  return false                 
+                  return false
                 }
               })
               if (!isExist) {
@@ -528,15 +528,18 @@ export default function(router) {
               } else {
                 // addErrors.push('第' + ++index + '行章节序号重复')
                 // 不再提示错误，自动覆盖原来章节
-                let updateResult = await Chapter.update({
-                  _id: tmp.id
-                }, {
-                  $set: {
-                    name: name,
-                    content: content,
-                    create_time: new Date()
+                let updateResult = await Chapter.update(
+                  {
+                    _id: tmp.id
+                  },
+                  {
+                    $set: {
+                      name: name,
+                      content: content,
+                      create_time: new Date()
+                    }
                   }
-                })
+                )
                 if (updateResult.ok) {
                   rightNum++
                 } else {
@@ -733,7 +736,7 @@ export default function(router) {
           } else {
             ctx.body = { ok: false, msg: 'excel文件格式错误' }
           }
-        }else {
+        } else {
           ctx.body = { ok: false, msg: '上传的文件格式错误' }
         }
       } catch (err) {

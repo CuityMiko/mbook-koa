@@ -22,9 +22,18 @@ SettingSchema.statics.transId = async function(id) {
  * 获取设置项的值
  */
 SettingSchema.statics.getSetting = async function(key) {
-  const thisSetting = await this.findOne({ key }, 'value')
-  if (thisSetting) {
-    return thisSetting.value
+  // 支持一次性查询多个
+  let keys = key.split('|')
+  let result = {}
+  let count = 0
+  for (let i = 0; i < keys.length; i++) {
+    result[keys[i]] = await this.findOne({ key: keys[i] }, 'value')
+    count++
+  }
+  if (result && count === 1) {
+    return result[keys[0]]
+  } else if (result && count > 1) {
+    return result
   } else {
     return ''
   }
