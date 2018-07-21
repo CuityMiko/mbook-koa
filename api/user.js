@@ -132,7 +132,6 @@ export default function(router) {
           })
           // 获取设置中的分享设置
           const globalSetting = await Setting.getSetting('share|wxcode|index_dialog|charge_tips|secret_tips|shut_check')
-          console.log(hisShareInfo.award_records)
           ctx.body = {
             ok: true,
             msg: '登录成功',

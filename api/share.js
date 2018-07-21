@@ -112,7 +112,6 @@ export default function(router) {
                 if (acceptAward && launchAward) {
                   // 新增奖励记录
                   let launchUser = await User.findById(thisShareLog.userid.toString(), 'username')
-                  console.log('user', launchUser)
                   await Share.update(
                     { userid },
                     {

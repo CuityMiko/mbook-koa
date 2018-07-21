@@ -258,7 +258,6 @@ export default function(router) {
       if (from_index && to_index) {
         from_index = parseInt(from_index)
         to_index = parseInt(to_index)
-        console.log('from_index和to_index', from_index, to_index)
         let thisTheme = await Theme.findById(themeId)
         let newBooks = thisTheme.books.sort((item1, item2) => {
           return parseInt(item1.index) - parseInt(item2.index)
