@@ -61,9 +61,24 @@ export default function(router) {
           totalAwardNum,
           totalInviteNum
         },
+        award_records: hisShareInfo.award_records.map(item => {
+          return {
+            name: item.user || '--'
+            type: item.name.replace('奖励', ''),
+            time: moment(item.award_time).format('YYYY/MM/DD')
+          }
+        }),
         wxcode,
         code: hisShareInfo.code
       }
+    }
+  })
+
+  // 获取奖励记录
+  router.get('/api/share/award_records', async (ctx, next) => {
+    let userid = await checkUserToken(ctx, next)
+    if (userid) {
+
     }
   })
 
@@ -110,18 +125,21 @@ export default function(router) {
                 const launchAward = await User.addAmount(thisShareLog.userid.toString(), 15, '邀请他人登录奖励')
                 if (acceptAward && launchAward) {
                   // 新增奖励记录
+                  let launchUser = await User.findOne({ id: thisShareLog.userid }, 'username')
                   await Share.update(
                     { userid },
                     {
                       $addToSet: {
                         award_records: {
                           name: '接受邀请奖励',
+                          user: launchUser ? launchUser.username || ''
                           amount: 15,
                           award_time: new Date()
                         }
                       }
                     }
                   )
+                  const currentUser = await User.findById(userid, 'username')
                   await Share.update(
                     { code },
                     {
@@ -129,13 +147,13 @@ export default function(router) {
                         award_records: {
                           name: '邀请别人奖励',
                           amount: 15,
+                          user: currentUser ? currentUser.username || ''
                           award_time: new Date()
                         }
                       }
                     }
                   )
                   // 使用微信小程序模板消息通知用户邀请他人成功
-                  const currentUser = await User.findById(userid, 'username')
                   User.sendMessage(thisShareLog.userid.toString(), 'accept', {
                     keyword1: {
                       value: currentUser.username

@@ -146,6 +146,13 @@ export default function(router) {
               totalAwardNum: 0,
               totalInviteNum: 0
             },
+            award_records: hisShareInfo.award_records.map(item => {
+              return {
+                name: item.user || '--'
+                type: item.name.replace('奖励', ''),
+                time: moment(item.award_time).format('YYYY/MM/DD')
+              }
+            }),
             globalSetting
           }
         } else {
@@ -300,6 +307,7 @@ export default function(router) {
               totalAwardNum: 0,
               totalInviteNum: 0
             },
+            award_records: [],
             globalSetting
           }
         } else {
@@ -374,6 +382,13 @@ export default function(router) {
               totalAwardNum,
               totalInviteNum
             },
+            award_records: hisShareInfo.award_records.map(item => {
+              return {
+                name: item.user || '--'
+                type: item.name.replace('奖励', ''),
+                time: moment(item.award_time).format('YYYY/MM/DD')
+              }
+            }),
             globalSetting
           }
         }
