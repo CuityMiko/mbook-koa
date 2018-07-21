@@ -48,13 +48,9 @@ export default function(router) {
         }
         totalAwardNum += item.amount
       })
-      // 获取设置中的分享设置
-      const shareSetting = await Setting.getSetting('share')
-      const wxcode = await Setting.getSetting('wxcode')
       ctx.body = {
         ok: true,
         msg: '获取分享信息成功',
-        shareSetting,
         shareInfo: {
           todayAwardNum,
           todayInviteNum,
@@ -63,22 +59,12 @@ export default function(router) {
         },
         award_records: hisShareInfo.award_records.map(item => {
           return {
-            name: item.user || '--'
+            name: item.user || '--',
             type: item.name.replace('奖励', ''),
             time: moment(item.award_time).format('YYYY/MM/DD')
           }
-        }),
-        wxcode,
-        code: hisShareInfo.code
+        })
       }
-    }
-  })
-
-  // 获取奖励记录
-  router.get('/api/share/award_records', async (ctx, next) => {
-    let userid = await checkUserToken(ctx, next)
-    if (userid) {
-
     }
   })
 
@@ -117,7 +103,7 @@ export default function(router) {
                   }
                 }
               )
-              if (hasBeInvited) {
+              if (0 && hasBeInvited) {
                 ctx.body = { ok: false, msg: '您今天已经接受过邀请了' }
               } else {
                 // 分发奖励
@@ -125,14 +111,15 @@ export default function(router) {
                 const launchAward = await User.addAmount(thisShareLog.userid.toString(), 15, '邀请他人登录奖励')
                 if (acceptAward && launchAward) {
                   // 新增奖励记录
-                  let launchUser = await User.findOne({ id: thisShareLog.userid }, 'username')
+                  let launchUser = await User.findById(thisShareLog.userid.toString(), 'username')
+                  console.log('user', launchUser)
                   await Share.update(
                     { userid },
                     {
                       $addToSet: {
                         award_records: {
                           name: '接受邀请奖励',
-                          user: launchUser ? launchUser.username || ''
+                          user: launchUser ? launchUser.username : '',
                           amount: 15,
                           award_time: new Date()
                         }
@@ -147,7 +134,7 @@ export default function(router) {
                         award_records: {
                           name: '邀请别人奖励',
                           amount: 15,
-                          user: currentUser ? currentUser.username || ''
+                          user: currentUser ? currentUser.username : '',
                           award_time: new Date()
                         }
                       }

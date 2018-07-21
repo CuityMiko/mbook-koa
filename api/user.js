@@ -132,6 +132,7 @@ export default function(router) {
           })
           // 获取设置中的分享设置
           const globalSetting = await Setting.getSetting('share|wxcode|index_dialog|charge_tips|secret_tips|shut_check')
+          console.log(hisShareInfo.award_records)
           ctx.body = {
             ok: true,
             msg: '登录成功',
@@ -148,7 +149,7 @@ export default function(router) {
             },
             award_records: hisShareInfo.award_records.map(item => {
               return {
-                name: item.user || '--'
+                name: item.user || '--',
                 type: item.name.replace('奖励', ''),
                 time: moment(item.award_time).format('YYYY/MM/DD')
               }
@@ -384,7 +385,7 @@ export default function(router) {
             },
             award_records: hisShareInfo.award_records.map(item => {
               return {
-                name: item.user || '--'
+                name: item.user || '--',
                 type: item.name.replace('奖励', ''),
                 time: moment(item.award_time).format('YYYY/MM/DD')
               }

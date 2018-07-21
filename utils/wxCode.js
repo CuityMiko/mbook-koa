@@ -74,13 +74,14 @@ async function requestWxCode(shareId) {
     request(
       {
         method: 'POST',
-        url: 'https://api.weixin.qq.com/wxa/getwxacode?access_token=' + token,
+        url: 'https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token=' + token,
         headers: {
           'Content-type': 'application/json'
         },
         body: JSON.stringify({
           // 传入shareId作为sence值
-          path: 'pages/activities/share/share?code=' + shareId,
+          scene: shareId,
+          path: 'pages/loading/loading',
           width: 430,
           auto_color: false,
           line_color: { r: '0', g: '0', b: '0' },

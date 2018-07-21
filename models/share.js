@@ -7,6 +7,7 @@ const ShareSchema = new mongoose.Schema(
     award_records: [
       {
         name: String, // 奖励名称
+        user: String,
         amount: Number, // 奖励数量
         award_time: Date
       }
