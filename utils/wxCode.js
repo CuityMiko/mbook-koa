@@ -85,7 +85,7 @@ async function requestWxCode(shareId) {
           width: 430,
           auto_color: false,
           line_color: { r: '0', g: '0', b: '0' },
-          is_hyaline: true
+          is_hyaline: false
         }),
         encoding: null
       },
@@ -94,7 +94,7 @@ async function requestWxCode(shareId) {
           reject(error)
           return
         }
-        const image = new Buffer(body, 'binary')
+        const image = Buffer.from(body, 'binary')
         // 上传到七牛云
         client.upload(image, { key: 'mbook/share/' + shareId + '.jpeg' }, function(uploadError, result) {
           if (uploadError) {
