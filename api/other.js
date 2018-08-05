@@ -9,6 +9,7 @@ import config from '../config'
 import { Book, Setting, User } from '../models'
 import { checkUserToken } from '../utils'
 import { requestWxCode } from '../utils/wxCode'
+import { mongosync } from '../bin/mongosync'
 
 // qiniu上传设置
 const client = qn.create({
@@ -311,6 +312,19 @@ export default function(router) {
         ctx.body = { ok: false, msg: '发送书币失败' }
       }
       ctx.body = { ok: true, minute, num, msg: '获取我的阅读时长成功' }
+    }
+  })
+
+  // 手动同步mongo数据库
+  router.get('/api/mongosync', async (ctx, next) => {
+    let userid = await checkUserToken(ctx, next)
+    if (userid) {
+      let result = mongosync()
+      if (result) {
+        ctx.body = { ok: true, msg: '同步成功' }
+      } else {
+        ctx.body = { ok: true, msg: '同步失败' }
+      }
     }
   })
 }
