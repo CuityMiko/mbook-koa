@@ -103,7 +103,7 @@ export default function(router) {
                   }
                 }
               )
-              if (0 && hasBeInvited) {
+              if (hasBeInvited) {
                 ctx.body = { ok: false, msg: '您今天已经接受过邀请了' }
               } else {
                 // 分发奖励
