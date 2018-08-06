@@ -7,7 +7,7 @@ import https from 'https'
 import uuid from 'uuid'
 import config from '../config'
 import { Book, Setting, User } from '../models'
-import { checkUserToken } from '../utils'
+import { checkUserToken, checkAdminToken } from '../utils'
 import { requestWxCode } from '../utils/wxCode'
 import { mongosync } from '../bin/mongosync'
 
@@ -317,13 +317,13 @@ export default function(router) {
 
   // 手动同步mongo数据库
   router.get('/api/mongosync', async (ctx, next) => {
-    let userid = await checkUserToken(ctx, next)
+    let userid = await checkAdminToken(ctx, next, 'mongosync')
     if (userid) {
-      let result = mongosync()
-      if (result) {
+      let result = await mongosync()
+      if (result === true) {
         ctx.body = { ok: true, msg: '同步成功' }
       } else {
-        ctx.body = { ok: true, msg: '同步失败' }
+        ctx.body = { ok: false, msg: '同步失败' }
       }
     }
   })
