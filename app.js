@@ -14,11 +14,13 @@ const noAuthPathArr = require('./config/noauth')
 const index = require('./routes/index')
 const schedule = require('./bin/shedule')
 const createAdmin = require('./bin/createAdmin')
+const addUserSetting = require('./bin/addUserSetting')
 const secret = 'mbook'
 // error handler
 onerror(app)
 schedule.run()
 // createAdmin()
+// addUserSetting()
 
 app.use(
   bodyparser({

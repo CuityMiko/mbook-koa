@@ -262,7 +262,8 @@ export default function(router) {
                 fontSize: 32,
                 fontFamily: '使用系统字体',
                 bright: 1,
-                mode: '默认' // 模式
+                mode: '默认', // 模式,
+                overPage: 0 // 翻页模式
               }
             },
             read_time: 0,
@@ -441,7 +442,8 @@ export default function(router) {
           fontSize: thisUser.setting.reader.fontSize,
           fontFamily: thisUser.setting.reader.fontFamily,
           bright: thisUser.setting.reader.bright,
-          mode: thisUser.setting.reader.mode // 模式
+          mode: thisUser.setting.reader.mode, // 模式
+          overPage: thisUser.setting.reader.overPage || 0 // 翻页模式
         }
       }
       ctx.body = {

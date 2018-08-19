@@ -20,7 +20,8 @@ const UserSchema = new mongoose.Schema(
         fontSize: Number,
         fontFamily: String,
         bright: Number,
-        mode: String // 模式
+        mode: String, // 模式
+        overPage: 0, // 0表示左右翻页模式，1表示上下翻页模式
       },
       autoBuy: { type: Boolean, default: true } // 是否自动购买下一章
     },
