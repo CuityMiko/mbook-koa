@@ -263,7 +263,7 @@ export default function(router) {
           if (item.bookid.toString() == bookid) {
             readChapterNum = item.read.num
             readChapterScrollTop = item.read.top
-            readChapterScroll = item.read.scroll
+            readChapterScroll = item.read.scroll || 0
           }
         })
         let thisBook = await Book.findById(bookid, 'id name img_url author newest_chapter').populate({
