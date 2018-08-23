@@ -16,7 +16,7 @@ export default function(router) {
               bookid: hisBookList.books[i].bookid,
               index: count,
               time: hisBookList.books[i].time,
-              read: { num: hisBookList.books[i].read.num, top: hisBookList.books[i].read.top }
+              read: { num: hisBookList.books[i].read.num, top: hisBookList.books[i].read.top, scroll: hisBookList.books[i].read.scroll || 0 }
             })
             count++
           }
@@ -82,14 +82,15 @@ export default function(router) {
   router.post('/api/booklist/update_read', async (ctx, next) => {
     let userid = await checkUserToken(ctx, next)
     if (userid) {
-      let { bookid, chapter_num, chapter_page_index, read_time, setting } = ctx.request.body
-      if (bookid && chapter_num && (chapter_page_index || chapter_page_index == 0) && setting.reader) {
+      let { bookid, chapter_num, chapter_page_index, chapter_page_top, read_time, setting } = ctx.request.body
+      if (bookid && chapter_num && (chapter_page_index || chapter_page_index == 0) && (chapter_page_top || chapter_page_top == 0) && setting.reader) {
         let thisBookList = await BookList.findOne({ userid })
         let newBooks = thisBookList.books.map(item => {
           if (item.bookid.toString() == bookid) {
             item.read = {
               num: chapter_num,
-              top: chapter_page_index
+              top: chapter_page_index || 0,
+              scroll: chapter_page_top || 0
             }
             item.time = new Date()
             return item
@@ -135,6 +136,7 @@ export default function(router) {
             index: thisBookList.books[i].index,
             read_num: thisBookList.books[i].read.num,
             read_top: thisBookList.books[i].read.top,
+            read_scroll: thisBookList.books[i].read.scroll || 0,
             time: thisBookList.books[i].time,
             name: bookInfo.name,
             author: bookInfo.author,

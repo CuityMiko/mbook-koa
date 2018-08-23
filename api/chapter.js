@@ -220,6 +220,7 @@ export default function(router) {
             author: thisBook.author,
             newest: thisBook.newest_chapter,
             top: 0,
+            scroll: 0,
             data: thisChapter
           }
         } else {
@@ -242,6 +243,7 @@ export default function(router) {
             doAutoBuy: canReadResult.doAutoBuy,
             msg: '获取章节详情成功',
             top: 0,
+            scroll: 0,
             bookname: thisBook.name,
             headimg: thisBook.img_url,
             author: thisBook.author,
@@ -256,10 +258,12 @@ export default function(router) {
         let thisBookList = await BookList.findOne({ userid })
         let readChapterNum = 1
         let readChapterScrollTop = 0
+        let readChapterScroll = 0
         thisBookList.books.forEach(item => {
           if (item.bookid.toString() == bookid) {
             readChapterNum = item.read.num
             readChapterScrollTop = item.read.top
+            readChapterScroll = item.read.scroll
           }
         })
         let thisBook = await Book.findById(bookid, 'id name img_url author newest_chapter').populate({
@@ -277,6 +281,7 @@ export default function(router) {
             doAutoBuy: canReadResult.doAutoBuy,
             msg: '获取章节详情成功',
             top: readChapterScrollTop,
+            scroll: readChapterScroll,
             bookname: thisBook.name,
             headimg: thisBook.img_url,
             author: thisBook.author,
