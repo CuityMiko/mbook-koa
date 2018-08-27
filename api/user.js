@@ -259,11 +259,11 @@ export default function(router) {
               updateNotice: true,
               autoBuy: true,
               reader: {
-                fontSize: 32,
+                fontSize: 36,
                 fontFamily: '使用系统字体',
                 bright: 1,
                 mode: '默认', // 模式,
-                overPage: 0 // 翻页模式
+                overPage: 1 // 翻页模式
               }
             },
             read_time: 0,
