@@ -131,7 +131,7 @@ export default function(router) {
             totalAwardNum += item.amount
           })
           // 获取设置中的分享设置
-          const globalSetting = await Setting.getSetting('share|wxcode|index_dialog|charge_tips|secret_tips|shut_check')
+          const globalSetting = await Setting.getSetting('share|wxcode|index_dialog|charge_tips|secret_tips|shut_check|shut_charge_tips')
           ctx.body = {
             ok: true,
             msg: '登录成功',
@@ -293,7 +293,7 @@ export default function(router) {
             create_time: new Date()
           })
           // 获取设置中的分享设置
-          const globalSetting = await Setting.getSetting('share|wxcode|index_dialog|charge_tips|secret_tips|shut_check')
+          const globalSetting = await Setting.getSetting('share|wxcode|index_dialog|charge_tips|secret_tips|shut_check|shut_charge_tips')
           ctx.body = {
             ok: true,
             msg: '注册成功',
@@ -368,7 +368,7 @@ export default function(router) {
             totalAwardNum += item.amount
           })
           // 获取设置中的分享设置
-          const globalSetting = await Setting.getSetting('share|wxcode|index_dialog|charge_tips|secret_tips|shut_check')
+          const globalSetting = await Setting.getSetting('share|wxcode|index_dialog|charge_tips|secret_tips|shut_check|shut_charge_tips')
           ctx.body = {
             ok: true,
             msg: '登录成功',
