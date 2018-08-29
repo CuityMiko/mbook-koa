@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node bin/run",
     "dev": "./node_modules/.bin/nodemon bin/run",
-    "prd": "pm2 start bin/run --name 'mbook-koa'",
+    "prd": "pm2 start bin/run --name 'mbook-new'",
     "test": "echo \"No test, Thanks\" && exit 0"
   },
   "dependencies": {
