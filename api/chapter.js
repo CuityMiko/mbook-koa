@@ -80,14 +80,19 @@ ReadStreamThrottle.prototype.resume = function() {
 
 export default function(router) {
   router.get('/api/chapter/list', async (ctx, next) => {
-    let { bookid } = ctx.request.query
+    let { bookid, pageid } = ctx.request.query
+    if (!pageid) {
+      pageid = 1
+    }
     let thisBook = await Book.findById(bookid, 'id').populate({
       path: 'chapters',
       select: 'name num',
       options: {
         sort: {
           num: 1
-        }
+        },
+        skip: (pageid - 1) * 50,
+        limit: 50
       }
     })
     if (thisBook) {

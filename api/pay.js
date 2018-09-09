@@ -46,6 +46,14 @@ export default function(router) {
         des: `用户 ${thisUser.username} 于 ${moment().format('YYYY/MM/DD HH/MM/SS')} 提交充值申请，充值${pay_money}元， 完成充值后获得${yuebi_num}书币`,
         create_time: new Date()
       })
+      console.log({
+        openid: thisUser.openid,
+        body: `order_num:${thisPay._id}`,
+        out_trade_no: thisPay.id.toString(),
+        pay_money: pay_money,
+        spbill_create_ip: spbill_create_ip,
+        chargeids: chargeids
+      })
       let payParams = await createUnifiedOrder({
         openid: thisUser.openid,
         body: `订单编号:${thisPay._id}`,

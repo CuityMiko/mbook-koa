@@ -79,6 +79,7 @@ function createUnifiedOrder(payInfo) {
           returnParams.paySign = tool.md5(paramStr).toUpperCase()
           resolve(returnParams)
         } else {
+          console.log('生成微信支付订单失败：', JSON.stringify(result))
           reject(error)
         }
       }
