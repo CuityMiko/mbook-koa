@@ -95,8 +95,9 @@ export default function(router) {
         limit: 50
       }
     })
+    let total = (await Book.findById(bookid, 'chapters')).chapters.length;
     if (thisBook) {
-      ctx.body = { ok: true, msg: '获取章节列表成功', data: thisBook }
+      ctx.body = { ok: true, msg: '获取章节列表成功', data: thisBook, total }
     } else {
       ctx.body = { ok: false, msg: '找不到对应的书籍' }
     }
