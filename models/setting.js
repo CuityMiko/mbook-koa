@@ -4,7 +4,7 @@ const SettingSchema = new mongoose.Schema(
   {
     name: { type: String, default: '' },
     key: { type: String, unique: true, required: true }, // 设置项键值名
-    value: { type: Object, unique: true, required: true, default: '' }, // 设置项键值
+    value: { type: Object, required: true, default: '' }, // 设置项键值
     des: { type: String, default: '' }, // 设置项描述
     create_time: Date // 创建时间
   },
