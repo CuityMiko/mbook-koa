@@ -15,6 +15,8 @@ import share from './share'
 import award from './award'
 import secret from './secret'
 import formid from './formid'
+import friendHelpBook from './friendHelpBook'
+import friendHelp from './friendHelp'
 import other from './other'
 
 export default function(router) {
@@ -35,5 +37,7 @@ export default function(router) {
   award(router)
   secret(router)
   formid(router)
+  friendHelpBook(router)
+  friendHelp(router)
   other(router)
 }

@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 
-const ShareSchema = new mongoose.Schema(
+const FriendHelpSchema = new mongoose.Schema(
   {
     userid: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     code: String, // 裂变邀请码
@@ -20,10 +20,10 @@ const ShareSchema = new mongoose.Schema(
 /**
  * 将字母id装换成mongodb的ObjectId对象的静态函数
  */
-ShareSchema.statics.transId = async function(id) {
+FriendHelpSchema.statics.transId = async function(id) {
   return mongoose.Types.ObjectId(id)
 }
 
-let Share = mongoose.model('Share', ShareSchema)
+let FriendHelp = mongoose.model('FriendHelp', FriendHelpSchema)
 
-export { Share }
+export { FriendHelp }
