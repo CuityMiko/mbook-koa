@@ -10,8 +10,8 @@ const sign = require('./wxSign')
 const redis = new Redis({
   port: config.redis_port, // Redis port
   host: config.redis_host, // Redis host
-  family: 4 // 4 (IPv4) or 6 (IPv6)
-  // password: 'redis'
+  family: 4, // 4 (IPv4) or 6 (IPv6)
+  password: config.redis_pass
 })
 
 // qiniu上传设置
