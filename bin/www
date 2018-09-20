@@ -17,6 +17,7 @@ async function connectMongo() {
     {
       user: config.mongo_user,
       pass: config.mongo_pass,
+      auth: { authdb: 'admin',    authMechanism: 'MONGODB-CR' },
       useMongoClient: true
     }
   )
