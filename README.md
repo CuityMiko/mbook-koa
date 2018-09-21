@@ -5,6 +5,7 @@
 ### TODO
 
 - 上传书籍的时候自动更新最新章节
+- 好友助力
 
 ### 常见问题
 
@@ -129,4 +130,31 @@ app.use(bodyparser({
   "console": "integratedTerminal",
   "skipFiles": ["${workspaceRoot}/node_modules/**/*.js", "<node_internals>/**/*.js"]
 }
+```
+
+### mongo和redis开启认证
+#### mongodb
+
+```shell
+# 创建整个数据库的管理员
+use admin;
+db.createUser({user: 'admin', pwd: 'xxx', roles: [{role: 'userAdminAnyDatabase', db: 'admin'}]})
+db.auth('admin', 'xxx');
+
+# 创建单个数据库的管路员
+use mbook-test;
+db.createUser({user: 'mbookTest', pwd: 'xxx', roles:[{ role:'dbOwner', db: 'mbook-test'}]})
+db.auth('mbookTest', 'xxx');
+
+# 编辑配置文件
+sudo vi /etc/mongodb.conf
+# 修改host为0.0.0.0，修改auth为true
+sudo service mongodb restart
+```
+
+#### redis
+```
+sudo vi /etc/redis/redis.conf
+# 修改ip为0.0.0.0， 修改requirepass后面的值为你设置的密码
+sudo service redis-server restart
 ```

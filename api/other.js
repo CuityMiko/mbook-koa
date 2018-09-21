@@ -1,7 +1,7 @@
 import send from 'koa-send'
 import path from 'path'
 import fs from 'fs'
-import Canvas from 'canvas'
+// import Canvas from 'canvas'
 import qn from 'qn'
 import https from 'https'
 import uuid from 'uuid'
@@ -58,9 +58,11 @@ export default function(router) {
   router.get('/api/get_share_img', async (ctx, next) => {
     const share_type = ctx.request.query.share_type
     const book_id = ctx.request.query.book_id
-    const canvas = new Canvas(300, 120) // 按照微信官方要求，长宽比5:4
-    const context = canvas.getContext('2d')
-    ctx.font = '14px "Microsoft YaHei"' // 统一使用微软雅黑字体
+    // const canvas = new Canvas(300, 120) // 按照微信官方要求，长宽比5:4
+    // const context = canvas.getContext('2d')
+    // ctx.font = '14px "Microsoft YaHei"' // 统一使用微软雅黑字体
+    const canvas = null;
+    const context = null;
     let thisBook = null
     switch (share_type) {
       case 'chapter':

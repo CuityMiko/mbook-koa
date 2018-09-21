@@ -2,8 +2,8 @@ import mongoose from 'mongoose'
 
 const FriendHelpSchema = new mongoose.Schema(
   {
-    userid: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    code: String, // 裂变邀请码
+    fhbid: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    fhcode: String, // 裂变邀请码
     accept_records: [
       {
         name: String, // 接受人名称

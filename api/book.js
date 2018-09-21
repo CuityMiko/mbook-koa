@@ -261,6 +261,7 @@ export default function(router) {
     // check if the user has permission
     const userid = await checkAdminToken(ctx, next, 'theme_update')
     if (userid) {
+      console.log('总书籍量', await Book.count());
       let { page, limit, name } = ctx.request.query
       // format page and limit
       if (page) {
