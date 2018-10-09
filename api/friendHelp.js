@@ -20,7 +20,7 @@ export default function(router) {
       return false
     }
     // 检查来源的正确性
-    let rightSourceArr = ['banner', 'book_detail', 'reader']
+    let rightSourceArr = ['activity', 'book_detail', 'reader']
     if (rightSourceArr.indexOf(source) < 0) {
       ctx.body = { ok: false, msg: '来源错误' }
       return false
