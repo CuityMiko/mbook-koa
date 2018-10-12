@@ -267,13 +267,14 @@ export default function(router) {
       for (let i = 0; i < friendHelpBooks.length; i++) {
         findArr.push(
           new Promise((resolve, reject) => {
-            FriendHelp.findOne({ userid, fhbid: friendHelpBooks[i].id }, 'id success', (err, res) => {
+            FriendHelp.findOne({ userid, fhbid: friendHelpBooks[i].id }, 'id success records', (err, res) => {
               if (err) {
                 reject(err)
                 return false
               }
               if (res) {
                 newArray[i].success = res.success
+                newArray[i].left_num = friendHelpBooks[i].need_num - res.records.length
               }
               resolve(true)
             })

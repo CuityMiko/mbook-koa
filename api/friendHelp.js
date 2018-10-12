@@ -27,6 +27,7 @@ export default function(router) {
     }
     // 检测当前用户是否已经对该书籍存在分享
     let tmpFriendHelp = await FriendHelp.findOne({ userid, fhbid }, '_id fhcode')
+    console.log(tmpFriendHelp)
     if (tmpFriendHelp) {
       ctx.body = { ok: true, msg: '已存在该书籍的好友助力', fhcode: tmpFriendHelp.fhcode }
     } else {
