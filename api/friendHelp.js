@@ -1,5 +1,5 @@
 import { FriendHelp, FriendHelpBook, User, Secret } from '../models'
-import { checkUserToken, checkAdminToken } from '../utils'
+import { checkUserToken, checkAdminToken, tool } from '../utils'
 import shortid from 'shortid'
 
 export default function(router) {
@@ -27,7 +27,6 @@ export default function(router) {
     }
     // 检测当前用户是否已经对该书籍存在分享
     let tmpFriendHelp = await FriendHelp.findOne({ userid, fhbid }, '_id fhcode')
-    console.log(tmpFriendHelp)
     if (tmpFriendHelp) {
       ctx.body = { ok: true, msg: '已存在该书籍的好友助力', fhcode: tmpFriendHelp.fhcode }
     } else {
@@ -110,6 +109,69 @@ export default function(router) {
       ctx.body = { ok: true, msg: '接受好友助力成功' }
     } else {
       ctx.body = { ok: false, msg: '接受好友助力失败' }
+    }
+  })
+
+  // 小程序端获取好友助力信息
+  router.get('/api/friend_help/info', async (ctx, next) => {
+    let fhcode = ctx.request.query.fhcode
+    if (!fhcode) {
+      ctx.body = { ok: false, msg: '参数错误' }
+      return false
+    }
+    let friendHelp = await FriendHelp.findOne({ fhcode })
+    if (!friendHelp) {
+      ctx.body = { ok: false, msg: '找不到此好友助力信息' }
+    }
+    // 获取当前分享的用户信息
+    let user = await User.findById(friendHelp.userid, 'username avatar')
+    // 获取当前分享的书籍信息
+    let friendHelpBook = await FriendHelpBook.findById(friendHelp.fhbid).populate({
+      path: 'bookid',
+      select: '_id name img_url author'
+    })
+    let now = new Date()
+    let limitTime = friendHelpBook.limit_time > 0 ? parseInt(friendHelpBook.limit_time) : 0
+    let endDate = new Date(friendHelp.create_time.getTime() + limitTime * 24 * 60 * 60 * 1000)
+    ctx.body = {
+      ok: true,
+      msg: '获取好友助力信息成功',
+      data: {
+        userid: friendHelp.userid,
+        success: friendHelp.success,
+        has_finished: friendHelp.records.length,
+        create_time: friendHelp.create_time.getTime(),
+        left_time: tool.formatDuring(endDate.getTime() - now.getTime()),
+        book: {
+          need_num: friendHelpBook.need_num,
+          limit_time: friendHelpBook.limit_time,
+          name: friendHelpBook.bookid.name,
+          author: friendHelpBook.bookid.author,
+          img_url: friendHelpBook.bookid.img_url
+        },
+        user: {
+          username: user.username,
+          avatar: user.avatar
+        }
+      }
+    }
+  })
+
+  // 小程序端获取助力记录
+  router.get('/api/friend_help/records', async (ctx, next) => {
+    let fhcode = ctx.request.query.fhcode
+    if (!fhcode) {
+      ctx.body = { ok: false, msg: '参数错误' }
+      return false
+    }
+    let friendHelp = await FriendHelp.findOne({ fhcode })
+    if (!friendHelp) {
+      ctx.body = { ok: false, msg: '找不到此好友助力信息' }
+    }
+    ctx.body = {
+      ok: true,
+      msg: '获取好友助力信息成功',
+      lists: friendHelp.records
     }
   })
 }
