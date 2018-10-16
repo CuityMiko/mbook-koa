@@ -25,9 +25,20 @@ export default function(router) {
       ctx.body = { ok: false, msg: '来源错误' }
       return false
     }
-    // 检测当前用户是否已经对该书籍存在分享
-    let tmpFriendHelp = await FriendHelp.findOne({ userid, fhbid }, '_id fhcode')
+    // 检测当前用户是否已经对该书籍存在分享，并且该分享尚未完成
+    let tmpFriendHelp = await FriendHelp.findOne({ userid, fhbid }, '_id fhcode create_time').populate({
+      path: 'fhbid',
+      select: 'limit_time'
+    })
+    let isInvid = false
+    let now = new Date()
     if (tmpFriendHelp) {
+      let limitTime = tmpFriendHelp.create_time.getTime() + tmpFriendHelp.fhbid.limit_time * 24 * 60 * 60 * 1000
+      if (now.getTime() < limitTime) {
+        isInvid = true
+      }
+    }
+    if (tmpFriendHelp && isInvid) {
       ctx.body = { ok: true, msg: '已存在该书籍的好友助力', fhcode: tmpFriendHelp.fhcode }
     } else {
       // 创建friendHelp

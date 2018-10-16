@@ -267,14 +267,19 @@ export default function(router) {
       for (let i = 0; i < friendHelpBooks.length; i++) {
         findArr.push(
           new Promise((resolve, reject) => {
-            FriendHelp.findOne({ userid, fhbid: friendHelpBooks[i].id }, 'id success records', (err, res) => {
+            FriendHelp.findOne({ userid, fhbid: friendHelpBooks[i].id }, 'id success records create_time', { sort: { create_time: -1 } },(err, res) => {
               if (err) {
                 reject(err)
                 return false
               }
               if (res) {
-                newArray[i].success = res.success
-                newArray[i].left_num = friendHelpBooks[i].need_num - res.records.length
+                // 判断是否未过期，并且尚未完成助力
+                let now = new Date()
+                let limitTime = res.create_time.getTime() + friendHelpBooks[i].limit_time * 24 * 60 * 60 * 1000
+                if (res.success || (!res.success && now.getTime() < limitTime)) {
+                  newArray[i].success = res.success
+                  newArray[i].left_num = friendHelpBooks[i].need_num - res.records.length
+                }
               }
               resolve(true)
             })
