@@ -292,6 +292,23 @@ const isJsonString = str => {
   return false
 }
 
+const formatDuring = function(mss) {
+  let days = parseInt((mss % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60 * 24));
+  let hours = parseInt((mss % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  let minutes = parseInt((mss % (1000 * 60 * 60)) / (1000 * 60));
+  let seconds = (mss % (1000 * 60)) / 1000;
+  days = days < 0 ? '0' : days;
+  days = days < 10 ? ('0' + days) : days;
+  hours = hours < 0 ? '0' : hours;
+  hours = hours < 10 ? ('0' + hours) : hours;
+  minutes = minutes < 0 ? '0' : minutes;
+  minutes = minutes < 10 ? ('0' + minutes) : minutes;
+  seconds = seconds < 0 ? '0' : seconds;
+  seconds = seconds < 10 && seconds >= 1 ? ('0' + seconds) : seconds;
+  console.log(days, hours, minutes)
+  return  days + '天 ' + hours + "小时 " + minutes + "分";
+}
+
 module.exports = {
   formatTime: formatTime,
   formatTime2: formatTime2,
@@ -301,6 +318,7 @@ module.exports = {
   jsonToXml: jsonToXml,
   isEmpty: isEmpty,
   continueDays: continueDays,
+  formatDuring: formatDuring,
   chineseParseInt: chineseParseInt,
   isJsonString: isJsonString
 }

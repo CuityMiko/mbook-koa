@@ -2,16 +2,19 @@ import mongoose from 'mongoose'
 
 const FriendHelpSchema = new mongoose.Schema(
   {
-    fhbid: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    userid: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    fhbid: { type: mongoose.Schema.Types.ObjectId, ref: 'FriendHelpBook' },
     fhcode: String, // 裂变邀请码
-    accept_records: [
+    records: [
       {
+        uid: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         name: String, // 接受人名称
         avatar: String, // 接受人头像
-        accept_time: Date
+        time: Date
       }
     ],
     success: Boolean, // 是否成功发奖
+    source: String, // 来源统计，banner首页广告，book_detail书籍详情页，reader阅读页
     create_time: Date // 创建时间
   },
   { versionKey: false }

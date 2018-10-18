@@ -9,7 +9,7 @@ import { User, BookList, Pay, Share, Attendance, Award, Buy, Comment, FormId, Se
 import { checkUserToken, checkAdminToken } from '../utils'
 
 const secret = 'mbook' // token秘钥
-// console.log(jwt.sign({ userid: '5b8b4a5198d74821db4a45e4' }, secret, { expiresIn: '2h' }))
+// console.log(jwt.sign({ userid: '5b8412dd0248100a7c484374' }, secret, { expiresIn: '10h' }))
 // console.log(jwt.sign({ userid: '5a12728f9f292c17118aba74'}, secret, { expiresIn: '2h' }))
 // FormId.create({
 //   userid: '5b17b93b85054c0523685202',
