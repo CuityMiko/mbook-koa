@@ -262,7 +262,7 @@ export default function(router) {
     const userid = await checkAdminToken(ctx, next, 'theme_update')
     if (userid) {
       console.log('总书籍量', await Book.count());
-      let { page, limit, name } = ctx.request.query
+      let { page, limit, name, author } = ctx.request.query
       // format page and limit
       if (page) {
         page = parseInt(page)
@@ -279,7 +279,7 @@ export default function(router) {
       }
       const total = await Book.count({ name: new RegExp(name, 'i') })
       // query book
-      let books = await Book.find({ name: new RegExp(name, 'i') })
+      let books = await Book.find({ name: new RegExp(name, 'i'), author: new RegExp(author, 'i') })
         .sort({ hot_value: -1 })
         //.populate({
         //  path: 'chapters',

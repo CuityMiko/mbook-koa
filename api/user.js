@@ -51,6 +51,16 @@ function doRequest(url) {
   })
 }
 
+function updateLastLoginTime(userid) {
+  // 更新用户最近登录时间，并将登录次数加1
+  User.update({ _id: userid }, { $set: { last_login_time: new Date() }, $inc: { login_times: 1 } }, function(err, res) {
+    if (err) {
+      console.log('更新用户' + userid + ' 的最近登录时间失败', err)
+      return false
+    }
+  })
+}
+
 export default function(router) {
   router.post('/api/user/login', async (ctx, next) => {
     let { identity } = ctx.request.body
@@ -82,6 +92,7 @@ export default function(router) {
             expiresIn: '4h'
           })
           console.log('用户 ' + user._id + ' 于 ' + user.create_time.toDateString() + ' 登录')
+          updateLastLoginTime(user._id)
           const booklist = await BookList.findOne({ userid: user._id }, 'books')
           let allBooks = []
           if (booklist) {
@@ -192,6 +203,8 @@ export default function(router) {
                     expiresIn: '4h'
                   })
                   console.log('用户 ' + user._id + ' 于 ' + new Date().toDateString() + ' 登录后台管理系统')
+                  // 更新用户最近登录时间
+                  updateLastLoginTime(user._id)
                   ctx.body = {
                     ok: true,
                     msg: '登录成功',
@@ -267,7 +280,9 @@ export default function(router) {
               }
             },
             read_time: 0,
-            create_time: new Date()
+            create_time: new Date(),
+            last_login_time: new Date(),
+            login_times: 0
           })
           // 已注册，生成token并返回
           let userToken = {
@@ -282,6 +297,7 @@ export default function(router) {
             books: []
           })
           console.log('用户 ' + user._id + ' 于 ' + user.create_time.toDateString() + ' 注册, 并初始化书架')
+          updateLastLoginTime(user._id)
           // 创建分享记录
           const code = shortid.generate()
           let hisShareInfo = await Share.create({
@@ -318,7 +334,9 @@ export default function(router) {
           const token = jwt.sign(userToken, secret, {
             expiresIn: '4h'
           })
-          console.log('用户 ' + user._id + ' 于 ' + new Date().toDateString() + ' 登录')
+          console.log('用户 ' + isUserExit._id + ' 于 ' + new Date().toDateString() + ' 登录')
+          // 更新用户最近登录时间
+          updateLastLoginTime(isUserExit._id)
           const booklist = await BookList.findOne({ userid: isUserExit._id }, 'books')
           let allBooks = []
           if (booklist) {

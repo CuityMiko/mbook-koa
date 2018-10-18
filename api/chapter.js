@@ -95,7 +95,7 @@ export default function(router) {
         limit: 50
       }
     })
-    let total = (await Book.findById(bookid, 'chapters')).chapters.length;
+    let total = (await Book.findById(bookid, 'chapters')).chapters.length
     if (thisBook) {
       ctx.body = { ok: true, msg: '获取章节列表成功', data: thisBook, total }
     } else {
@@ -142,7 +142,7 @@ export default function(router) {
                     userid: await Buy.transId(userid),
                     amount: goodInfo.prise,
                     chapter: num,
-                    des: moment().format('YYYY-MM-DD hh:mm:ss') + ' 自动购买章节 ' + num,
+                    des: moment().format('YYYY-MM-DD HH:mm:ss') + ' 自动购买章节 ' + num,
                     create_time: new Date()
                   })
                   // 扣除用户书币
@@ -799,7 +799,7 @@ export default function(router) {
         userid: await Buy.transId(userid),
         amount: parseInt(thisGood.prise),
         chapter: chapter_num,
-        des: moment().format('YYYY-MM-DD hh:mm:ss') + ' 购买章节 ' + chapter_num,
+        des: moment().format('YYYY-MM-DD HH:mm:ss') + ' 购买章节 ' + chapter_num,
         create_time: new Date()
       })
       ctx.body = { ok: true, msg: '购买成功' }

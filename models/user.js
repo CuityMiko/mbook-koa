@@ -21,14 +21,16 @@ const UserSchema = new mongoose.Schema(
         fontFamily: String,
         bright: Number,
         mode: String, // 模式
-        overPage: 0, // 0表示左右翻页模式，1表示上下翻页模式
+        overPage: 0 // 0表示左右翻页模式，1表示上下翻页模式
       },
       autoBuy: { type: Boolean, default: true } // 是否自动购买下一章
     },
     is_active: Boolean, // 后台管理账号是否激活标志
     permission: [], // 后台管理系统权限配置字段
     read_time: { type: Number, default: 0 },
-    create_time: Date
+    create_time: Date,
+    last_login_time: Date, // 最近登录时间
+    login_times: { type: Number, default: 0 } // 登录次数
   },
   { versionKey: false }
 )
@@ -111,15 +113,17 @@ UserSchema.statics.sendMessage = async function(userid, type, data) {
         const thisFormId = await FormId.findOne({ userid }, 'formid')
         if (thisFormId) {
           if (type === 'accept') {
-            sendWxMessage(current.openid, 'P3vzJen2UH4JA_YKxCP9qgoYEyipzKno5AMap8VIyT0', '/pages/activities/share/share', thisFormId.formid, data).then(res => {
-              if (res.errcode === 0) {
-                resolve({ok: true, msg: '发送模板消息成功'})
-              } else {
-                reject({ ok: false, msg: res.errmsg })
-              }
-            }).catch(err => {
-              reject({ ok: false, msg: '发送模板消息失败', err })
-            })
+            sendWxMessage(current.openid, 'P3vzJen2UH4JA_YKxCP9qgoYEyipzKno5AMap8VIyT0', '/pages/activities/share/share', thisFormId.formid, data)
+              .then(res => {
+                if (res.errcode === 0) {
+                  resolve({ ok: true, msg: '发送模板消息成功' })
+                } else {
+                  reject({ ok: false, msg: res.errmsg })
+                }
+              })
+              .catch(err => {
+                reject({ ok: false, msg: '发送模板消息失败', err })
+              })
           } else if (type === 'secret') {
             // todo
           }
