@@ -39,7 +39,7 @@ export default function(router) {
       }
     }
     if (tmpFriendHelp && isInvid) {
-      ctx.body = { ok: true, msg: '已存在该书籍的好友助力', fhcode: tmpFrienfhcodedHelp., need_num: frieBook.need_num }
+      ctx.body = { ok: true, msg: '已存在该书籍的好友助力', fhcode: tmpFriendHelp.fhcode, need_num: friendHelpBook.need_num }
     } else {
       // 创建friendHelp
       let friendHelp = await FriendHelp.create({
@@ -51,7 +51,7 @@ export default function(router) {
         success: false,
         create_time: new Date()
       })
-      ctx.body = { ok: true, msg: '创建好友助力成功', fhcode: friendHelp.fhco, need_num: friendHelpBook.need_num }
+      ctx.body = { ok: true, msg: '创建好友助力成功', fhcode: friendHelp.fhcode, need_num: friendHelpBook.need_num }
     }
   })
 
