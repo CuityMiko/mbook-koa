@@ -72,6 +72,10 @@ export default function(router) {
       ctx.body = { ok: false, msg: '好友助力已经完成' }
       return false
     }
+    if (friendHelp.userid.toString() === userid) {
+      ctx.body = { ok: false, msg: '自己不能给自己助力' }
+      return false
+    }
     // 检验是否已经接受助力了
     let hasAccept = friendHelp.records.some(item => {
       return item.uid.toString() === userid

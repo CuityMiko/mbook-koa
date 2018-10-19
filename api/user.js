@@ -9,7 +9,7 @@ import { User, BookList, Pay, Share, Attendance, Award, Buy, Comment, FormId, Se
 import { checkUserToken, checkAdminToken } from '../utils'
 
 const secret = 'mbook' // token秘钥
-// console.log(jwt.sign({ userid: '5b8412dd0248100a7c484374' }, secret, { expiresIn: '10h' }))
+// console.log(jwt.sign({ userid: '5b852fc00bc7fa0ce5c4b5e4' }, secret, { expiresIn: '10h' }))
 // console.log(jwt.sign({ userid: '5a12728f9f292c17118aba74'}, secret, { expiresIn: '2h' }))
 // FormId.create({
 //   userid: '5b17b93b85054c0523685202',
@@ -142,7 +142,7 @@ export default function(router) {
             totalAwardNum += item.amount
           })
           // 获取设置中的分享设置
-          const globalSetting = await Setting.getSetting('share|wxcode|index_dialog|charge_tips|secret_tips|shut_check|shut_charge_tips')
+          const globalSetting = await Setting.getSetting('share|wxcode|index_dialog|charge_tips|secret_tips|shut_check|shut_charge_tips|fixed_button|friend_help_share')
           ctx.body = {
             ok: true,
             msg: '登录成功',
@@ -309,7 +309,7 @@ export default function(router) {
             create_time: new Date()
           })
           // 获取设置中的分享设置
-          const globalSetting = await Setting.getSetting('share|wxcode|index_dialog|charge_tips|secret_tips|shut_check|shut_charge_tips')
+          const globalSetting = await Setting.getSetting('share|wxcode|index_dialog|charge_tips|secret_tips|shut_check|shut_charge_tips|fixed_button|friend_help_share')
           ctx.body = {
             ok: true,
             msg: '注册成功',
@@ -386,7 +386,7 @@ export default function(router) {
             totalAwardNum += item.amount
           })
           // 获取设置中的分享设置
-          const globalSetting = await Setting.getSetting('share|wxcode|index_dialog|charge_tips|secret_tips|shut_check|shut_charge_tips')
+          const globalSetting = await Setting.getSetting('share|wxcode|index_dialog|charge_tips|secret_tips|shut_check|shut_charge_tips|fixed_button|friend_help_share')
           ctx.body = {
             ok: true,
             msg: '登录成功',
