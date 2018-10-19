@@ -179,10 +179,18 @@ export default function(router) {
     if (!friendHelp) {
       ctx.body = { ok: false, msg: '找不到此好友助力信息' }
     }
+    let arr = []
+    friendHelp.records.forEach(item => {
+      arr.push({
+        name: item.name,
+        avatar: item.avatar,
+        time: tool.formatTime2(item.time)
+      })
+    })
     ctx.body = {
       ok: true,
       msg: '获取好友助力信息成功',
-      lists: friendHelp.records
+      lists: arr
     }
   })
 }
