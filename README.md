@@ -158,3 +158,8 @@ sudo vi /etc/redis/redis.conf
 # 修改ip为0.0.0.0， 修改requirepass后面的值为你设置的密码
 sudo service redis-server restart
 ```
+
+### 命令行连接mongo的命令
+```
+mongo 127.0.0.1/admin -u admin -p
+```

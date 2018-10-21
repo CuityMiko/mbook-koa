@@ -48,7 +48,7 @@ export default function(router) {
     if (!(await checkAdminToken(ctx, next, 'friend_help_book_list'))) {
       return false
     }
-    let { page, limit } = ctx.request.query
+    let { page, limit, name } = ctx.request.query
     if (page) {
       page = parseInt(page)
       if (page < 1) {
@@ -65,16 +65,81 @@ export default function(router) {
     } else {
       limit = 10
     }
-    let allFriendHelpBookNum = await FriendHelpBook.count()
-    let friendHelpBooks = await FriendHelpBook.find()
-      .populate({
-        path: 'bookid',
-        select: '_id name img_url author'
+    // 如果需要根据书籍指定书籍名称查询
+    if (name) {
+      const reg = new RegExp(name, 'i')
+      let result = await Book.find(
+        {
+          $or: [{ name: reg }, { author: reg }]
+        },
+        '_id name author img_url classification'
+      ).sort({ create_time: -1 })
+      let allPromise = []
+      // 执行异步查询操作
+      result.forEach(item => {
+        allPromise.push(
+          new Promise((resolve, reject) => {
+            FriendHelpBook.findOne({ bookid: item._id }, (err, res) => {
+              if (err) {
+                reject(err)
+              } else {
+                // 如果查到了好友助力书籍，需要附件书籍的额外信息
+                if (res) {
+                  let obj = {}
+                  obj.need_num = res.need_num
+                  obj.limit_time = res.limit_time
+                  obj.index = res.index
+                  obj.create_time = res.create_time
+                  obj.bookid = {
+                    _id: item._id,
+                    name: item.name,
+                    img_url: item.img_url,
+                    author: item.author,
+                    classification: item.classification
+                  }
+                  resolve(obj)
+                } else {
+                  resolve(res)
+                }
+              }
+            })
+          })
+        )
       })
-      .sort({ index: 1, create_time: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit)
-    ctx.body = { ok: true, msg: '获取好友助力书籍成功', total: allFriendHelpBookNum, list: friendHelpBooks }
+      return new Promise((resolve, reject) => {
+        Promise.all(allPromise)
+          .then(res => {
+            // 排除res中查询为空的项
+            res = res.filter(item => {
+              return !!item
+            })
+            // 排序
+            res.sort((item1, item2) => {
+              return item1.index - item2.index
+            })
+            let total = res.length
+            // 根据page和limit截取数组
+            res = res.slice((page - 1) * limit, page * limit)
+            ctx.body = { ok: true, total: total, list: res, msg: '获取好友助力书籍成功' }
+            resolve(true)
+          })
+          .catch(err => {
+            ctx.body = { ok: false, msg: '获取好友助力书籍失败', err: err }
+            resolve(true)
+          })
+      })
+    } else {
+      let allFriendHelpBookNum = await FriendHelpBook.count()
+      let friendHelpBooks = await FriendHelpBook.find()
+        .populate({
+          path: 'bookid',
+          select: '_id name author img_url classification'
+        })
+        .sort({ index: 1, create_time: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+      ctx.body = { ok: true, msg: '获取好友助力书籍成功', total: allFriendHelpBookNum, list: friendHelpBooks }
+    }
   })
 
   router.put('/api/friend_help_book/:id', async (ctx, next) => {
@@ -267,7 +332,7 @@ export default function(router) {
       for (let i = 0; i < friendHelpBooks.length; i++) {
         findArr.push(
           new Promise((resolve, reject) => {
-            FriendHelp.findOne({ userid, fhbid: friendHelpBooks[i].id }, 'id success records create_time', { sort: { create_time: -1 } },(err, res) => {
+            FriendHelp.findOne({ userid, fhbid: friendHelpBooks[i].id }, 'id success records create_time', { sort: { create_time: -1 } }, (err, res) => {
               if (err) {
                 reject(err)
                 return false
