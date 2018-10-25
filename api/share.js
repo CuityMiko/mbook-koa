@@ -73,7 +73,7 @@ export default function(router) {
     let userid = await checkUserToken(ctx, next)
     if (userid) {
       const shareId = ctx.request.query.share_id
-      const reg = /^[A-Za-z0-9-]+_\d+$/
+      const reg = /^[A-Za-z0-9-_]+\|\d+$/
       if (shareId && reg.test(shareId)) {
         const code = shareId.split('|')[0]
         const time = new Date(parseInt(shareId.split('|')[1]))
