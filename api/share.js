@@ -75,8 +75,8 @@ export default function(router) {
       const shareId = ctx.request.query.share_id
       const reg = /^[A-Za-z0-9-]+_\d+$/
       if (shareId && reg.test(shareId)) {
-        const code = shareId.split('_')[0]
-        const time = new Date(parseInt(shareId.split('_')[1]))
+        const code = shareId.split('|')[0]
+        const time = new Date(parseInt(shareId.split('|')[1]))
         const thisShareLog = await Share.findOne({ code })
         if (thisShareLog) {
           // 限制自己不能邀请自己

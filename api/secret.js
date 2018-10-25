@@ -145,12 +145,12 @@ export default function(router) {
       }
       const secretReg = /^[A-Za-z0-9_\-]{7,14}$/
       if (!secretReg.test(secret)) {
-        ctx.body = { ok: false, msg: '秘钥错误' }
+        ctx.body = { ok: false, msg: '粉丝凭证错误' }
         return false
       }
       const thisBook2 = await Book.findOne({ _id: bookid, secret }, '_id')
       if (!thisBook2) {
-        ctx.body = { ok: false, msg: '秘钥错误' }
+        ctx.body = { ok: false, msg: '粉丝凭证错误' }
         return false
       }
       const thisSecret = await Secret.create({
