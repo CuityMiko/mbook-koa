@@ -106,38 +106,35 @@ UserSchema.statics.reduceAmount = async function(userid, num) {
  */
 UserSchema.statics.sendMessage = async function(userid, type, data) {
   return new Promise(async (resolve, reject) => {
-    if (userid && type && data) {
-      let current = await this.findById(userid, 'openid')
-      if (current) {
-        // 查找user的formId
-        const thisFormId = await FormId.findOne({ userid }, 'formid')
-        if (thisFormId) {
-          if (type === 'accept') {
-            sendWxMessage(current.openid, 'P3vzJen2UH4JA_YKxCP9qgoYEyipzKno5AMap8VIyT0', '/pages/activities/share/share', thisFormId.formid, data)
-              .then(res => {
-                if (res.errcode === 0) {
-                  resolve({ ok: true, msg: '发送模板消息成功' })
-                } else {
-                  reject({ ok: false, msg: res.errmsg })
-                }
-              })
-              .catch(err => {
-                reject({ ok: false, msg: '发送模板消息失败', err })
-              })
-          } else if (type === 'secret') {
-            // todo
-          }
-        } else {
-          // formId不存在
-          reject({ ok: false, msg: 'formId不存在' })
-        }
-      } else {
-        // 用户不存在
-        reject({ ok: false, msg: '用户不存在' })
-      }
-    } else {
-      // 参数错误
+    if(!(userid && type && data)) {
       reject({ ok: false, msg: '参数错误' })
+      return false
+    }
+    let current = await this.findById(userid, 'openid')
+    if(!current) {
+      reject({ ok: false, msg: '用户不存在' })
+      return false;
+    }
+    // 查找user的formId
+    const thisFormId = await FormId.findOne({ userid }, 'formid')
+    if (!thisFormId) {
+      // formId不存在
+      reject({ ok: false, msg: 'formId不存在' })
+    }
+    if (type === 'accept') {
+      sendWxMessage(current.openid, 'P3vzJen2UH4JA_YKxCP9qgoYEyipzKno5AMap8VIyT0', '/pages/activities/share/share', thisFormId.formid, data)
+        .then(res => {
+          if (res.errcode === 0) {
+            resolve({ ok: true, msg: '发送模板消息成功' })
+          } else {
+            reject({ ok: false, msg: res.errmsg })
+          }
+        })
+        .catch(err => {
+          reject({ ok: false, msg: '发送模板消息失败', err })
+        })
+    } else if (type === 'secret') {
+      // todo
     }
   })
 }
