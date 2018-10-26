@@ -158,3 +158,19 @@ sudo vi /etc/redis/redis.conf
 # 修改ip为0.0.0.0， 修改requirepass后面的值为你设置的密码
 sudo service redis-server restart
 ```
+
+### 命令行连接mongo的命令
+```
+mongo 127.0.0.1/admin -u admin -p
+```
+
+### 服务器迁移
+```
+# A服务器打包
+sudo mongodump -h localhost:27017 -d mbook-new -u mbook -p 121960425mbook -o ./
+# 直接全量恢复B服务器的数据库
+sudo mongorestore -h 118.24.94.40:27017 -d mbook-new -u mbook -p 121960425mbook mbook-new/ --drop
+# 打包导出的数据
+sudo tar -cvf mbook-new.tar.gz mbook-new/
+
+```
