@@ -1,21 +1,21 @@
 const Koa = require('koa')
 const app = new Koa()
-const path = require('path')
 const views = require('koa-views')
 const json = require('koa-json')
 const onerror = require('koa-onerror')
 const bodyparser = require('koa-bodyparser')
-const jwt = require('jsonwebtoken')
 const jwtKoa = require('koa-jwt')
 const logger = require('koa-logger')
-const restc = require('restc')
 const cors = require('koa2-cors')
 const noAuthPathArr = require('./config/noauth')
 const index = require('./routes/index')
 const schedule = require('./bin/shedule')
-const createAdmin = require('./bin/createAdmin')
-const addUserSetting = require('./bin/addUserSetting')
+// const createAdmin = require('./bin/createAdmin')
+// const addUserSetting = require('./bin/addUserSetting')
+const Sentry = require('@sentry/node');
 const secret = 'mbook'
+// 安装日志上传工具
+Sentry.init({ dsn: 'https://b16f63d122694fa3b607a81c285fb900@sentry.io/1310873' })
 // error handler
 onerror(app)
 schedule.run()
@@ -61,7 +61,14 @@ app.use(index.routes(), index.allowedMethods())
 
 // error-handling
 app.on('error', (err, ctx) => {
-  console.error('server error', err, ctx)
+  console.error('server error', err)
+  // 上传错误日志
+  Sentry.configureScope((scope) => {
+    scope.setExtra("context", ctx);
+  });
+  Sentry.captureException(err, function(err, eventId) {
+    console.log('Reported error ' + eventId)
+  })
 })
 
 module.exports = app

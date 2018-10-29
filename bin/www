@@ -6,7 +6,6 @@ var http = require('http')
 var mongoose = require('mongoose')
 var config = require('../config/index')
 var server = null
-
 var port = normalizePort(config.port || '3000')
 
 async function connectMongo() {
@@ -17,7 +16,7 @@ async function connectMongo() {
     {
       user: config.mongo_user,
       pass: config.mongo_pass,
-      auth: { authdb: config.mongo_dbname,    authMechanism: 'MONGODB-CR' },
+      auth: { authdb: config.mongo_dbname, authMechanism: 'MONGODB-CR' },
       useMongoClient: true
     }
   )

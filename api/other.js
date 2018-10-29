@@ -61,8 +61,8 @@ export default function(router) {
     // const canvas = new Canvas(300, 120) // 按照微信官方要求，长宽比5:4
     // const context = canvas.getContext('2d')
     // ctx.font = '14px "Microsoft YaHei"' // 统一使用微软雅黑字体
-    const canvas = null;
-    const context = null;
+    const canvas = null
+    const context = null
     let thisBook = null
     switch (share_type) {
       case 'chapter':
