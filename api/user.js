@@ -6,38 +6,9 @@ import config from '../config'
 import moment from 'moment'
 import shortid from 'shortid'
 import { User, BookList, Pay, Share, Attendance, Award, Buy, Comment, FormId, Setting } from '../models'
-import { checkUserToken, checkAdminToken } from '../utils'
+import { checkUserToken, checkAdminToken, debug } from '../utils'
 
 const secret = 'mbook' // token秘钥
-// console.log(jwt.sign({ userid: '5b852fc00bc7fa0ce5c4b5e4' }, secret, { expiresIn: '10h' }))
-// console.log(jwt.sign({ userid: '5a12728f9f292c17118aba74'}, secret, { expiresIn: '2h' }))
-// FormId.create({
-//   userid: '5b17b93b85054c0523685202',
-//   formid: (new Date()).getTime(),
-//   create_time: new Date()
-// })
-// User.sendMessage('5b17b93b85054c0523685202', 'accept', {
-//   keyword1: {
-//     value: '测试用户1'
-//   },
-//   keyword2: {
-//     value: '您的好友--测试用户1已经接受您的阅读邀请，您获得15书币'
-//   },
-//   keyword3: {
-//     value: '2018-06-20 21:59:00'
-//   }
-// })
-//   .then(res => {
-//     if (res.ok) {
-//       console.log('message was send successfully!')
-//     } else {
-//       console.log(res.msg)
-//     }
-//   })
-//   .catch(err => {
-//     console.log(err)
-//     console.log('message was send failed!')
-//   })
 
 function doRequest(url) {
   return new Promise((resolve, reject) => {
@@ -45,6 +16,7 @@ function doRequest(url) {
       if (!error && response.statusCode == 200) {
         resolve(JSON.parse(body))
       } else {
+        debug('请求微信接口失败', { url, err: error })
         reject(error || body)
       }
     })
@@ -55,7 +27,7 @@ function updateLastLoginTime(userid) {
   // 更新用户最近登录时间，并将登录次数加1
   User.update({ _id: userid }, { $set: { last_login_time: new Date() }, $inc: { login_times: 1 } }, function(err, res) {
     if (err) {
-      console.log('更新用户' + userid + ' 的最近登录时间失败', err)
+      debug('更新用户最近登录时间失败', { userid, err })
       return false
     }
   })
@@ -184,59 +156,71 @@ export default function(router) {
     } else if (identity === 2) {
       let { username, password } = ctx.request.body
       // 系统管理员登录
-      if (username) {
-        if (password) {
-          let user = await User.findOne({ username: username, identity: identity })
-          if (user) {
-            // 检查密码的合法性
-            if (user.is_active) {
-              user.checkPassword(password, (err, isCorrect) => {
-                if (err) {
-                  ctx.body = { ok: false, msg: '密码错误' }
-                  return
-                }
-                if (isCorrect) {
-                  // 产生token
-                  let userToken = { userid: user._id, identity: identity }
-                  //token签名 有效期为2小时
-                  const token = jwt.sign(userToken, secret, {
-                    expiresIn: '4h'
-                  })
-                  console.log('用户 ' + user._id + ' 于 ' + new Date().toDateString() + ' 登录后台管理系统')
-                  // 更新用户最近登录时间
-                  updateLastLoginTime(user._id)
-                  ctx.body = {
-                    ok: true,
-                    msg: '登录成功',
-                    token: token,
-                    userinfo: {
-                      username: user.username,
-                      avatar: user.avatar
-                    }
-                  }
-                } else {
-                  ctx.body = { ok: false, msg: '密码错误' }
-                }
-              })
-            } else {
-              ctx.body = { ok: false, msg: '账号未激活，请联系管理员' }
-            }
-          } else {
-            ctx.body = { ok: false, msg: '暂无此账户，请联系管理员' }
-          }
-        } else {
-          ctx.body = {
-            ok: false,
-            msg: '缺乏password参数'
-          }
-        }
-      } else {
+      if (!username) {
+        debug('登录参数错误', { identity, username })
         ctx.body = {
           ok: false,
           msg: '缺乏username参数'
         }
+        return false
       }
+
+      if (!password) {
+        debug('登录参数错误', { identity, username, password })
+        ctx.body = {
+          ok: false,
+          msg: '缺乏password参数'
+        }
+        return false
+      }
+
+      let user = await User.findOne({ username: username, identity: identity })
+      if (!user) {
+        debug('管理员登录失败，账号错误', { identity, username, password })
+        ctx.body = { ok: false, msg: '暂无此账户，请联系管理员' }
+        return false
+      }
+
+      // 检查密码的合法性
+      if (!user.is_active) {
+        debug('管理员登录失败，账号未激活，请联系管理员', { identity, username, password })
+        ctx.body = { ok: false, msg: '账号未激活，请联系管理员' }
+        return false;
+      }
+
+      // 检测密码正确性
+      user.checkPassword(password, (err, isCorrect) => {
+        if (err) {
+          debug('管理员登录失败，密码校验失败', { identity, username, password })
+          ctx.body = { ok: false, msg: '密码错误' }
+          return false;
+        }
+        if (isCorrect) {
+          // 产生token
+          let userToken = { userid: user._id, identity: identity }
+          //token签名 有效期为2小时
+          const token = jwt.sign(userToken, secret, {
+            expiresIn: '4h'
+          })
+          debug('用户 ' + user._id + ' 于 ' + new Date().toDateString() + ' 登录后台管理系统', '')
+          // 更新用户最近登录时间
+          updateLastLoginTime(user._id)
+          ctx.body = {
+            ok: true,
+            msg: '登录成功',
+            token: token,
+            userinfo: {
+              username: user.username,
+              avatar: user.avatar
+            }
+          }
+        } else {
+          debug('管理员登录失败，密码错误', { identity, username, password })
+          ctx.body = { ok: false, msg: '密码错误' }
+        }
+      })
     } else {
+      debug('登录参数错误', { identity })
       ctx.body = {
         ok: false,
         msg: '缺少identity参数'

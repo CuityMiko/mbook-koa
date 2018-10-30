@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt-nodejs'
 import { Award } from './award'
 import { FormId } from './formid'
 import { sendWxMessage } from '../utils/wxCode'
+import { debug } from '../utils'
 const SALT_WORK_FACTOR = 10
 
 const UserSchema = new mongoose.Schema(
@@ -47,8 +48,6 @@ UserSchema.statics.addAmount = async function(userid, num, des) {
     let current = await this.findById(userid)
     if (current) {
       let updateResult = await this.update({ _id: userid }, { $set: { amount: parseInt(current.amount + num) } })
-        .sort({ priority: -1 })
-        .limit(3)
       // 新奖励记录
       const awardLog = await Award.create({
         userid: await Award.transId(userid),
@@ -59,12 +58,15 @@ UserSchema.statics.addAmount = async function(userid, num, des) {
       if (updateResult.ok == 1 && updateResult.nModified == 1) {
         return true
       } else {
+        debug('发放书币时更新失败', { userid, num, err: updateResult })
         return false
       }
     } else {
+      debug('发放书币时找不到此用户', { userid, num })
       return false
     }
   } else {
+    debug('发放书币时参数错误', { userid, num })
     return false
   }
 }
@@ -81,20 +83,22 @@ UserSchema.statics.reduceAmount = async function(userid, num) {
       let amount = parseInt(current.amount - num)
       if (amount >= 0) {
         let updateResult = await this.update({ _id: userid }, { $set: { amount: amount } })
-          .sort({ priority: -1 })
-          .limit(3)
         if (updateResult.ok == 1 && updateResult.nModified == 1) {
           return true
         } else {
+          debug('扣除书币时更新失败', { userid, num, err: updateResult })
           return false
         }
       } else {
+        debug('扣除书币时书币不足', { userid, num, amount: current.amount })
         return false
       }
     } else {
+      debug('扣除书币时用户不存在', { userid, num })
       return false
     }
   } else {
+    debug('扣除书币时参数错误', { userid, num })
     return false
   }
 }
@@ -107,11 +111,13 @@ UserSchema.statics.reduceAmount = async function(userid, num) {
 UserSchema.statics.sendMessage = async function(userid, type, data) {
   return new Promise(async (resolve, reject) => {
     if(!(userid && type && data)) {
+      debug('发送模板消息时参数错误', { userid, type, data })
       reject({ ok: false, msg: '参数错误' })
       return false
     }
     let current = await this.findById(userid, 'openid')
     if(!current) {
+      debug('发送模板消息时找不到此用户', { userid, type, data })
       reject({ ok: false, msg: '用户不存在' })
       return false;
     }
@@ -119,6 +125,7 @@ UserSchema.statics.sendMessage = async function(userid, type, data) {
     const thisFormId = await FormId.findOne({ userid }, 'formid')
     if (!thisFormId) {
       // formId不存在
+      debug('发送模板消息时找不到此用户对应的formId', { userid, type, data })
       reject({ ok: false, msg: 'formId不存在' })
     }
     if (type === 'accept') {
@@ -127,10 +134,12 @@ UserSchema.statics.sendMessage = async function(userid, type, data) {
           if (res.errcode === 0) {
             resolve({ ok: true, msg: '发送模板消息成功' })
           } else {
+            debug('发送模板消息失败', res)
             reject({ ok: false, msg: res.errmsg })
           }
         })
         .catch(err => {
+          debug('发送模板消息失败', err)
           reject({ ok: false, msg: '发送模板消息失败', err })
         })
     } else if (type === 'secret') {

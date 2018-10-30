@@ -2,7 +2,7 @@ import crypto from 'crypto'
 import fs from 'fs'
 import path from 'path'
 import config from '../config'
-import { tool } from '../utils'
+import { tool, debug } from '../utils'
 
 // 初始化微信支付
 const WeiXinPay = require('./weixin-pay/index')

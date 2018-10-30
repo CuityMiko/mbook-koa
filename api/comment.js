@@ -1,7 +1,7 @@
 import { Book, BookList, User, Comment } from '../models'
 import { checkUserToken, tool } from '../utils'
 
-export default function(router) {
+export default function (router) {
   router.post('/api/comment/add', async (ctx, next) => {
     // 解析jwt，取出userid查询booklist表，判断是否已经加入了书架
     let userid = await checkUserToken(ctx, next)
@@ -110,12 +110,12 @@ export default function(router) {
         // 对于每个根评论去获取他的子评论
         for (let i = 0; i < result.length; i++) {
           let allChildComments = []
-          let findChildAndSon = async function(commentid, username, userid) {
+          let findChildAndSon = async function (commentid, username, userid) {
             let childComments = await Comment.find({ bookid: bookid, father: commentid })
               .populate('userid')
               .sort({ create_time: 1 })
             let childCommentsToSave = []
-            childComments.forEach(function(childItem) {
+            childComments.forEach(function (childItem) {
               childCommentsToSave.push({
                 id: childItem._id,
                 userid: childItem.userid._id,

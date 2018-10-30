@@ -10,12 +10,10 @@ const cors = require('koa2-cors')
 const noAuthPathArr = require('./config/noauth')
 const index = require('./routes/index')
 const schedule = require('./bin/shedule')
+const { debug } = require('./utils')
 // const createAdmin = require('./bin/createAdmin')
 // const addUserSetting = require('./bin/addUserSetting')
-const Sentry = require('@sentry/node');
 const secret = 'mbook'
-// 安装日志上传工具
-Sentry.init({ dsn: 'https://b16f63d122694fa3b607a81c285fb900@sentry.io/1310873' })
 // error handler
 onerror(app)
 schedule.run()
@@ -51,6 +49,9 @@ app.use(async (ctx, next) => {
   await next()
   const ms = new Date() - start
   console.log(`${ctx.method} ${ctx.url} - ${ms}ms`)
+  if (ctx.response && !ctx.response.body) {
+    debug('Return', ctx.response.body)
+  }
 })
 
 // cross
@@ -62,13 +63,6 @@ app.use(index.routes(), index.allowedMethods())
 // error-handling
 app.on('error', (err, ctx) => {
   console.error('server error', err)
-  // 上传错误日志
-  Sentry.configureScope((scope) => {
-    scope.setExtra("context", ctx);
-  });
-  Sentry.captureException(err, function(err, eventId) {
-    console.log('Reported error ' + eventId)
-  })
 })
 
 module.exports = app

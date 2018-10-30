@@ -1,5 +1,5 @@
-import { checkAdminToken, checkUserToken, tool } from '../utils'
-import { Share, User, Setting } from '../models'
+import { checkUserToken, reportError, debug } from '../utils'
+import { Share, User } from '../models'
 import shortid from 'shortid'
 import moment from 'moment'
 
@@ -155,13 +155,13 @@ export default function(router) {
                       if (res.ok) {
                         console.log('消息发送成功!')
                       } else {
-                        console.error(res.msg)
-                        console.err('消息发送失败!')
+                        debug('消息发送失败', res.msg)
+                        reportError(res.msg, { extra: { context: ctx } })
                       }
                     })
                     .catch(err => {
-                      console.err(err)
-                      console.err('消息发送失败!')
+                      debug('消息发送失败', err)
+                      reportError(err, { extra: { context: ctx } })
                     })
                   ctx.body = { ok: true, msg: '成功接受邀请，奖励已发放' }
                 } else {

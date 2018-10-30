@@ -6,6 +6,7 @@ const path = require('path')
 const qn = require('qn')
 const config = require('../config')
 const sign = require('./wxSign')
+const { debug } = require('./report-error')
 
 const redis = new Redis({
   port: config.redis_port, // Redis port
@@ -37,7 +38,7 @@ async function getWxToken(noredis) {
       redis.set('wxToken', newToken.access_token, 'EX', 2 * 60 * 60)
       return newToken.access_token
     } else {
-      console.error('获取token失败')
+      debug('获取token失败')
       return ''
     }
   }
@@ -58,6 +59,13 @@ async function requestWxToken() {
       },
       (error, response, body) => {
         if (error) {
+          debug('接口地址', 'https://api.weixin.qq.com/cgi-bin/token')
+          debug('接口请求参数', {
+            grant_type: 'client_credential',
+            appid: config.wx_appid,
+            secret: config.wx_secret
+          })
+          debug('微信接口请求失败', error)
           reject(error)
           return
         }
@@ -91,6 +99,16 @@ async function requestWxCode(shareId) {
       },
       (error, response, body) => {
         if (error) {
+          debug('接口地址', 'https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token=' + token)
+          debug('接口请求参数', {
+            scene: shareId,
+            path: 'pages/loading/loading',
+            width: 430,
+            auto_color: false,
+            line_color: { r: '0', g: '0', b: '0' },
+            is_hyaline: false
+          })
+          debug('微信接口请求失败', error)
           reject(error)
           return
         }
@@ -98,6 +116,7 @@ async function requestWxCode(shareId) {
         // 上传到七牛云
         client.upload(image, { key: 'mbook/share/' + shareId + '.jpeg' }, function(uploadError, result) {
           if (uploadError) {
+            debug('图片上传七牛云失败', uploadError)
             reject(uploadError)
             return
           }
@@ -125,7 +144,7 @@ async function getTicket() {
       redis.set('wxToken', newTicket.ticket, 'EX', 2 * 60 * 60)
       return newTicket.ticket
     } else {
-      console.error('获取ticket失败')
+      debug('获取ticket失败')
       return ''
     }
   }
@@ -146,6 +165,8 @@ async function requestWxTicket(url) {
       },
       (error, response, body) => {
         if (error) {
+          debug('接口地址', 'https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=' + token + '&type=jsapi')
+          debug('微信接口请求失败', error)
           reject(error)
           return
         }
@@ -166,7 +187,12 @@ async function signTicket() {
 // 发送微信模板消息
 async function sendWxMessage(openid, templateId, page, formId, data) {
   const token = await getWxToken()
-  console.log(token, openid, templateId, page, formId, data)
+  debug('请求token', token)
+  debug('用户opendid', openid)
+  debug('模板id', templateId)
+  debug('消息跳转页面', page)
+  debug('微信formId', formId)
+  debug('消息', data)
   return new Promise((resolve, reject) => {
     // 请求方式以及参数说明见https://developers.weixin.qq.com/miniprogram/dev/api/qrcode.html
     request(
@@ -187,6 +213,8 @@ async function sendWxMessage(openid, templateId, page, formId, data) {
       },
       (error, response, body) => {
         if (error) {
+          debug('接口地址', 'https://api.weixin.qq.com/cgi-bin/message/wxopen/template/send?access_token=' + token + '&type=jsapi')
+          debug('微信接口请求失败', error)
           reject(error)
           return
         }
