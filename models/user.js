@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt-nodejs'
 import { Award } from './award'
 import { FormId } from './formid'
 import { sendWxMessage } from '../utils/wxCode'
-import { debug } from '../utils'
+import { debug, reportError } from '../utils'
 const SALT_WORK_FACTOR = 10
 
 const UserSchema = new mongoose.Schema(
@@ -110,16 +110,16 @@ UserSchema.statics.reduceAmount = async function(userid, num) {
  */
 UserSchema.statics.sendMessage = async function(userid, type, data) {
   return new Promise(async (resolve, reject) => {
-    if(!(userid && type && data)) {
+    if (!(userid && type && data)) {
       debug('发送模板消息时参数错误', { userid, type, data })
       reject({ ok: false, msg: '参数错误' })
       return false
     }
     let current = await this.findById(userid, 'openid')
-    if(!current) {
+    if (!current) {
       debug('发送模板消息时找不到此用户', { userid, type, data })
       reject({ ok: false, msg: '用户不存在' })
-      return false;
+      return false
     }
     // 查找user的formId
     const thisFormId = await FormId.findOne({ userid }, 'formid')
@@ -134,12 +134,16 @@ UserSchema.statics.sendMessage = async function(userid, type, data) {
           if (res.errcode === 0) {
             resolve({ ok: true, msg: '发送模板消息成功' })
           } else {
-            debug('发送模板消息失败', res)
+            reportError('发送模板消息失败', {
+              extra: {
+                res,
+                params: {}
+              }
+            })
             reject({ ok: false, msg: res.errmsg })
           }
         })
         .catch(err => {
-          debug('发送模板消息失败', err)
           reject({ ok: false, msg: '发送模板消息失败', err })
         })
     } else if (type === 'secret') {

@@ -156,12 +156,11 @@ export default function(router) {
                         console.log('消息发送成功!')
                       } else {
                         debug('消息发送失败', res.msg)
-                        reportError(res.msg, { extra: { context: ctx } })
+                        reportError('消息发送失败', { extra: { context: ctx } })
                       }
                     })
                     .catch(err => {
                       debug('消息发送失败', err)
-                      reportError(err, { extra: { context: ctx } })
                     })
                   ctx.body = { ok: true, msg: '成功接受邀请，奖励已发放' }
                 } else {

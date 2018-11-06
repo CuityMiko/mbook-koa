@@ -6,31 +6,75 @@ import config from '../config'
 import moment from 'moment'
 import shortid from 'shortid'
 import { User, BookList, Pay, Share, Attendance, Award, Buy, Comment, FormId, Setting } from '../models'
-import { checkUserToken, checkAdminToken, debug } from '../utils'
+import { checkUserToken, checkAdminToken, reportError } from '../utils'
 
 const secret = 'mbook' // token秘钥
 
+/**
+ * 发送GET请求
+ * @param {*} url 请求接口地址
+ */
 function doRequest(url) {
   return new Promise((resolve, reject) => {
     request(url, function(error, response, body) {
       if (!error && response.statusCode == 200) {
         resolve(JSON.parse(body))
       } else {
-        debug('请求微信接口失败', { url, err: error })
+        reportError(`请求接口${url}失败`, {
+          extra: {
+            debug: { url, err: error }
+          }
+        })
         reject(error || body)
       }
     })
   })
 }
 
+/**
+ * 更新用户登录时间和登录次数
+ * @param {*} userid 用户ID
+ */
 function updateLastLoginTime(userid) {
   // 更新用户最近登录时间，并将登录次数加1
   User.update({ _id: userid }, { $set: { last_login_time: new Date() }, $inc: { login_times: 1 } }, function(err, res) {
     if (err) {
-      debug('更新用户最近登录时间失败', { userid, err })
+      reportError(`更新用户最近登录时间失败`, {
+        extra: {
+          debug: { userid, err }
+        }
+      })
       return false
     }
   })
+}
+
+/**
+ * 初始化用户书架
+ * @param {*} userid 用户ID
+ */
+function initUserBooklist(userid) {
+  BookList.create(
+    {
+      userid: user.id,
+      books: []
+    },
+    (err, res) => {
+      if (err) {
+        reportError(`初始化用户书架失败`, {
+          extra: {
+            debug: { userid, err }
+          }
+        })
+        return false
+      }
+    }
+  )
+}
+
+async function getGlobalSetting() {
+  let items = ['share', 'wxcode', 'index_dialog', 'charge_tips', 'secret_tips', 'shut_check', 'shut_charge_tips', 'fixed_button', 'friend_help_share']
+  return await await Setting.getSetting(items.join('|'))
 }
 
 export default function(router) {
@@ -65,13 +109,6 @@ export default function(router) {
           })
           console.log('用户 ' + user._id + ' 于 ' + user.create_time.toDateString() + ' 登录')
           updateLastLoginTime(user._id)
-          const booklist = await BookList.findOne({ userid: user._id }, 'books')
-          let allBooks = []
-          if (booklist) {
-            allBooks = booklist.books.map(item => {
-              return item.bookid
-            })
-          }
           // 获取用户邀请信息
           // 查询当前用户的邀请信息，如果找不到则创建一个
           let hisShareInfo = await Share.findOne({ userid: user._id })
@@ -114,20 +151,18 @@ export default function(router) {
             totalAwardNum += item.amount
           })
           // 获取设置中的分享设置
-          const globalSetting = await Setting.getSetting('share|wxcode|index_dialog|charge_tips|secret_tips|shut_check|shut_charge_tips|fixed_button|friend_help_share')
+          const globalSetting = await getGlobalSetting()
           ctx.body = {
             ok: true,
             msg: '登录成功',
             token: token,
             userinfo: user,
-            // 额外返回信息
-            allbooks: allBooks,
             code: hisShareInfo.code,
             shareInfo: {
-              todayAwardNum: 0,
-              todayInviteNum: 0,
-              totalAwardNum: 0,
-              totalInviteNum: 0
+              todayAwardNum,
+              todayInviteNum,
+              totalAwardNum,
+              totalInviteNum
             },
             award_records: hisShareInfo.award_records.map(item => {
               return {
@@ -157,7 +192,6 @@ export default function(router) {
       let { username, password } = ctx.request.body
       // 系统管理员登录
       if (!username) {
-        debug('登录参数错误', { identity, username })
         ctx.body = {
           ok: false,
           msg: '缺乏username参数'
@@ -166,7 +200,6 @@ export default function(router) {
       }
 
       if (!password) {
-        debug('登录参数错误', { identity, username, password })
         ctx.body = {
           ok: false,
           msg: '缺乏password参数'
@@ -176,24 +209,21 @@ export default function(router) {
 
       let user = await User.findOne({ username: username, identity: identity })
       if (!user) {
-        debug('管理员登录失败，账号错误', { identity, username, password })
         ctx.body = { ok: false, msg: '暂无此账户，请联系管理员' }
         return false
       }
 
       // 检查密码的合法性
       if (!user.is_active) {
-        debug('管理员登录失败，账号未激活，请联系管理员', { identity, username, password })
         ctx.body = { ok: false, msg: '账号未激活，请联系管理员' }
-        return false;
+        return false
       }
 
       // 检测密码正确性
       user.checkPassword(password, (err, isCorrect) => {
         if (err) {
-          debug('管理员登录失败，密码校验失败', { identity, username, password })
           ctx.body = { ok: false, msg: '密码错误' }
-          return false;
+          return false
         }
         if (isCorrect) {
           // 产生token
@@ -215,12 +245,10 @@ export default function(router) {
             }
           }
         } else {
-          debug('管理员登录失败，密码错误', { identity, username, password })
           ctx.body = { ok: false, msg: '密码错误' }
         }
       })
     } else {
-      debug('登录参数错误', { identity })
       ctx.body = {
         ok: false,
         msg: '缺少identity参数'
@@ -272,16 +300,17 @@ export default function(router) {
           let userToken = {
             userid: user._id
           }
+
+          //token签名 有效期为2小时
           const token = jwt.sign(userToken, secret, {
             expiresIn: '4h'
-          }) //token签名 有效期为2小时
-          // 初始化书架
-          let booklist = await BookList.create({
-            userid: user.id,
-            books: []
           })
-          console.log('用户 ' + user._id + ' 于 ' + user.create_time.toDateString() + ' 注册, 并初始化书架')
+
+          // 初始化书架
+          initUserBooklist()
+          debug('Info', '用户 ' + user._id + ' 于 ' + user.create_time.toDateString() + ' 注册, 并初始化书架')
           updateLastLoginTime(user._id)
+
           // 创建分享记录
           const code = shortid.generate()
           let hisShareInfo = await Share.create({
@@ -293,7 +322,7 @@ export default function(router) {
             create_time: new Date()
           })
           // 获取设置中的分享设置
-          const globalSetting = await Setting.getSetting('share|wxcode|index_dialog|charge_tips|secret_tips|shut_check|shut_charge_tips|fixed_button|friend_help_share')
+          const globalSetting = await getGlobalSetting()
           ctx.body = {
             ok: true,
             msg: '注册成功',
@@ -370,7 +399,7 @@ export default function(router) {
             totalAwardNum += item.amount
           })
           // 获取设置中的分享设置
-          const globalSetting = await Setting.getSetting('share|wxcode|index_dialog|charge_tips|secret_tips|shut_check|shut_charge_tips|fixed_button|friend_help_share')
+          const globalSetting = await getGlobalSetting()
           ctx.body = {
             ok: true,
             msg: '登录成功',
