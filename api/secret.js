@@ -2,7 +2,7 @@ import { Secret, User, Book } from '../models'
 import shortid from 'shortid'
 import { checkAdminToken, checkUserToken } from '../utils'
 
-export default function(router) {
+export default function (router) {
   router.get('/api/secret', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'user_list')
     if (userid) {
@@ -138,6 +138,11 @@ export default function(router) {
     if (userid) {
       let bookid = ctx.request.query.bookid
       let secret = ctx.request.query.secret
+      const thisUser = await User.findById(userid, '_id username')
+      if (!thisUser) {
+        ctx.body = { ok: false, msg: '用户不存在' }
+        return false
+      }
       const thisBook = await Book.findById(bookid, '_id')
       if (!thisBook) {
         ctx.body = { ok: false, msg: '书籍不存在' }
@@ -160,6 +165,32 @@ export default function(router) {
         create_time: new Date()
       })
       if (thisSecret) {
+        // 发送秘钥解锁成的通知，延迟三分钟后执行
+        setTimeout(() => {
+          User.sendMessage(
+            userid,
+            'secret',
+            {
+              keyword1: { value: thisUser.username },
+              keyword2: { value: thisBook.name },
+              keyword3: { value: moment().format('YYYY年MM月DD日 HH:mm:ss') },
+              keyword4: { value: '你已经成功解锁书籍--《' + thisBook.name + '》，点击卡片开始阅读书籍吧~' },
+            },
+            { bookid }
+          )
+            .then(res => {
+              if (res.ok) {
+                console.log('解锁成功消息发送成功!')
+              } else {
+                debug('解锁成功消息发送失败', res.msg)
+                reportError('解锁成功消息发送失败', { extra: { context: ctx } })
+              }
+            })
+            .catch(err => {
+              debug('解锁成功消息发送失败', err)
+              reportError('解锁成功消息发送失败', { extra: { context: ctx, err } })
+            })
+        }, 3 * 60 * 1000)
         ctx.body = { ok: true, msg: '解锁成功' }
       } else {
         ctx.body = { ok: false, msg: '解锁失败' }

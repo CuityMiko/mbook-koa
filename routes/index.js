@@ -7,7 +7,7 @@ createApi(router)
 // 根目录
 router.get('/', async (ctx, next) => {
   ctx.body = {
-    ok: false,
+    ok: true,
     data: 'Welcome to mbook!'
   }
 })

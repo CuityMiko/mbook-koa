@@ -108,7 +108,7 @@ UserSchema.statics.reduceAmount = async function(userid, num) {
  * @param userid {String} 用户id
  * @param type {String} 发送消息的类型，比如好友接受邀请的通知，或者书籍解锁成功的通知
  */
-UserSchema.statics.sendMessage = async function(userid, type, data) {
+UserSchema.statics.sendMessage = async function(userid, type, data, extra) {
   return new Promise(async (resolve, reject) => {
     if (!(userid && type && data)) {
       debug('发送模板消息时参数错误', { userid, type, data })
@@ -129,12 +129,13 @@ UserSchema.statics.sendMessage = async function(userid, type, data) {
       reject({ ok: false, msg: 'formId不存在' })
     }
     if (type === 'accept') {
-      sendWxMessage(current.openid, 'P3vzJen2UH4JA_YKxCP9qgoYEyipzKno5AMap8VIyT0', '/pages/activities/share/share', thisFormId.formid, data)
+      // 发送给邀请人的奖励模板消息
+      sendWxMessage(current.openid, 'dzNZy9ArO1_JpwQ4cb994P-FikeIBHIoH0d4_gTcDXc', '/pages/loading/loading?goto=share', thisFormId.formid, data)
         .then(res => {
           if (res.errcode === 0) {
             resolve({ ok: true, msg: '发送模板消息成功' })
           } else {
-            reportError('发送模板消息失败', {
+            reportError('发送邀请奖励模板消息失败', {
               extra: {
                 res,
                 params: {}
@@ -147,7 +148,28 @@ UserSchema.statics.sendMessage = async function(userid, type, data) {
           reject({ ok: false, msg: '发送模板消息失败', err })
         })
     } else if (type === 'secret') {
-      // todo
+      // 秘钥解锁成功消息通知
+      if (!extra.bookid) {
+        debug('发送秘钥解锁成功消息时bookid不存在', { userid, type, data, extra })
+        reject({ ok: false, msg: '发送秘钥解锁成功消息时bookid不存在', err })
+      }
+      sendWxMessage(current.openid, '94Oee2UU-xv0FmAAW1Pc1HRsivBFUdth9cV4CWMAiac', '/pages/loading/loading?bookid=' + extra.bookid, thisFormId.formid, data)
+        .then(res => {
+          if (res.errcode === 0) {
+            resolve({ ok: true, msg: '发送模板消息成功' })
+          } else {
+            reportError('发送秘钥解锁模板消息失败', {
+              extra: {
+                res,
+                params: {}
+              }
+            })
+            reject({ ok: false, msg: res.errmsg })
+          }
+        })
+        .catch(err => {
+          reject({ ok: false, msg: '发送模板消息失败', err })
+        })
     }
   })
 }

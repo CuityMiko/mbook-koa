@@ -37,7 +37,13 @@ export default function(router) {
             .replace(/\n/g, '')
             .replace(/\r/g, '')
           if (tmpBook) {
-            bookList.push(tmpBook)
+            bookList.push({
+              _id: tmpBook._id,
+              name: tmpBook.name,
+              author: tmpBook.author,
+              img_url: tmpBook.img_url,
+              des: tmpBook.des,
+            })
           }
         }
       }
