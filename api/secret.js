@@ -1,5 +1,6 @@
 import { Secret, User, Book } from '../models'
 import shortid from 'shortid'
+import moment from 'moment'
 import { checkAdminToken, checkUserToken } from '../utils'
 
 export default function (router) {
@@ -190,7 +191,7 @@ export default function (router) {
               debug('解锁成功消息发送失败', err)
               reportError('解锁成功消息发送失败', { extra: { context: ctx, err } })
             })
-        }, 3 * 60 * 1000)
+        }, 1 * 60 * 1000)
         ctx.body = { ok: true, msg: '解锁成功' }
       } else {
         ctx.body = { ok: false, msg: '解锁失败' }
