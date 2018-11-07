@@ -37,6 +37,7 @@ const reportError = (error, options) => {
     })
   }
   Sentry.captureException(error)
+  console.log('已上传该错误')
 }
 
 export { debug, reportError }

@@ -10,7 +10,7 @@ const cors = require('koa2-cors')
 const noAuthPathArr = require('./config/noauth')
 const index = require('./routes/index')
 const schedule = require('./bin/shedule')
-const { debug } = require('./utils')
+const { debug, reportError } = require('./utils')
 // const createAdmin = require('./bin/createAdmin')
 // const addUserSetting = require('./bin/addUserSetting')
 const secret = 'mbook'
@@ -49,9 +49,8 @@ app.use(async (ctx, next) => {
   await next()
   const ms = new Date() - start
   console.log(`${ctx.method} ${ctx.url} - ${ms}ms`)
-  if (ctx.response && !ctx.response.body) {
-    debug('Return', ctx.response.body)
-  }
+  if (ctx.response && ctx.response.body) debug('Return', ctx.response.body)
+  if (ctx.response && ctx.response.body && !ctx.response.body.ok) reportError(new Error('接口返回ok:false'), { extra: { context: ctx } })
 })
 
 // cross
@@ -63,6 +62,7 @@ app.use(index.routes(), index.allowedMethods())
 // error-handling
 app.on('error', (err, ctx) => {
   console.error('server error', err)
+  reportError(err, { extra: { context: ctx } })
 })
 
 module.exports = app
