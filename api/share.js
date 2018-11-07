@@ -90,7 +90,7 @@ export default function(router) {
               const hasBeInvited = hasInviteLog.some(item => {
                 return item.accept_records.length > 0
               })
-              // 新增分享记录
+              // 新增接受分享的记录
               await Share.update(
                 { code },
                 {

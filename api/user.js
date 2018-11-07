@@ -82,8 +82,9 @@ export default function(router) {
     let { identity } = ctx.request.body
     identity = parseInt(identity)
     if (identity === 1) {
-      let { code } = ctx.request.body
       // app用户登录
+      let { code } = ctx.request.body
+      
       // 向微信服务器发送请求，使用code换取openid和session_key
       let qsdata = {
         grant_type: 'authorization_code',
@@ -100,16 +101,15 @@ export default function(router) {
         })
         if (user) {
           // 已注册，生成token并返回
-          let userToken = {
-            userid: user._id
-          }
-          //token签名 有效期为4小时
+          let userToken = { userid: user._id }
           const token = jwt.sign(userToken, secret, {
             expiresIn: '4h'
           })
+
+          // 更新用户最近登录时间
           console.log('用户 ' + user._id + ' 于 ' + user.create_time.toDateString() + ' 登录')
           updateLastLoginTime(user._id)
-          // 获取用户邀请信息
+
           // 查询当前用户的邀请信息，如果找不到则创建一个
           let hisShareInfo = await Share.findOne({ userid: user._id })
           if (!hisShareInfo) {
@@ -122,54 +122,15 @@ export default function(router) {
               create_time: new Date()
             })
           }
-          // 统计用户邀请信息，今日邀请人数，以及累计邀请人数，累计获得书书币数
-          const nowDateStr = moment().format('YYYY/MM/DD')
-          const startTime = new Date(nowDateStr + ' 00:00:00')
-          const endTime = new Date(nowDateStr + ' 24:00:00')
-          let todayInviteNum = 0
-          let totalInviteNum = 0
-          let todayAwardNum = 0
-          let totalAwardNum = 0
-          let users = []
-          hisShareInfo.accept_records.forEach(item => {
-            const time = item.accept_time.getTime()
-            if (time >= startTime.getTime() && time <= endTime.getTime()) {
-              todayInviteNum++
-            }
-            const uid = item.uid.toString()
-            if (users.indexOf(uid) < 0) {
-              users.push(uid)
-              totalInviteNum++
-            }
-          })
-          hisShareInfo.award_records.forEach(item => {
-            const time = item.award_time.getTime()
-            if (time >= startTime.getTime() && time <= endTime.getTime()) {
-              todayAwardNum += item.amount
-            }
-            totalAwardNum += item.amount
-          })
           // 获取设置中的分享设置
           const globalSetting = await getGlobalSetting()
+
           ctx.body = {
             ok: true,
             msg: '登录成功',
             token: token,
             userinfo: user,
             code: hisShareInfo.code,
-            shareInfo: {
-              todayAwardNum,
-              todayInviteNum,
-              totalAwardNum,
-              totalInviteNum
-            },
-            award_records: hisShareInfo.award_records.map(item => {
-              return {
-                name: item.user || '--',
-                type: item.name.replace('奖励', ''),
-                time: moment(item.award_time).format('YYYY/MM/DD')
-              }
-            }),
             globalSetting
           }
         } else {
@@ -227,13 +188,14 @@ export default function(router) {
         if (isCorrect) {
           // 产生token
           let userToken = { userid: user._id, identity: identity }
-          //token签名 有效期为2小时
           const token = jwt.sign(userToken, secret, {
             expiresIn: '4h'
           })
-          debug('用户 ' + user._id + ' 于 ' + new Date().toDateString() + ' 登录后台管理系统', '')
+
           // 更新用户最近登录时间
+          debug('用户 ' + user._id + ' 于 ' + new Date().toDateString() + ' 登录后台管理系统', '')
           updateLastLoginTime(user._id)
+
           ctx.body = {
             ok: true,
             msg: '登录成功',
@@ -319,43 +281,29 @@ export default function(router) {
             accept_records: [],
             create_time: new Date()
           })
+
           // 获取设置中的分享设置
           const globalSetting = await getGlobalSetting()
+
           ctx.body = {
             ok: true,
             msg: '注册成功',
             token: token,
             userinfo: user,
-            // 额外信息
-            allbooks: [],
             code: hisShareInfo.code,
-            shareInfo: {
-              todayAwardNum: 0,
-              todayInviteNum: 0,
-              totalAwardNum: 0,
-              totalInviteNum: 0
-            },
-            award_records: [],
             globalSetting
           }
         } else {
           // 产生token
           let userToken = { userid: isUserExit._id }
-          //token签名 有效期为2小时
           const token = jwt.sign(userToken, secret, {
             expiresIn: '4h'
           })
-          console.log('用户 ' + isUserExit._id + ' 于 ' + new Date().toDateString() + ' 登录')
+
           // 更新用户最近登录时间
+          debug('用户 ' + isUserExit._id + ' 于 ' + new Date().toDateString() + ' 登录', '')
           updateLastLoginTime(isUserExit._id)
-          const booklist = await BookList.findOne({ userid: isUserExit._id }, 'books')
-          let allBooks = []
-          if (booklist) {
-            allBooks = booklist.books.map(item => {
-              return item.bookid
-            })
-          }
-          // 获取用户邀请信息
+
           // 查询当前用户的邀请信息，如果找不到则创建一个
           let hisShareInfo = await Share.findOne({ userid: isUserExit._id })
           if (!hisShareInfo) {
@@ -368,56 +316,16 @@ export default function(router) {
               create_time: new Date()
             })
           }
-          // 统计用户邀请信息，今日邀请人数，以及累计邀请人数，累计获得书书币数
-          const nowDateStr = moment().format('YYYY/MM/DD')
-          const startTime = new Date(nowDateStr + ' 00:00:00')
-          const endTime = new Date(nowDateStr + ' 24:00:00')
-          let todayInviteNum = 0
-          let totalInviteNum = 0
-          let todayAwardNum = 0
-          let totalAwardNum = 0
-          let users = []
-          hisShareInfo.accept_records.forEach(item => {
-            const time = item.accept_time.getTime()
-            if (time >= startTime.getTime() && time <= endTime.getTime()) {
-              todayInviteNum++
-            }
-            const uid = item.uid.toString()
-            if (users.indexOf(uid) < 0) {
-              users.push(uid)
-              totalInviteNum++
-            }
-          })
-          hisShareInfo.award_records.forEach(item => {
-            const time = item.award_time.getTime()
-            if (time >= startTime.getTime() && time <= endTime.getTime()) {
-              todayAwardNum += item.amount
-            }
-            totalAwardNum += item.amount
-          })
+
           // 获取设置中的分享设置
           const globalSetting = await getGlobalSetting()
+
           ctx.body = {
             ok: true,
             msg: '登录成功',
             token: token,
             userinfo: isUserExit,
-            // 额外返回信息
-            allbooks: allBooks,
             code: hisShareInfo.code,
-            shareInfo: {
-              todayAwardNum,
-              todayInviteNum,
-              totalAwardNum,
-              totalInviteNum
-            },
-            award_records: hisShareInfo.award_records.map(item => {
-              return {
-                name: item.user || '--',
-                type: item.name.replace('奖励', ''),
-                time: moment(item.award_time).format('YYYY/MM/DD')
-              }
-            }),
             globalSetting
           }
         }
