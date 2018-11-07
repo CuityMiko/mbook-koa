@@ -118,7 +118,6 @@ export default function(router) {
               userid: await Share.transId(user._id),
               code,
               award_records: [],
-              share_records: [],
               accept_records: [],
               create_time: new Date()
             })
@@ -317,7 +316,6 @@ export default function(router) {
             userid: await Share.transId(user._id),
             code,
             award_records: [],
-            share_records: [],
             accept_records: [],
             create_time: new Date()
           })
@@ -366,7 +364,6 @@ export default function(router) {
               userid: await Share.transId(isUserExit._id),
               code,
               award_records: [],
-              share_records: [],
               accept_records: [],
               create_time: new Date()
             })

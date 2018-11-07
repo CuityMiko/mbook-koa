@@ -16,7 +16,6 @@ export default function(router) {
           userid: await Share.transId(userid),
           code,
           award_records: [],
-          share_records: [],
           accept_records: [],
           create_time: new Date()
         })

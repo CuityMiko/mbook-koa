@@ -12,12 +12,6 @@ const ShareSchema = new mongoose.Schema(
         award_time: Date
       }
     ],
-    share_records: [
-      {
-        wx_share_id: String,
-        share_time: Date // 分享时间
-      }
-    ], // 分享记录
     accept_records: [
       {
         uid: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 别人接受我的记录
