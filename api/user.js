@@ -6,7 +6,7 @@ import config from '../config'
 import moment from 'moment'
 import shortid from 'shortid'
 import { User, BookList, Pay, Share, Attendance, Award, Buy, Comment, FormId, Setting } from '../models'
-import { checkUserToken, checkAdminToken, reportError } from '../utils'
+import { checkUserToken, checkAdminToken, reportError, debug } from '../utils'
 
 const secret = 'mbook' // token秘钥
 
@@ -84,7 +84,7 @@ export default function(router) {
     if (identity === 1) {
       // app用户登录
       let { code } = ctx.request.body
-      
+
       // 向微信服务器发送请求，使用code换取openid和session_key
       let qsdata = {
         grant_type: 'authorization_code',

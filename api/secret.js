@@ -1,9 +1,9 @@
 import { Secret, User, Book } from '../models'
 import shortid from 'shortid'
 import moment from 'moment'
-import { checkAdminToken, checkUserToken } from '../utils'
+import { checkAdminToken, checkUserToken, debug, reportError } from '../utils'
 
-export default function (router) {
+export default function(router) {
   router.get('/api/secret', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'user_list')
     if (userid) {
@@ -144,7 +144,7 @@ export default function (router) {
         ctx.body = { ok: false, msg: '用户不存在' }
         return false
       }
-      const thisBook = await Book.findById(bookid, '_id')
+      const thisBook = await Book.findById(bookid, '_id name')
       if (!thisBook) {
         ctx.body = { ok: false, msg: '书籍不存在' }
         return false
@@ -175,7 +175,7 @@ export default function (router) {
               keyword1: { value: thisUser.username },
               keyword2: { value: thisBook.name },
               keyword3: { value: moment().format('YYYY年MM月DD日 HH:mm:ss') },
-              keyword4: { value: '你已经成功解锁书籍--《' + thisBook.name + '》，点击卡片开始阅读书籍吧~' },
+              keyword4: { value: '你已经成功解锁书籍--《' + thisBook.name + '》，点击卡片开始阅读书籍吧~' }
             },
             { bookid }
           )
@@ -191,7 +191,7 @@ export default function (router) {
               debug('解锁成功消息发送失败', err)
               reportError('解锁成功消息发送失败', { extra: { context: ctx, err } })
             })
-        }, 1 * 60 * 1000)
+        }, 0)
         ctx.body = { ok: true, msg: '解锁成功' }
       } else {
         ctx.body = { ok: false, msg: '解锁失败' }

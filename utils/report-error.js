@@ -24,6 +24,9 @@ const reportError = (error, options) => {
   if (!error) {
     return false
   }
+  if (typeof error === 'string') {
+    error = new Error(error)
+  }
   let newOptions = {}
   if (typeof options === 'object') {
     newOptions = Object.assign(newOptions, options)
