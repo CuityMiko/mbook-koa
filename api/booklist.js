@@ -126,6 +126,10 @@ export default function(router) {
           }
         }
       })
+      if (!thisBookList) {
+        ctx.body = { ok: true, msg: '获取书单信息成功', list: [] }
+        return false
+      }
       let newThisBook = []
       // 获取书籍详情
       for (let i = 0; i < thisBookList.books.length; i++) {

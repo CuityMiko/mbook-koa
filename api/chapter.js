@@ -265,13 +265,15 @@ export default function(router) {
         let readChapterNum = 1
         let readChapterScrollTop = 0
         let readChapterScroll = 0
-        thisBookList.books.forEach(item => {
+        if (thisBookList) {
+          thisBookList.books.forEach(item => {
           if (item.bookid.toString() == bookid) {
-            readChapterNum = item.read.num
-            readChapterScrollTop = item.read.top
-            readChapterScroll = item.read.scroll || 0
-          }
-        })
+              readChapterNum = item.read.num
+              readChapterScrollTop = item.read.top
+              readChapterScroll = item.read.scroll || 0
+            }
+          })
+        }
         let thisBook = await Book.findById(bookid, 'id name img_url author newest_chapter').populate({
           path: 'chapters',
           match: {

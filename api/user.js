@@ -56,7 +56,7 @@ function updateLastLoginTime(userid) {
 function initUserBooklist(userid) {
   BookList.create(
     {
-      userid: user.id,
+      userid: userid,
       books: []
     },
     (err, res) => {

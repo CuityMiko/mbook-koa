@@ -14,9 +14,12 @@ export default function(router) {
         let book = await Book.findById(id)
         if (book) {
           let hisBookList = await BookList.findOne({ userid })
-          let isInList = hisBookList.books.some(item => {
-            return item.bookid.toString() === id
-          })
+          let isInList = false
+          if (hisBookList) {
+            isInList = hisBookList.books.some(item => {
+              return item.bookid.toString() === id
+            })
+          }
           // 获取书籍的商品属性
           let good = {}
           let thisGood = await Good.findOne({ bookid: book._id })
