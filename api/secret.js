@@ -183,11 +183,13 @@ export default function(router) {
               if (res.ok) {
                 console.log('解锁成功消息发送成功!')
               } else {
+                console.log('\n\n\n\n', res, '\n\n\n\n')
                 debug('解锁成功消息发送失败', res.msg)
                 reportError('解锁成功消息发送失败', { extra: { context: ctx } })
               }
             })
             .catch(err => {
+              console.log('\n\n\n\n', err, '\n\n\n\n')
               debug('解锁成功消息发送失败', err)
               reportError('解锁成功消息发送失败', { extra: { context: ctx, err } })
             })

@@ -143,7 +143,7 @@ export default function(router) {
                     keyword1: { value: launchUser.username },
                     keyword2: { value: currentUser.username },
                     keyword3: { value: '您的好友--' + currentUser.username + '已经接受您的阅读邀请。邀请更多好友可以获得更多奖励哦~' },
-                    keyword3: { value: '15书币' },
+                    keyword4: { value: '15书币' },
                     keyword5: { value: moment().format('YYYY年MM月DD日 HH:mm:ss') }
                   })
                     .then(res => {

@@ -130,7 +130,7 @@ UserSchema.statics.sendMessage = async function(userid, type, data, extra) {
     }
     if (type === 'accept') {
       // 发送给邀请人的奖励模板消息
-      sendWxMessage(current.openid, 'dzNZy9ArO1_JpwQ4cb994P-FikeIBHIoH0d4_gTcDXc', '/pages/loading/loading?goto=share', thisFormId.formid, data)
+      sendWxMessage(current.openid, 'dzNZy9ArO1_JpwQ4cb994P-FikeIBHIoH0d4_gTcDXc', 'pages/loading/loading?goto=share', thisFormId.formid, data)
         .then(res => {
           if (res.errcode === 0) {
             resolve({ ok: true, msg: '发送模板消息成功' })
@@ -153,7 +153,7 @@ UserSchema.statics.sendMessage = async function(userid, type, data, extra) {
         debug('发送秘钥解锁成功消息时bookid不存在', { userid, type, data, extra })
         reject({ ok: false, msg: '发送秘钥解锁成功消息时bookid不存在', err })
       }
-      sendWxMessage(current.openid, '94Oee2UU-xv0FmAAW1Pc1HRsivBFUdth9cV4CWMAiac', '/pages/loading/loading?bookid=' + extra.bookid, thisFormId.formid, data)
+      sendWxMessage(current.openid, '94Oee2UU-xv0FmAAW1Pc1HRsivBFUdth9cV4CWMAiac', 'pages/loading/loading?bookid=' + extra.bookid, thisFormId.formid, data)
         .then(res => {
           if (res.errcode === 0) {
             resolve({ ok: true, msg: '发送模板消息成功' })
