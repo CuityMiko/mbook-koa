@@ -177,3 +177,9 @@ sudo mongorestore -h 118.24.94.40:27017 -d mbook-new -u mbook -p 121960425mbook 
 # 打包导出的数据
 sudo tar -cvf mbook-new.tar.gz mbook-new/
 ```
+
+### 运行自动化脚本
+bin下面每个脚本都有自己的用途，请参照说明
+```
+runkoa bin/checkUserBookList.js
+```
