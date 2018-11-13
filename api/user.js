@@ -54,22 +54,18 @@ function updateLastLoginTime(userid) {
  * @param {*} userid 用户ID
  */
 function initUserBooklist(userid) {
-  BookList.create(
-    {
-      userid: userid,
-      books: []
-    },
-    (err, res) => {
-      if (err) {
-        reportError(`初始化用户书架失败`, {
-          extra: {
-            debug: { userid, err }
-          }
-        })
-        return false
+  BookList.create({
+    userid: userid,
+    books: []
+  }).then(res => {
+    console.log(`初始化用户${userid}书架成功`)
+  }).catch(err => {
+    reportError(`初始化用户书架失败`, {
+      extra: {
+        debug: { userid, err }
       }
-    }
-  )
+    })
+  })
 }
 
 async function getGlobalSetting() {

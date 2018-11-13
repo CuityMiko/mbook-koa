@@ -45,9 +45,11 @@ export default function(router) {
         let hisBookList = await BookList.findOne({ userid })
         let bookids = []
         let isExisted = false
-        for (let i = 0; i < hisBookList.books.length; i++) {
-          if (hisBookList.books[i].bookid.toString() == id) {
-            isExisted = true
+        if(hisBookList) {
+          for (let i = 0; i < hisBookList.books.length; i++) {
+            if (hisBookList.books[i].bookid.toString() == id) {
+              isExisted = true
+            }
           }
         }
         if (isExisted) {
