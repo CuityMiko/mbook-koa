@@ -264,7 +264,7 @@ export default function(router) {
           })
 
           // 初始化书架
-          initUserBooklist()
+          initUserBooklist(user._id)
           debug('Info', '用户 ' + user._id + ' 于 ' + user.create_time.toDateString() + ' 注册, 并初始化书架')
           updateLastLoginTime(user._id)
 
