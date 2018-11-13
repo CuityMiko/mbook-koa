@@ -60,7 +60,7 @@ export default function(router) {
             {
               $addToSet: {
                 books: {
-                  index: hisBookList.books.length,
+                  index: hisBookList ? hisBookList.books.length : 0,
                   bookid: await BookList.transId(id),
                   time: new Date(),
                   read: { num: 1, top: 0 }
