@@ -45,7 +45,7 @@ export default function(router) {
         let hisBookList = await BookList.findOne({ userid })
         let bookids = []
         let isExisted = false
-        if(hisBookList) {
+        if (hisBookList) {
           for (let i = 0; i < hisBookList.books.length; i++) {
             if (hisBookList.books[i].bookid.toString() == id) {
               isExisted = true
@@ -87,19 +87,22 @@ export default function(router) {
       let { bookid, chapter_num, chapter_page_index, chapter_page_top, read_time, setting } = ctx.request.body
       if (bookid && chapter_num && (chapter_page_index || chapter_page_index == 0) && (chapter_page_top || chapter_page_top == 0) && setting.reader) {
         let thisBookList = await BookList.findOne({ userid })
-        let newBooks = thisBookList.books.map(item => {
-          if (item.bookid.toString() == bookid) {
-            item.read = {
-              num: chapter_num,
-              top: chapter_page_index || 0,
-              scroll: chapter_page_top || 0
+        let newBooks = []
+        if (thisBookList) {
+          newBooks = thisBookList.books.map(item => {
+            if (item.bookid.toString() == bookid) {
+              item.read = {
+                num: chapter_num,
+                top: chapter_page_index || 0,
+                scroll: chapter_page_top || 0
+              }
+              item.time = new Date()
+              return item
+            } else {
+              return item
             }
-            item.time = new Date()
-            return item
-          } else {
-            return item
-          }
-        })
+          })
+        }
         let updateResult = await BookList.update({ userid }, { $set: { books: newBooks } })
         let updateReadTime = await User.update({ _id: userid }, { $inc: { read_time: parseInt(read_time) }, $set: { 'setting.reader': setting.reader } })
         if (updateResult.ok === 1 && updateReadTime.ok === 1) {
