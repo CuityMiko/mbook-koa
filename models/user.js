@@ -127,6 +127,7 @@ UserSchema.statics.sendMessage = async function(userid, type, data, extra) {
       // formId不存在
       debug('发送模板消息时找不到此用户对应的formId', { userid, type, data })
       reject({ ok: false, msg: 'formId不存在' })
+      return false
     }
     if (type === 'accept') {
       // 发送给邀请人的奖励模板消息
@@ -152,6 +153,7 @@ UserSchema.statics.sendMessage = async function(userid, type, data, extra) {
       if (!extra.bookid) {
         debug('发送秘钥解锁成功消息时bookid不存在', { userid, type, data, extra })
         reject({ ok: false, msg: '发送秘钥解锁成功消息时bookid不存在', err })
+        return false
       }
       sendWxMessage(current.openid, '94Oee2UU-xv0FmAAW1Pc1HRsivBFUdth9cV4CWMAiac', 'pages/loading/loading?bookid=' + extra.bookid, thisFormId.formid, data)
         .then(res => {
@@ -159,6 +161,31 @@ UserSchema.statics.sendMessage = async function(userid, type, data, extra) {
             resolve({ ok: true, msg: '发送模板消息成功' })
           } else {
             reportError('发送秘钥解锁模板消息失败', {
+              extra: {
+                res,
+                params: {}
+              }
+            })
+            reject({ ok: false, msg: res.errmsg })
+          }
+        })
+        .catch(err => {
+          reject({ ok: false, msg: '发送模板消息失败', err })
+        })
+    } else if (type === 'book-update') {
+      // 秘钥解锁成功消息通知
+      if (!extra.bookid) {
+        debug('发送书籍更新模板消息时bookid不存在', { userid, type, data, extra })
+        reject({ ok: false, msg: '发送书籍更新模板消息时bookid不存在', err })
+        return false
+      }
+      sendWxMessage(current.openid, '66RVt2pXdkIQG3zFp6EyJtM66fIkaBBVHveO9oXpm-I', 'pages/loading/loading?bookid=' + extra.bookid, thisFormId.formid, data)
+        .then(res => {
+          console.log(res)
+          if (res.errcode === 0) {
+            resolve({ ok: true, msg: '发送模板消息成功' })
+          } else {
+            reportError('发送书籍更新模板消息失败', {
               extra: {
                 res,
                 params: {}

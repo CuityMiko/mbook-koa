@@ -1,5 +1,7 @@
 import { Book, Chapter, BookList, Good, User, Buy, Secret } from '../models'
 import { checkAdminToken, checkUserToken, tool } from '../utils'
+import { readUpdateNotice } from '../bin/readUpdateNotice'
+readUpdateNotice('5ba1e673b6e7b33f65ce650e', '5bd168bedc073701d70455be')
 import moment from 'moment'
 import convert from 'koa-convert'
 import body from 'koa-better-body'
@@ -267,7 +269,7 @@ export default function(router) {
         let readChapterScroll = 0
         if (thisBookList) {
           thisBookList.books.forEach(item => {
-          if (item.bookid.toString() == bookid) {
+            if (item.bookid.toString() == bookid) {
               readChapterNum = item.read.num
               readChapterScrollTop = item.read.top
               readChapterScroll = item.read.scroll || 0
@@ -416,6 +418,8 @@ export default function(router) {
                   }
                 )
                 if (updateResult.ok) {
+                  // 阅读更新通知
+                  readUpdateNotice(id, addResult._id)
                   ctx.body = { ok: true, msg: '新增章节成功', data: addResult }
                 } else {
                   ctx.body = { ok: false, msg: '新增章节失败' }
