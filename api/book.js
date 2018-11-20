@@ -264,8 +264,7 @@ export default function(router) {
     // check if the user has permission
     const userid = await checkAdminToken(ctx, next, 'theme_update')
     if (userid) {
-      console.log('总书籍量', await Book.count());
-      let { page, limit, name, author } = ctx.request.query
+      let { page, limit, name, author, status } = ctx.request.query
       // format page and limit
       if (page) {
         page = parseInt(page)
@@ -277,13 +276,20 @@ export default function(router) {
       } else {
         limit = 10
       }
-      if (!name) {
-        name = ''
+      let condition = {}
+      if (name) {
+        condition.name = new RegExp(name, 'i')
       }
-      const total = await Book.count({ name: new RegExp(name, 'i') })
+      if (author) {
+        condition.author = new RegExp(name, 'i')
+      }
+      if (parseInt(status) === 1) {
+        condition.update_status = '连载中'
+      }
+      const total = await Book.count(condition)
       // query book
-      let books = await Book.find({ name: new RegExp(name, 'i'), author: new RegExp(author, 'i') })
-        .sort({ hot_value: -1 })
+      let books = await Book.find(condition)
+        .sort({ update_time: -1 })  
         //.populate({
         //  path: 'chapters',
         //  model: 'Chapter',

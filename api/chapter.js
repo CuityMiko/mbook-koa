@@ -1,7 +1,7 @@
 import { Book, Chapter, BookList, Good, User, Buy, Secret } from '../models'
 import { checkAdminToken, checkUserToken, tool } from '../utils'
 import { readUpdateNotice } from '../bin/readUpdateNotice'
-readUpdateNotice('5ba1e673b6e7b33f65ce650e', '5bd168bedc073701d70455be')
+// readUpdateNotice('5ba1e673b6e7b33f65ce650e', '5bd168bedc073701d70455be')
 import moment from 'moment'
 import convert from 'koa-convert'
 import body from 'koa-better-body'
@@ -418,6 +418,8 @@ export default function(router) {
                   }
                 )
                 if (updateResult.ok) {
+                  // 更改书籍更新时间
+                  Book.updateTime(id)
                   // 阅读更新通知
                   readUpdateNotice(id, addResult._id)
                   ctx.body = { ok: true, msg: '新增章节成功', data: addResult }
@@ -461,6 +463,8 @@ export default function(router) {
         }
       )
       if (updateResult.ok) {
+        // 更改书籍更新时间
+        Book.updateTime(book_id)
         ctx.body = { ok: true, msg: '删除章节成功' }
       } else {
         ctx.body = { ok: false, msg: '删除章节失败' }
@@ -484,6 +488,8 @@ export default function(router) {
         }
       )
       if (result.ok === 1) {
+        // 更改书籍更新时间
+        Book.updateTime(book_id)
         let newest = await Chapter.findById(id)
         ctx.body = { ok: true, msg: '更新章节成功', data: newest }
       } else {
@@ -716,6 +722,8 @@ export default function(router) {
                 }
               })
               stream.on('finish', function() {
+                // 更改书籍更新时间
+                Book.updateTime(book_id)
                 ctx.body = { ok: true, msg: '上传成功', errors: addErrors, success: rightNum }
                 resolve(next())
               })
@@ -746,6 +754,7 @@ export default function(router) {
                 // console.log(i, uploadData[0].data[i][0], uploadData[0].data[i][1], uploadData[0].data[i][2])
                 await saveChapter(i, uploadData[0].data[i][0], uploadData[0].data[i][1], uploadData[0].data[i][2])
               }
+              Book.updateTime(book_id)
               ctx.body = { ok: true, msg: '上传成功', errors: addErrors, success: rightNum }
             } else {
               ctx.body = { ok: false, msg: 'excel文件格式错误' }
