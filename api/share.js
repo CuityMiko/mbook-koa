@@ -150,13 +150,13 @@ export default function(router) {
                       if (res.ok) {
                         console.log('邀请奖励消息发送成功!')
                       } else {
-                        debug('邀请奖励消息发送失败', res.msg)
+                        console.log('邀请奖励消息发送失败', res.msg)
                         reportError('邀请奖励消息发送失败', { extra: { context: ctx } })
                       }
                     })
                     .catch(err => {
                       reportError('邀请奖励消息发送失败', { extra: { context: ctx, err } })
-                      debug('邀请奖励消息发送失败', err)
+                      console.log('邀请奖励消息发送失败', err)
                     })
                   ctx.body = { ok: true, msg: '成功接受邀请，奖励已发放' }
                 } else {

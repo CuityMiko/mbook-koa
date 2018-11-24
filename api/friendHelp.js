@@ -158,6 +158,7 @@ export default function(router) {
         create_time: friendHelp.create_time.getTime(),
         left_time: tool.formatDuring(endDate.getTime() - now.getTime()),
         book: {
+          id: friendHelpBook.bookid._id,
           need_num: friendHelpBook.need_num,
           limit_time: friendHelpBook.limit_time,
           name: friendHelpBook.bookid.name,

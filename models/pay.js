@@ -1,5 +1,4 @@
 import mongoose from 'mongoose'
-import { debug } from '../utils'
 
 const PaySchema = new mongoose.Schema(
   {
@@ -40,11 +39,11 @@ PaySchema.statics.updateStatus = async function(id, num) {
     if (updateResult.ok === 1) {
       return true
     } else {
-      debug('更新支付订单状态值失败', { id, num, err: updateResult })
+      console.log('更新支付订单状态值失败', JSON.stringify({ id, num, err: updateResult }))
       return false
     }
   } else {
-    debug('更新支付订单的状态值不合法', { id, num })
+    console.log('更新支付订单的状态值不合法', JSON.stringify({ id, num }))
     return false
   }
 }
@@ -62,7 +61,7 @@ PaySchema.statics.updateDes = async function(id, des, type) {
       if (updateResult.ok === 1) {
         return true
       } else {
-        debug('更新支付说明失败', { id, des, type, err: updateResult })
+        console.log('更新支付说明失败', JSON.stringify({ id, des, type, err: updateResult }))
         return false
       }
     } else {
@@ -70,12 +69,12 @@ PaySchema.statics.updateDes = async function(id, des, type) {
       if (updateResult.ok === 1) {
         return true
       } else {
-        debug('更新支付说明失败', { id, des, type, err: updateResult })
+        console.log('更新支付说明失败', JSON.stringify({ id, des, type, err: updateResult }))
         return false
       }
     }
   } else {
-    debug('更新支付说明时参数错误', { id, des, type })
+    console.log('更新支付说明时参数错误', JSON.stringify({ id, des, type }))
     return false
   }
 }

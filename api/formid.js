@@ -1,14 +1,19 @@
 import { FormId } from '../models'
-import { checkUserToken, tool } from '../utils'
+import { checkUserToken } from '../utils'
+// TEST
+// ;(async function() {
+//   console.log(await FormId.getFormId('share', '5bea5f0be36b2a51b7c7c608'))
+// })()
 
 export default function(router) {
   router.get('/api/upload_formid', async (ctx, next) => {
     let userid = await checkUserToken(ctx, next)
     if (userid) {
+      let type = ctx.request.query.type
       let formId = ctx.request.query.formId
       let bookId = ctx.request.query.bookId
-      if (!bookId) {
-        ctx.body = { ok: true, msg: 'bookId不存在' }
+      if (!type) {
+        ctx.body = { ok: true, msg: '类型错误' }
         return false
       }
       if (!formId || formId === 'the formId is a mock one') {
@@ -24,7 +29,8 @@ export default function(router) {
           {
             $addToSet: {
               records: {
-                bookid: await FormId.transId(bookId),
+                type,
+                bookid: bookId ? await FormId.transId(bookId) : '',
                 value: formId,
                 add_time: new Date()
               }
@@ -42,7 +48,8 @@ export default function(router) {
           userid: await FormId.transId(userid),
           records: [
             {
-              bookid: await FormId.transId(bookId),
+              type,
+              bookid: bookId ? await FormId.transId(bookId) : '',
               value: formId,
               add_time: new Date()
             }

@@ -1,6 +1,4 @@
 import mongoose from 'mongoose'
-import shortid from 'shortid'
-import { debug } from '../utils'
 
 const BookSchema = new mongoose.Schema(
   {
@@ -31,7 +29,7 @@ BookSchema.statics.updateTime = function(id) {
   }
   this.update({ _id: id }, { $set: { update_time: new Date() } }, function(err, res) {
     if (err) {
-      debug('更改书籍更新时间失败', err)
+      console.log('更改书籍更新时间失败', err)
       return false
     }
   })

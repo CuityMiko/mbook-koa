@@ -1,7 +1,8 @@
 import { Book, Chapter, BookList, Good, User, Buy, Secret } from '../models'
 import { checkAdminToken, checkUserToken, tool } from '../utils'
 import { readUpdateNotice } from '../bin/readUpdateNotice'
-// readUpdateNotice('5ba1e673b6e7b33f65ce650e', '5bd168bedc073701d70455be')
+// TEST
+// readUpdateNotice('5bf94fad7510f918441f0ef0', '5bf94fec2f5aa418a58f2486')
 import moment from 'moment'
 import convert from 'koa-convert'
 import body from 'koa-better-body'

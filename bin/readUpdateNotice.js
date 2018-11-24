@@ -5,8 +5,7 @@
  */
 import Queue from 'p-queue'
 import moment from 'moment'
-import { reportError, debug } from '../utils'
-import { Book, Chapter, BookList, User } from '../models'
+import { Book, Chapter, BookList, User, Setting } from '../models'
 
 /**
  * 发送书籍更新提示
@@ -15,54 +14,55 @@ import { Book, Chapter, BookList, User } from '../models'
  * @returns null
  */
 async function readUpdateNotice(bookId, chapterId) {
+  // 判断设置中是否打开了书籍更新提示
+  let setting = await Setting.findOne({ key: 'template_message_setting' }, 'value')
+  if (!setting || !setting.value || JSON.parse(setting.value)['book-update'] !== 'true') {
+    console.log('暂未打开书籍更新消息提示的设置')
+    return false
+  }
   if (!bookId) {
-    debug('发送阅读更新通知失败', '书籍id: ' + bookId + '不存在')
+    console.log(`发送阅读更新通知失败，书籍${bookId}不存在`)
     return false
   }
   if (!chapterId) {
-    debug('发送阅读更新通知失败', '章节id: ' + chapterId + '不存在')
+    console.log(`发送阅读更新通知失败，章节${chapterId}不存在`)
     return false
   }
   // 查找书籍信息
   let thisBook = await Book.findById(bookId, 'name author')
   if (!thisBook) {
-    debug('发送阅读更新通知失败', '找不到书籍id: ' + chapterId + '的书籍')
+    console.log(`发送阅读更新通知失败，书籍${bookId}不存在`)
     return false
   }
   // 查找章节信息
   let thisChapter = await Chapter.findById(chapterId, 'name num create_time')
   if (!thisChapter) {
-    debug('发送阅读更新通知失败', '找不到章节id: ' + chapterId + '的章节')
+    console.log(`发送阅读更新通知失败，章节${chapterId}不存在`)
     return false
   }
   // 查找所有收藏本书籍的用户, 最近7天有阅读记录的
   let now = Date.now()
   let noticeUsers = await BookList.find({ 'books.bookid': bookId, 'books.time': { $gte: now - 7 * 24 * 60 * 60 * 1000, $lte: now } }, 'userid')
-  console.log(noticeUsers)
   let queue = new Queue({ concurrency: 10, autoStart: false })
-  queue.add(() => Promise.resolve('🐙')).then(console.log.bind(null, '11. Resolved'))
   noticeUsers.forEach(async item => {
-    queue
-      .add(async () =>
-        User.sendMessage(
-          item.userid,
-          'book-update',
-          {
-            keyword1: { value: `《${thisBook.name}》` },
-            keyword2: { value: '书籍更新提醒' },
-            keyword3: { value: `更新章节：第${thisChapter.num}章 ${thisChapter.name}\n更新时间：${moment(thisChapter.create_time).format('YYYY年MM月DD日 HH:mm:ss')}\n点击消息立即阅读吧~` }
-          },
-          { bookid: bookId }
-        )
+    queue.add(() =>
+      User.sendMessage(
+        item.userid,
+        'book-update',
+        {
+          keyword1: { value: `《${thisBook.name}》` },
+          keyword2: { value: '书籍更新提醒' },
+          keyword3: { value: `更新章节：第${thisChapter.num}章 ${thisChapter.name}\n更新时间：${moment(thisChapter.create_time).format('YYYY年MM月DD日 HH:mm:ss')}\n点击消息立即阅读吧~` }
+        },
+        { bookid: bookId }
       )
-      .then(console.log(res, `用户${item.userid}发送书籍 ${thisBook.name} 更新提醒成功`))
-      .catch(console.log(res, `用户${item.userid}发送书籍 ${thisBook.name} 更新提醒失败`))
+    )
   })
   // 队列添加完毕，开始批量执行
   queue.start()
   // 监听队列执行完毕
-  queue.onIdle().then(() => {
-    console.log('队列执行完毕')
+  queue.onIdle().then(res => {
+    console.log(`队列执行完毕，通知用户数 ${noticeUsers.length}，书籍名 ${thisBook.name}，章节数 ${thisChapter.num}，章节名 ${thisChapter.name}`)
   })
 }
 

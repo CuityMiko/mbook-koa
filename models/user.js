@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt-nodejs'
 import { Award } from './award'
 import { FormId } from './formid'
 import { sendWxMessage } from '../utils/wxCode'
-import { debug, reportError } from '../utils'
+import { reportError } from '../utils'
 const SALT_WORK_FACTOR = 10
 
 const UserSchema = new mongoose.Schema(
@@ -58,15 +58,15 @@ UserSchema.statics.addAmount = async function(userid, num, des) {
       if (updateResult.ok == 1 && updateResult.nModified == 1) {
         return true
       } else {
-        debug('发放书币时更新失败', { userid, num, err: updateResult })
+        console.log('发放书币时更新失败', { userid, num, err: updateResult })
         return false
       }
     } else {
-      debug('发放书币时找不到此用户', { userid, num })
+      console.log('发放书币时找不到此用户', { userid, num })
       return false
     }
   } else {
-    debug('发放书币时参数错误', { userid, num })
+    console.log('发放书币时参数错误', { userid, num })
     return false
   }
 }
@@ -86,19 +86,19 @@ UserSchema.statics.reduceAmount = async function(userid, num) {
         if (updateResult.ok == 1 && updateResult.nModified == 1) {
           return true
         } else {
-          debug('扣除书币时更新失败', { userid, num, err: updateResult })
+          console.log('扣除书币时更新失败', { userid, num, err: updateResult })
           return false
         }
       } else {
-        debug('扣除书币时书币不足', { userid, num, amount: current.amount })
+        console.log('扣除书币时书币不足', { userid, num, amount: current.amount })
         return false
       }
     } else {
-      debug('扣除书币时用户不存在', { userid, num })
+      console.log('扣除书币时用户不存在', { userid, num })
       return false
     }
   } else {
-    debug('扣除书币时参数错误', { userid, num })
+    console.log('扣除书币时参数错误', { userid, num })
     return false
   }
 }
@@ -111,22 +111,28 @@ UserSchema.statics.reduceAmount = async function(userid, num) {
 UserSchema.statics.sendMessage = async function(userid, type, data, extra) {
   return new Promise(async (resolve, reject) => {
     if (!(userid && type && data)) {
-      debug('发送模板消息时参数错误', { userid, type, data })
+      console.log('发送模板消息时参数错误', JSON.stringify({ userid, type, data, extra }))
       reject({ ok: false, msg: '参数错误' })
       return false
     }
     let current = await this.findById(userid, 'openid')
     if (!current) {
-      debug('发送模板消息时找不到此用户', { userid, type, data })
+      console.log('发送模板消息时找不到此用户', JSON.stringify({ userid, type, data, extra }))
       reject({ ok: false, msg: '用户不存在' })
       return false
     }
     if (type === 'accept') {
+      // 检查是否打开了设置
+      const setting = await Setting.findOne({ key: 'template_message_setting' }, 'value')
+      if (!setting || !setting.value || JSON.parse(setting.value)['share'] !== 'true') {
+        console.log('暂未打开好友邀请消息提示的设置')
+        return false
+      }
       // 查找user的formId
-      const formid = await FormId.getFormId(userid)
+      const formid = await FormId.getFormId('share', userid)
       if (!formid) {
         // formId不存在
-        debug('发送模板消息时找不到此用户对应的formId', { userid, type, data })
+        console.log('发送模板消息时找不到此用户对应的formId', JSON.stringify({ userid, type, data, extra }))
         reject({ ok: false, msg: 'formId不存在' })
         return false
       }
@@ -151,16 +157,21 @@ UserSchema.statics.sendMessage = async function(userid, type, data, extra) {
         })
     } else if (type === 'secret') {
       // 秘钥解锁成功消息通知
+      const setting = await Setting.findOne({ key: 'template_message_setting' }, 'value')
+      if (!setting || !setting.value || JSON.parse(setting.value)['secret'] !== 'true') {
+        console.log('暂未打开秘钥解锁消息提示的设置')
+        return false
+      }
       // 查找user的formId
-      const formid = await FormId.getFormId(userid)
+      const formid = await FormId.getFormId('secret', userid)
       if (!formid) {
         // formId不存在
-        debug('发送模板消息时找不到此用户对应的formId', { userid, type, data })
+        console.log('发送模板消息时找不到此用户对应的formId', JSON.stringify({ userid, type, data, extra }))
         reject({ ok: false, msg: 'formId不存在' })
         return false
       }
       if (!extra.bookid) {
-        debug('发送秘钥解锁成功消息时bookid不存在', { userid, type, data, extra })
+        console.log('发送秘钥解锁成功消息时bookid不存在', JSON.stringify({ userid, type, data, extra }))
         reject({ ok: false, msg: '发送秘钥解锁成功消息时bookid不存在', err })
         return false
       }
@@ -183,17 +194,17 @@ UserSchema.statics.sendMessage = async function(userid, type, data, extra) {
           reject({ ok: false, msg: '发送模板消息失败', err })
         })
     } else if (type === 'book-update') {
-      // 秘钥解锁成功消息通知
+      // 书籍更新成功消息通知
       if (!extra.bookid) {
-        debug('发送书籍更新模板消息时bookid不存在', { userid, type, data, extra })
+        console.log('发送书籍更新模板消息时bookid不存在', JSON.stringify({ userid, type, data, extra }))
         reject({ ok: false, msg: '发送书籍更新模板消息时bookid不存在', err })
         return false
       }
       // 查找user的formId
-      const formid = await FormId.getFormId(userid, extra.bookid)
+      const formid = await FormId.getFormId('read', userid, extra.bookid)
       if (!formid) {
         // formId不存在
-        debug('发送模板消息时找不到此用户对应的formId', { userid, type, data })
+        console.log('发送模板消息时找不到此用户对应的formId', JSON.stringify({ userid, type, data, extra }))
         reject({ ok: false, msg: 'formId不存在' })
         return false
       }

@@ -57,15 +57,17 @@ function initUserBooklist(userid) {
   BookList.create({
     userid: userid,
     books: []
-  }).then(res => {
-    console.log(`初始化用户${userid}书架成功`)
-  }).catch(err => {
-    reportError(`初始化用户书架失败`, {
-      extra: {
-        debug: { userid, err }
-      }
-    })
   })
+    .then(res => {
+      console.log(`初始化用户${userid}书架成功`)
+    })
+    .catch(err => {
+      reportError(`初始化用户书架失败`, {
+        extra: {
+          debug: { userid, err }
+        }
+      })
+    })
 }
 
 async function getGlobalSetting() {
@@ -189,7 +191,7 @@ export default function(router) {
           })
 
           // 更新用户最近登录时间
-          debug('用户 ' + user._id + ' 于 ' + new Date().toDateString() + ' 登录后台管理系统', '')
+          console.log('用户 ' + user._id + ' 于 ' + new Date().toDateString() + ' 登录后台管理系统', '')
           updateLastLoginTime(user._id)
 
           ctx.body = {
@@ -265,7 +267,7 @@ export default function(router) {
 
           // 初始化书架
           initUserBooklist(user._id)
-          debug('Info', '用户 ' + user._id + ' 于 ' + user.create_time.toDateString() + ' 注册, 并初始化书架')
+          console.log('Info', '用户 ' + user._id + ' 于 ' + user.create_time.toDateString() + ' 注册, 并初始化书架')
           updateLastLoginTime(user._id)
 
           // 创建分享记录
@@ -297,7 +299,7 @@ export default function(router) {
           })
 
           // 更新用户最近登录时间
-          debug('用户 ' + isUserExit._id + ' 于 ' + new Date().toDateString() + ' 登录', '')
+          console.log('用户 ' + isUserExit._id + ' 于 ' + new Date().toDateString() + ' 登录', '')
           updateLastLoginTime(isUserExit._id)
 
           // 查询当前用户的邀请信息，如果找不到则创建一个
