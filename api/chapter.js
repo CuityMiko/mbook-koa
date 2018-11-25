@@ -476,7 +476,7 @@ export default function(router) {
   router.patch('/api/chapter/:id', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'theme_update')
     if (userid) {
-      let { name, num, author, content } = ctx.request.body
+      let { bookid, name, num, author, content } = ctx.request.body
       let id = ctx.params.id
       let result = await Chapter.update(
         { _id: id },
@@ -490,7 +490,7 @@ export default function(router) {
       )
       if (result.ok === 1) {
         // 更改书籍更新时间
-        Book.updateTime(book_id)
+        Book.updateTime(bookid)
         let newest = await Chapter.findById(id)
         ctx.body = { ok: true, msg: '更新章节成功', data: newest }
       } else {
