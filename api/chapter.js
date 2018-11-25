@@ -422,6 +422,7 @@ export default function(router) {
                   // 更改书籍更新时间
                   Book.updateTime(id)
                   // 阅读更新通知
+                  console.log(`开始发送书籍更新提示, 书籍id ${id} 章节id ${addResult._id}`)
                   readUpdateNotice(id, addResult._id)
                   ctx.body = { ok: true, msg: '新增章节成功', data: addResult }
                 } else {
