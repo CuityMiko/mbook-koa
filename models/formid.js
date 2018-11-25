@@ -11,6 +11,7 @@ const FormIdSchema = new mongoose.Schema(
         add_time: { type: Date, default: new Date() }
       }
     ],
+    recent_send_time: { type: Number, default: 0 }, // 最近发送时间
     create_time: Date
   },
   { versionKey: false }
@@ -46,8 +47,10 @@ FormIdSchema.statics.getFormId = async function(type, userId, bookId) {
         // 7天内未被使用
         let isRead = thisForm.records[i].type === 'read'
         let isThisBook = thisForm.records[i].bookid.toString() === bookId
-        let inSevenDays = thisForm.records[i].add_time.getTime() >= Date.now() - 604800000
-        if (isRead && isThisBook && inSevenDays) {
+        let inSevenDays = thisForm.records[i].add_time.getTime() >= (Date.now() - 604800000)
+        // 半个小时内防止给用户重复发送阅读更新提示
+        let isSendOutHalfHour = Date.now() >= ((thisForm.recent_send_time || 0) + 30 * 60 * 1000)
+        if (isRead && isThisBook && inSevenDays && isSendOutHalfHour) {
           tmpId = thisForm.records[i].value
           break
         }
@@ -85,7 +88,7 @@ FormIdSchema.statics.updateFormId = async function(userId, formId) {
     console.log('更新formId失败，找不到记录', { userId, formId })
     return false
   }
-  let updateResult = await this.update({ userid: userId }, { $pull: { records: { value: formId } } })
+  let updateResult = await this.update({ userid: userId }, { $set: { recent_send_time: Date.now() }, $pull: { records: { value: formId } } })
   if (updateResult.ok == 1 && updateResult.nModified == 1) {
     return true
   } else {

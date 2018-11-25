@@ -53,7 +53,9 @@ export default function(router) {
               value: formId,
               add_time: new Date()
             }
-          ]
+          ],
+          recent_send_time: 0,
+          create_time: new Date()
         })
         if (updateResult.id) {
           ctx.body = { ok: true, msg: '提交formId成功' }
