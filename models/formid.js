@@ -39,7 +39,7 @@ FormIdSchema.statics.getFormId = async function(type, userId, bookId) {
   if (!thisForm) {
     return ''
   }
-  if (thisForm.records instanceof Array && thisForm.records.length > 1) {
+  if (thisForm.records instanceof Array && thisForm.records.length >= 1) {
     let tmpId = ''
     if (type === 'read' && bookId) {
       for (let i = 0; i < thisForm.records.length; i++) {
