@@ -49,7 +49,7 @@ FormIdSchema.statics.getFormId = async function(type, userId, bookId) {
         let isThisBook = thisForm.records[i].bookid.toString() === bookId
         let inSevenDays = thisForm.records[i].add_time.getTime() >= (Date.now() - 604800000)
         // 半个小时内防止给用户重复发送阅读更新提示
-        let isSendOutHalfHour = Date.now() >= ((thisForm.recent_send_time || 0) + 30 * 60 * 1000)
+        let isSendOutHalfHour = Date.now() >= ((thisForm.recent_send_time || 0) + 10 * 60 * 1000)
         if (isRead && isThisBook && inSevenDays && isSendOutHalfHour) {
           tmpId = thisForm.records[i].value
           break

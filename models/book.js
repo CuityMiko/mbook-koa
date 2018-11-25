@@ -34,7 +34,6 @@ BookSchema.statics.updateTime = function(id) {
       return false
     }
     let newestChapter = mres.chapters.length
-    console.log('newestChapter', newestChapter)
     self.update({ _id: id }, { $set: { newest_chapter: newestChapter,update_time: new Date() } }, function(err, res) {
       if (err) {
         console.log('更改书籍更新时间失败', err)
