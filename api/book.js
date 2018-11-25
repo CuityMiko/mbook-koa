@@ -281,11 +281,12 @@ export default function(router) {
         condition.name = new RegExp(name, 'i')
       }
       if (author) {
-        condition.author = new RegExp(name, 'i')
+        condition.author = new RegExp(author, 'i')
       }
       if (parseInt(status) === 1) {
         condition.update_status = '连载中'
       }
+      console.log(condition)
       const total = await Book.count(condition)
       // query book
       let books = await Book.find(condition)
