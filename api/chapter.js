@@ -476,7 +476,7 @@ export default function(router) {
   router.patch('/api/chapter/:id', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'theme_update')
     if (userid) {
-      let { bookid, name, num, author, content } = ctx.request.body
+      let { bookid, name, num, content } = ctx.request.body
       let id = ctx.params.id
       let result = await Chapter.update(
         { _id: id },

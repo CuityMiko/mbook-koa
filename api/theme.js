@@ -42,7 +42,7 @@ export default function(router) {
               name: tmpBook.name,
               author: tmpBook.author,
               img_url: tmpBook.img_url,
-              des: tmpBook.des,
+              des: tmpBook.des
             })
           }
         }
@@ -175,17 +175,10 @@ export default function(router) {
     let userid = await checkAdminToken(ctx, next, 'theme_update')
     if (userid) {
       let id = ctx.params.id
-      let { name, priority, des, show, layout, flush } = ctx.request.body
       let result = await Theme.update(
         { _id: id },
         {
-          $set: {
-            name: name,
-            des: des,
-            show: show,
-            layout: layout,
-            flush: flush
-          }
+          $set: ctx.request.body
         }
       )
       if (result.ok === 1) {
