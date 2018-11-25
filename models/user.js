@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 import bcrypt from 'bcrypt-nodejs'
 import { Award } from './award'
 import { FormId } from './formid'
+import { Setting } from './setting'
 import { sendWxMessage } from '../utils/wxCode'
 import { reportError } from '../utils'
 const SALT_WORK_FACTOR = 10
