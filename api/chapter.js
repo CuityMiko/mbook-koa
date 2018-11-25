@@ -506,6 +506,7 @@ export default function(router) {
       let book_id = ctx.params.book_id
       let addErrors = []
       let rightNum = 0
+      let lastChapterId = '' // 最后一章的ID
       async function saveChapter(index, num, name, content) {
         if (num || num === 0) {
           num = parseInt(num)
@@ -543,12 +544,15 @@ export default function(router) {
                     }
                   )
                   if (updateResult.ok) {
+                    return addResult._id
                     rightNum++
                   } else {
                     addErrors.push('第' + ++index + '行更新Book.chapters失败')
+                    return ''
                   }
                 } else {
                   addErrors.push('第' + ++index + '行新增章节失败')
+                  return ''
                 }
               } else {
                 // addErrors.push('第' + ++index + '行章节序号重复')
@@ -567,18 +571,23 @@ export default function(router) {
                 )
                 if (updateResult.ok) {
                   rightNum++
+                  return tmp.id
                 } else {
                   addErrors.push('第' + ++index + '行章节更新失败')
+                  return ''
                 }
               }
             } else {
               addErrors.push('第' + ++index + '行章节内容不能为空')
+              return ''
             }
           } else {
             addErrors.push('第' + ++index + '行章节名不能为空')
+            return ''
           }
         } else {
           addErrors.push('第' + ++index + '行章节序数不能为空')
+          return ''
         }
       }
       try {
@@ -600,134 +609,145 @@ export default function(router) {
               const MB = 1024 * 1024 // 限制读取大小为1M
               const stream = new ReadStreamThrottle(fs.createReadStream(inputPath), MB)
               let lastChapterNumber = 1
+              let readProgress = []
               stream.on('data', async function(chunk) {
-                const hasReadText = chunk.toString()
-                // 只要匹配的第一项不是章节开头的，说明上一个章节是断章，需要剩余内容补回到原章节中
-                const chapterTitleReg = /第?[零一二两三叁四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰0-9]+章(\s*|、*).*/gim
-                const firstLine = hasReadText
-                  .substring(0, 1000)
-                  .split('\n')[0]
-                  .trim()
-                // console.log(firstLine, '===>', firstLine.search(chapterTitleReg))
-                let startFromChapterTitle = false
-                if (firstLine.match(chapterTitleReg)) {
-                  startFromChapterTitle = true
-                }
-                let result = null
-                let chapters = [] // 记录已经匹配到的章节
-                let count = 0 // 记录匹配到的次数
-                while ((result = chapterTitleReg.exec(hasReadText)) !== null) {
-                  if (count === 0 && !startFromChapterTitle) {
-                    // 更新断章
-                    const thisChapter = await Book.findById(book_id).populate({
-                      path: 'chapters',
-                      match: { num: lastChapterNumber },
-                      select: '_id num content'
-                    })
-                    if (thisChapter && thisChapter.chapters.length === 1) {
-                      const updateResult = await Chapter.update(
-                        { _id: thisChapter.chapters[0]._id },
-                        {
-                          $set: {
-                            content: thisChapter.chapters[0].content + hasReadText.substring(1, result.index).trim()
-                          }
-                        }
-                      )
-                      // if (updateResult.ok) {
-                      //   // console.log('\n更新断章成功，章节号: ' + thisChapter.chapters[0].num  + ', 断章内容:' + hasReadText.substring(1, result.index).trim().substring(0, 30) + '\n')
-                      // }
+                readProgress.push(
+                  new Promise(async (resolve, reject) => {
+                    const hasReadText = chunk.toString()
+                    // 只要匹配的第一项不是章节开头的，说明上一个章节是断章，需要剩余内容补回到原章节中
+                    const chapterTitleReg = /第?[零一二两三叁四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰0-9]+章(\s*|、*).*/gim
+                    const firstLine = hasReadText
+                      .substring(0, 1000)
+                      .split('\n')[0]
+                      .trim()
+                    // console.log(firstLine, '===>', firstLine.search(chapterTitleReg))
+                    let startFromChapterTitle = false
+                    if (firstLine.match(chapterTitleReg)) {
+                      startFromChapterTitle = true
                     }
-                  }
-                  const num = tool.chineseParseInt(result[0].match(/第?[零一二两三叁四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰0-9]+章/)[0])
-                  const name = result[0]
-                    .match(/(?<=章).*$/)[0]
-                    .replace(/、/, '')
-                    .trim()
-                  chapters.push({
-                    num,
-                    name,
-                    resultIndex: result.index + result[0].length,
-                    lastIndex: chapterTitleReg.lastIndex - result[0].length
-                  })
-                  count++
-                  lastChapterNumber = num
-                }
-
-                // 遍历chapter获取章节内容并存储
-                for (let i = 0; i < chapters.length; i++) {
-                  let content = ''
-                  if (i === chapters.length - 1) {
-                    content = hasReadText.substring(chapters[i].resultIndex).trim()
-                  } else {
-                    content = hasReadText.substring(chapters[i].resultIndex, chapters[i + 1].lastIndex).trim()
-                  }
-                  delete chapters[i].lastIndex
-                  delete chapters[i].resultIndex
-                  chapters[i].content = content
-
-                  // 存储章节
-                  if (chapterHasExisted.indexOf(chapters[i].num) > -1) {
-                    const thisChapter = await Book.findById(book_id).populate({
-                      path: 'chapters',
-                      match: { num: chapters[i].num },
-                      select: '_id num'
-                    })
-                    if (thisChapter && thisChapter.chapters.length === 1) {
-                      if (chapters[i].num >= 1 && chapters[i].content && chapters[i].name.length <= 20) {
-                        const updateResult = await Chapter.update(
-                          { _id: thisChapter.chapters[0]._id },
-                          {
-                            $set: {
-                              name: chapters[i].name,
-                              content: chapters[i].content
+                    let result = null
+                    let chapters = [] // 记录已经匹配到的章节
+                    let count = 0 // 记录匹配到的次数
+                    while ((result = chapterTitleReg.exec(hasReadText)) !== null) {
+                      if (count === 0 && !startFromChapterTitle) {
+                        // 更新断章
+                        const thisChapter = await Book.findById(book_id).populate({
+                          path: 'chapters',
+                          match: { num: lastChapterNumber },
+                          select: '_id num content'
+                        })
+                        if (thisChapter && thisChapter.chapters.length === 1) {
+                          const updateResult = await Chapter.update(
+                            { _id: thisChapter.chapters[0]._id },
+                            {
+                              $set: {
+                                content: thisChapter.chapters[0].content + hasReadText.substring(1, result.index).trim()
+                              }
                             }
+                          )
+                        }
+                      }
+                      const num = tool.chineseParseInt(result[0].match(/第?[零一二两三叁四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰0-9]+章/)[0])
+                      const name = result[0]
+                        .match(/(?<=章).*$/)[0]
+                        .replace(/^(、*)(\.*)(：)/, '')
+                        .trim()
+                      chapters.push({
+                        num,
+                        name,
+                        resultIndex: result.index + result[0].length,
+                        lastIndex: chapterTitleReg.lastIndex - result[0].length
+                      })
+                      count++
+                      lastChapterNumber = num
+                    }
+
+                    // 遍历chapter获取章节内容并存储
+                    for (let i = 0; i < chapters.length; i++) {
+                      let content = ''
+                      if (i === chapters.length - 1) {
+                        content = hasReadText.substring(chapters[i].resultIndex).trim()
+                      } else {
+                        content = hasReadText.substring(chapters[i].resultIndex, chapters[i + 1].lastIndex).trim()
+                      }
+                      delete chapters[i].lastIndex
+                      delete chapters[i].resultIndex
+                      chapters[i].content = content
+
+                      // 存储章节
+                      if (chapterHasExisted.indexOf(chapters[i].num) > -1) {
+                        const thisChapter = await Book.findById(book_id).populate({
+                          path: 'chapters',
+                          match: { num: chapters[i].num },
+                          select: '_id num'
+                        })
+                        if (thisChapter && thisChapter.chapters.length === 1) {
+                          if (chapters[i].num >= 1 && chapters[i].content && chapters[i].name.length <= 20) {
+                            const updateResult = await Chapter.update(
+                              { _id: thisChapter.chapters[0]._id },
+                              {
+                                $set: {
+                                  name: chapters[i].name,
+                                  content: chapters[i].content
+                                }
+                              }
+                            )
+                            if (updateResult.ok) {
+                              lastChapterId = thisChapter.chapters[0]._id
+                              rightNum++
+                            } else {
+                              addErrors.push(`第${chapters[i].num}章 ${chapters[i].name} 更新失败`)
+                            }
+                          } else {
+                            addErrors.push(`第${chapters[i].num}章 ${chapters[i].name} 内容错误，取消更新`)
                           }
-                        )
-                        if (updateResult.ok) {
-                          rightNum++
                         } else {
-                          addErrors.push(`第${chapters[i].num}章 ${chapters[i].name} 更新失败`)
+                          addErrors.push(`第${chapters[i].num}章 ${chapters[i].name} 更新时查找失败`)
                         }
                       } else {
-                        console.log(chapters[i].num, chapters[i].content.substring(0, 10))
-                        addErrors.push(`第${chapters[i].num}章 ${chapters[i].name} 内容错误，取消更新`)
-                      }
-                    } else {
-                      addErrors.push(`第${chapters[i].num}章 ${chapters[i].name} 更新时查找失败`)
-                    }
-                  } else {
-                    const addResut = await Chapter.create({
-                      name: chapters[i].name,
-                      num: chapters[i].num,
-                      content: chapters[i].content,
-                      create_time: new Date()
-                    })
-                    if (addResut._id) {
-                      let updateResult = await Book.update(
-                        { _id: book_id },
-                        {
-                          $addToSet: {
-                            chapters: addResut._id
+                        const addResut = await Chapter.create({
+                          name: chapters[i].name,
+                          num: chapters[i].num,
+                          content: chapters[i].content,
+                          create_time: new Date()
+                        })
+                        if (addResut._id) {
+                          let updateResult = await Book.update(
+                            { _id: book_id },
+                            {
+                              $addToSet: {
+                                chapters: addResut._id
+                              }
+                            }
+                          )
+                          if (updateResult.ok) {
+                            lastChapterId = addResut._id
+                            rightNum++
+                            chapterHasExisted.push(chapters[i].num)
+                          } else {
+                            addErrors.push(`第${chapters[i].num}章 ${chapters[i].name} 创建成功，更新BOOK失败`)
                           }
+                        } else {
+                          addErrors.push(`第${chapters[i].num}章 ${chapters[i].name} 创建失败`)
                         }
-                      )
-                      if (updateResult.ok) {
-                        rightNum++
-                        chapterHasExisted.push(chapters[i].num)
-                      } else {
-                        addErrors.push(`第${chapters[i].num}章 ${chapters[i].name} 创建成功，更新BOOK失败`)
                       }
-                    } else {
-                      addErrors.push(`第${chapters[i].num}章 ${chapters[i].name} 创建失败`)
                     }
-                  }
-                }
+                    resolve(true)
+                  })
+                )
               })
-              stream.on('finish', function() {
-                // 更改书籍更新时间
-                Book.updateTime(book_id)
-                ctx.body = { ok: true, msg: '上传成功', errors: addErrors, success: rightNum }
-                resolve(next())
+              stream.on('end', function() {
+                console.log('读取完成...')
+                // 上传结束
+                Promise.all(readProgress).then(res => {
+                  console.log('上传结束...')
+                  // 更改书籍更新时间
+                  Book.updateTime(book_id)
+                  console.log(`开始发送书籍更新提示, 书籍id ${book_id} 章节id ${lastChapterId}`)
+                  readUpdateNotice(book_id, lastChapterId)
+                  ctx.body = { ok: true, msg: '上传成功', errors: addErrors, success: rightNum }
+                  resolve(next())
+                })
               })
               stream.on('error', error => {
                 ctx.body = { ok: false, msg: '读取文件失败，请试着换成小一点的文档', errors: addErrors, success: rightNum }
@@ -748,15 +768,16 @@ export default function(router) {
         } else if (type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
           // 用户上传了excel
           const uploadData = xlsx.parse(inputPath)
-
           // 保存章节
           if (uploadData && uploadData[0] && uploadData[0].data) {
             if (uploadData[0].data[0] instanceof Array && uploadData[0].data[0][0] === '章节序号') {
               for (let i = 1; i < uploadData[0].data.length; i++) {
                 // console.log(i, uploadData[0].data[i][0], uploadData[0].data[i][1], uploadData[0].data[i][2])
-                await saveChapter(i, uploadData[0].data[i][0], uploadData[0].data[i][1], uploadData[0].data[i][2])
+                lastChapterId = await saveChapter(i, uploadData[0].data[i][0], uploadData[0].data[i][1], uploadData[0].data[i][2])
               }
               Book.updateTime(book_id)
+              console.log(`开始发送书籍更新提示, 书籍id ${book_id} 章节id ${lastChapterId}`)
+              readUpdateNotice(book_id, lastChapterId)
               ctx.body = { ok: true, msg: '上传成功', errors: addErrors, success: rightNum }
             } else {
               ctx.body = { ok: false, msg: 'excel文件格式错误' }
