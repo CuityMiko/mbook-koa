@@ -1,7 +1,8 @@
 import { Book, BookList, User, Comment } from '../models'
-import { checkUserToken, tool } from '../utils'
+import { checkUserToken, tool, checkAdminToken } from '../utils'
+import config from '../config'
 
-export default function (router) {
+export default function(router) {
   router.post('/api/comment/add', async (ctx, next) => {
     // 解析jwt，取出userid查询booklist表，判断是否已经加入了书架
     let userid = await checkUserToken(ctx, next)
@@ -110,12 +111,12 @@ export default function (router) {
         // 对于每个根评论去获取他的子评论
         for (let i = 0; i < result.length; i++) {
           let allChildComments = []
-          let findChildAndSon = async function (commentid, username, userid) {
+          let findChildAndSon = async function(commentid, username, userid) {
             let childComments = await Comment.find({ bookid: bookid, father: commentid })
               .populate('userid')
               .sort({ create_time: 1 })
             let childCommentsToSave = []
-            childComments.forEach(function (childItem) {
+            childComments.forEach(function(childItem) {
               childCommentsToSave.push({
                 id: childItem._id,
                 userid: childItem.userid._id,
@@ -192,5 +193,85 @@ export default function (router) {
         reply: replyComments
       }
     }
+  })
+
+  // 后台相关接口
+  router.get('/api/comment/admin', async (ctx, next) => {
+    let userid = await checkAdminToken(ctx, next, 'comment_admin_get')
+    if (!userid) {
+      return false
+    }
+    let { page, limit, bookid } = ctx.request.query
+    // format page and limit
+    if (page) {
+      page = parseInt(page)
+    } else {
+      page = 1
+    }
+    if (limit) {
+      limit = parseInt(limit)
+    } else {
+      limit = 10
+    }
+    let conf = {}
+    if (bookid) {
+      conf.bookid = bookid
+    }
+    let total = await Comment.count(conf);
+    let comments = await Comment.find(conf)
+      .populate({
+        path: 'bookid',
+        model: 'Book',
+        select: { name: 1 }
+      })
+      .populate({
+        path: 'userid',
+        model: 'User',
+        select: { username: 1 }
+      })
+      .skip((page - 1) * limit)
+      .limit(limit)
+    ctx.body = { ok: true, msg: '获取评论成功', total, list: comments }
+  })
+
+  router.post('/api/comment/reply', async (ctx, next) => {
+    let userid = await checkAdminToken(ctx, next, 'comment_admin_get')
+    if (!userid) {
+      return false
+    }
+    let { bookid, commentid, content, send_message } = ctx.request.body
+    if (!bookid) {
+      ctx.body = { ok: false, msg: '参数错误，缺乏bookid参数' }
+      return false
+    }
+    if (!commentid) {
+      ctx.body = { ok: false, msg: '参数错误，缺乏commentid参数' }
+      return false
+    }
+    if (!content) {
+      ctx.body = { ok: false, msg: '参数错误，缺乏content参数' }
+      return false
+    }
+    send_message = !!send_message
+    // 创建一条系统回复评论
+    // 查找管理员
+    let adminUser = await User.findOne({ username: config.adminUserName })
+    if (!adminUser) {
+      ctx.body = { ok: false, msg: '系统管理员未找到' }
+      return false
+    }
+    let newComment = await Comment.create({
+      userid: await Comment.transId(adminUser._id),
+      bookid: await Comment.transId(bookid),
+      father: commentid ? await Comment.transId(commentid) : null,
+      content: content,
+      like_num: 0,
+      create_time: new Date()
+    })
+    // 发送模板消息
+    if (send_message) {
+
+    }
+    ctx.body = { ok: true, msg: '回复成功', data: newComment }
   })
 }
