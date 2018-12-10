@@ -254,6 +254,18 @@ export default function(router) {
     }
     send_message = !!send_message
     // 创建一条系统回复评论
+    // 当前书籍
+    let curBook = await Book.findById(bookid, 'name')
+    if (!curBook) {
+      ctx.body = { ok: false, msg: '评论未找打' }
+      return false
+    }
+    // 当前评论
+    let curComment = await Comment.findById(commentid, 'content')
+    if (!curComment) {
+      ctx.body = { ok: false, msg: '评论未找打' }
+      return false
+    }
     // 查找管理员
     let adminUser = await User.findOne({ username: config.adminUserName })
     if (!adminUser) {
@@ -270,7 +282,18 @@ export default function(router) {
     })
     // 发送模板消息
     if (send_message) {
-
+      User.sendMessage(
+        item.userid,
+        'commet',
+        {
+          keyword1: { value: `《${curComment.content}》` },
+          keyword2: { value: curBook.name },
+          keyword3: { value: '系统管理员' },
+          keyword4: { value: moment(newComment.create_time).format('YYYY年MM月DD日 HH:mm:ss') },
+          keyword5: { value: '点击查看详情' }
+        },
+        { bookid: bookid }
+      )
     }
     ctx.body = { ok: true, msg: '回复成功', data: newComment }
   })

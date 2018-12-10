@@ -227,6 +227,39 @@ UserSchema.statics.sendMessage = async function(userid, type, data, extra) {
         .catch(err => {
           reject({ ok: false, msg: '发送模板消息失败', err })
         })
+    }  else if (type === 'comment') {
+      // 评论回复消息提示
+      if (!extra.bookid) {
+        console.log('发送书评模板消息时bookid不存在', JSON.stringify({ userid, type, data, extra }))
+        reject({ ok: false, msg: '发送书评模板消息时bookid不存在', err })
+        return false
+      }
+      // 查找user的formId
+      const formid = await FormId.getFormId('read', userid, extra.bookid)
+      if (!formid) {
+        // formId不存在
+        console.log('发送模板消息时找不到此用户对应的formId', JSON.stringify({ userid, type, data, extra }))
+        reject({ ok: false, msg: 'formId不存在' })
+        return false
+      }
+      sendWxMessage(current.openid, 'JU9Bw6ogf-NGNm8hykXoZTYGjOFEp4X9juG54LEpSBY', 'pages/loading/loading?bookid=' + extra.bookid, formid, data)
+        .then(async res => {
+          if (res.errcode === 0) {
+            await FormId.updateFormId(userid, formid)
+            resolve({ ok: true, msg: '发送模板消息成功' })
+          } else {
+            reportError('发送书评模板消息失败', {
+              extra: {
+                res,
+                params: {}
+              }
+            })
+            reject({ ok: false, msg: res.errmsg })
+          }
+        })
+        .catch(err => {
+          reject({ ok: false, msg: '发送模板消息失败', err })
+        })
     }
   })
 }
