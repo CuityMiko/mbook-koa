@@ -263,7 +263,7 @@ export default function(router) {
       return false
     }
     // 当前评论
-    let curComment = await Comment.findById(commentid, 'content')
+    let curComment = await Comment.findById(commentid, 'content userid')
     if (!curComment) {
       ctx.body = { ok: false, msg: '评论未找到' }
       return false
@@ -286,7 +286,7 @@ export default function(router) {
     if (send_message) {
       User.sendMessage(
         curComment.userid.toString(),
-        'commet',
+        'comment',
         {
           keyword1: { value: `《${curComment.content}》` },
           keyword2: { value: curBook.name },
@@ -335,7 +335,6 @@ export default function(router) {
       }
     }
     await findChildAndSon(commentid)
-    console.log(comments)
     let deleTeResult = await Comment.remove({ _id: { $in: comments } })
     if (deleTeResult.result.ok === 1) {
       ctx.body = { ok: true, msg: '删除评论成功' }
