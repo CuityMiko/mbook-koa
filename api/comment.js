@@ -1,5 +1,6 @@
 import { Book, BookList, User, Comment } from '../models'
 import { checkUserToken, tool, checkAdminToken } from '../utils'
+import moment from 'moment'
 import config from '../config'
 
 export default function(router) {
@@ -231,6 +232,7 @@ export default function(router) {
       })
       .skip((page - 1) * limit)
       .limit(limit)
+      .sort({ create_time: -1 })
     ctx.body = { ok: true, msg: '获取评论成功', total, list: comments }
   })
 
@@ -257,13 +259,13 @@ export default function(router) {
     // 当前书籍
     let curBook = await Book.findById(bookid, 'name')
     if (!curBook) {
-      ctx.body = { ok: false, msg: '评论未找打' }
+      ctx.body = { ok: false, msg: '评论未找到' }
       return false
     }
     // 当前评论
     let curComment = await Comment.findById(commentid, 'content')
     if (!curComment) {
-      ctx.body = { ok: false, msg: '评论未找打' }
+      ctx.body = { ok: false, msg: '评论未找到' }
       return false
     }
     // 查找管理员
@@ -283,7 +285,7 @@ export default function(router) {
     // 发送模板消息
     if (send_message) {
       User.sendMessage(
-        item.userid,
+        curComment.userid.toString(),
         'commet',
         {
           keyword1: { value: `《${curComment.content}》` },
@@ -296,5 +298,49 @@ export default function(router) {
       )
     }
     ctx.body = { ok: true, msg: '回复成功', data: newComment }
+  })
+
+  router.post('/api/comment/delete', async (ctx, next) => {
+    const userid = await checkAdminToken(ctx, next, 'comment_admin_get')
+    if (!userid) {
+      return false
+    }
+    const commentid = ctx.request.body.commentid
+    const bookid = ctx.request.body.bookid
+    let curComment = await Comment.findById(commentid)
+    if (!curComment) {
+      ctx.body = { ok: false, msg: '评论未找到' }
+      return false
+    }
+    let curBook = await Book.findById(bookid, 'name')
+    if (!curBook) {
+      ctx.body = { ok: false, msg: '评论未找到' }
+      return false
+    }
+    // 找出当前评论以及当前评论的子评论
+    let comments = []
+    comments.push(commentid)
+    let findChildAndSon = async function(commentId) {
+      let childComments = await Comment.find({ bookid: bookid, father: commentId })
+      let childCommentsToSave = []
+      childComments.forEach(function(childItem) {
+        childCommentsToSave.push(childItem._id.toString())
+      })
+      comments = comments.concat(childCommentsToSave)
+      // when this comment has child
+      if (childComments.length > 0) {
+        for (let k = 0; k < childComments.length; k++) {
+          await findChildAndSon(childComments[k]._id)
+        }
+      }
+    }
+    await findChildAndSon(commentid)
+    console.log(comments)
+    let deleTeResult = await Comment.remove({ _id: { $in: comments } })
+    if (deleTeResult.result.ok === 1) {
+      ctx.body = { ok: true, msg: '删除评论成功' }
+    } else {
+      ctx.body = { ok: false, msg: '删除评论失败', data: deleTeResult.result }
+    }
   })
 }
