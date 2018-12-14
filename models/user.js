@@ -235,7 +235,7 @@ UserSchema.statics.sendMessage = async function(userid, type, data, extra) {
         return false
       }
       // 查找user的formId
-      const formid = await FormId.getFormId('read', userid, extra.bookid)
+      const formid = await FormId.getFormId('comment', userid, extra.bookid)
       if (!formid) {
         // formId不存在
         console.log('发送模板消息时找不到此用户对应的formId', JSON.stringify({ userid, type, data, extra }))
