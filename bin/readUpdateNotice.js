@@ -50,7 +50,7 @@ async function readUpdateNotice(bookId, chapterId) {
         item.userid,
         'book-update',
         {
-          keyword1: { value: `《${thisBook.name}》` },
+          keyword1: { value: thisBook.name },
           keyword2: { value: moment(thisChapter.create_time).format('YYYY年MM月DD日 HH:mm:ss') },
           keyword3: { value: `更新章节：第${thisChapter.num}章 ${thisChapter.name}\n点击消息立即阅读吧~` }
         },
