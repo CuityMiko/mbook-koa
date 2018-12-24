@@ -13,13 +13,8 @@ export default function(router) {
       if (id) {
         let book = await Book.findById(id)
         if (book) {
-          let hisBookList = await BookList.findOne({ userid })
-          let isInList = false
-          if (hisBookList) {
-            isInList = hisBookList.books.some(item => {
-              return item.bookid.toString() === id
-            })
-          }
+          let isInList = await BookList.findOne({ userid, 'books.bookid': id }, '_id')
+          let hasRssTheBook = await BookList.findOne({ userid, 'books.bookid': id, 'books.rss': 1 }, '_id')
           // 获取书籍的商品属性
           let good = {}
           let thisGood = await Good.findOne({ bookid: book._id })
@@ -61,13 +56,14 @@ export default function(router) {
             classification: book.classification,
             update_status: book.update_status === '已完结' ? '已完结' : '第' + book.newest_chapter + '章', // 这里日后最好加上章节名
             newest_chapter: book.newest_chapter,
+            rss: hasRssTheBook ? 1 : 0,
             total_words: book.total_words,
             hot_value: book.hot_value,
             update_time: tool.formatTime(book.update_time),
             good,
             hasUnLock: !!hasUnLock
           }
-          ctx.body = { ok: true, msg: '获取书籍详情成功', data: result, isInList: isInList }
+          ctx.body = { ok: true, msg: '获取书籍详情成功', data: result, isInList: !!isInList }
         } else {
           ctx.body = { ok: false, msg: '获取书籍详情失败' }
         }

@@ -15,6 +15,7 @@ export default function(router) {
             newBookList.push({
               bookid: hisBookList.books[i].bookid,
               index: count,
+              rss: hisBookList.books[i].rss,
               time: hisBookList.books[i].time,
               read: { num: hisBookList.books[i].read.num, top: hisBookList.books[i].read.top, scroll: hisBookList.books[i].read.scroll || 0 }
             })
@@ -62,6 +63,7 @@ export default function(router) {
                 books: {
                   index: hisBookList ? hisBookList.books.length : 0,
                   bookid: await BookList.transId(id),
+                  rss: 0,
                   time: new Date(),
                   read: { num: 1, top: 0 }
                 }
@@ -80,42 +82,68 @@ export default function(router) {
     }
   })
 
+  // 订阅书籍
+  router.post('/api/booklist/rss', async (ctx, next) => {
+    let userid = await checkUserToken(ctx, next)
+    if (userid) {
+      let { bookid, rss } = ctx.request.body
+      rss = !!rss ? 1 : 0
+      let thisBook = await Book.findById(bookid, '_id')
+      if (!thisBook) {
+        ctx.body = { ok: false, msg: '找不到此书籍' }
+        return false
+      }
+      let updateResult = await BookList.update({ userid: userid, 'books.bookid': bookid }, { $set: { 'books.$.rss': rss } })
+      if (updateResult.ok === 1) {
+        ctx.body = { ok: true, msg: '修改书籍订阅状态成功' }
+      } else {
+        ctx.body = { ok: false, msg: '修改书籍订阅状态失败' }
+      }
+    }
+  })
+
   // 更新用户阅读进度接口
   router.post('/api/booklist/update_read', async (ctx, next) => {
     let userid = await checkUserToken(ctx, next)
     if (userid) {
       let { bookid, chapter_num, chapter_page_index, chapter_page_top, read_time, setting } = ctx.request.body
-      if (bookid && chapter_num && (chapter_page_index || chapter_page_index == 0) && (chapter_page_top || chapter_page_top == 0) && setting.reader) {
-        let thisBookList = await BookList.findOne({ userid })
-        let newBooks = []
-        if (thisBookList) {
-          newBooks = thisBookList.books.map(item => {
-            if (item.bookid.toString() == bookid) {
-              item.read = {
-                num: chapter_num,
-                top: chapter_page_index || 0,
-                scroll: chapter_page_top || 0
-              }
-              item.time = new Date()
-              return item
-            } else {
-              return item
-            }
-          })
-        }
-        let updateResult = await BookList.update({ userid }, { $set: { books: newBooks } })
-        let updateReadTime = await User.update({ _id: userid }, { $inc: { read_time: parseInt(read_time) }, $set: { 'setting.reader': setting.reader } })
-        if (updateResult.ok === 1 && updateReadTime.ok === 1) {
-          if (updateResult.nModified === 1) {
-            ctx.body = { ok: true, msg: '更新阅读进度成功，最新进度第' + chapter_num + '章，第' + chapter_page_index + '页' }
-          } else {
-            ctx.body = { ok: true, msg: '阅读进度没有改动' }
+      // 校验参数合法性
+      if (!(bookid && chapter_num && (chapter_page_index || chapter_page_index == 0) && (chapter_page_top || chapter_page_top == 0) && setting.reader)) {
+        ctx.body = { ok: false, msg: '参数错误' }
+        return false
+      }
+      // 校验booklist
+      let thisBookList = await BookList.findOne({ userid })
+      if (!thisBookList) {
+        ctx.body = { ok: false, msg: '找不到对应的BookList' }
+        return false
+      }
+      // 开始更新
+      let updateResult = await BookList.update(
+        {
+          userid,
+          'books.bookid': bookid
+        },
+        {
+          $set: {
+            'books.$.read': {
+              num: chapter_num,
+              top: chapter_page_index || 0,
+              scroll: chapter_page_top || 0
+            },
+            'books.$.time': new Date()
           }
+        }
+      )
+      let updateReadTime = await User.update({ _id: userid }, { $inc: { read_time: parseInt(read_time) }, $set: { 'setting.reader': setting.reader } })
+      if (updateResult.ok === 1 && updateReadTime.ok === 1) {
+        if (updateResult.nModified === 1) {
+          ctx.body = { ok: true, msg: '更新阅读进度成功，最新进度第' + chapter_num + '章，第' + chapter_page_index + '页' }
         } else {
-          ctx.body = { ok: false, msg: '更新阅读进度失败' }
+          ctx.body = { ok: true, msg: '阅读进度没有改动' }
         }
       } else {
-        ctx.body = { ok: false, msg: '更新阅读进度失败，参数错误' }
+        ctx.body = { ok: false, msg: '更新阅读进度失败' }
       }
     }
   })
@@ -146,6 +174,7 @@ export default function(router) {
             read_num: thisBookList.books[i].read.num,
             read_top: thisBookList.books[i].read.top,
             read_scroll: thisBookList.books[i].read.scroll || 0,
+            rss: thisBookList.books[i].rss,
             time: thisBookList.books[i].time,
             name: bookInfo.name,
             author: bookInfo.author,

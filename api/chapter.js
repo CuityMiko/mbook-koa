@@ -215,19 +215,20 @@ export default function(router) {
       if (chapter_id) {
         // 通过传递章节id获取章节内容
         const thisChapter = await Chapter.findById(chapter_id)
-        const thisBook = await Book.findById(bookid, 'name img_url author newest_chapter')
+        const thisBook = await Book.findById(bookid, 'name img_url author newest_chapter update_status')
         if (thisChapter._id) {
           const canReadResult = await canReadFunc(thisChapter.num)
           ctx.body = {
             ok: true,
+            msg: '获取章节详情成功',
             canRead: canReadResult.canRead,
             autoBuy: canReadResult.autoBuy,
             doAutoBuy: canReadResult.doAutoBuy,
-            msg: '获取章节详情成功',
             bookname: thisBook.name,
             headimg: thisBook.img_url,
             author: thisBook.author,
             newest: thisBook.newest_chapter,
+            update_status: thisBook.update_status,
             top: 0,
             scroll: 0,
             data: thisChapter
@@ -237,7 +238,7 @@ export default function(router) {
         }
       } else if (chapter_num) {
         // 通过传递章节数获取章节内容
-        let thisBook = await Book.findById(bookid, 'id name img_url author newest_chapter').populate({
+        let thisBook = await Book.findById(bookid, 'id name img_url author newest_chapter update_status').populate({
           path: 'chapters',
           match: {
             num: chapter_num
@@ -247,16 +248,17 @@ export default function(router) {
           const canReadResult = await canReadFunc(thisBook.chapters[0].num)
           ctx.body = {
             ok: true,
+            msg: '获取章节详情成功',
             canRead: canReadResult.canRead,
             autoBuy: canReadResult.autoBuy,
             doAutoBuy: canReadResult.doAutoBuy,
-            msg: '获取章节详情成功',
             top: 0,
             scroll: 0,
             bookname: thisBook.name,
             headimg: thisBook.img_url,
             author: thisBook.author,
             newest: thisBook.newest_chapter,
+            update_status: thisBook.update_status,
             data: thisBook.chapters[0]
           }
         } else {
@@ -268,16 +270,18 @@ export default function(router) {
         let readChapterNum = 1
         let readChapterScrollTop = 0
         let readChapterScroll = 0
+        let hasRssTheBook = false
         if (thisBookList) {
           thisBookList.books.forEach(item => {
             if (item.bookid.toString() == bookid) {
               readChapterNum = item.read.num
               readChapterScrollTop = item.read.top
               readChapterScroll = item.read.scroll || 0
+              hasRssTheBook = item.rss
             }
           })
         }
-        let thisBook = await Book.findById(bookid, 'id name img_url author newest_chapter').populate({
+        let thisBook = await Book.findById(bookid, 'id name img_url author newest_chapter update_status').populate({
           path: 'chapters',
           match: {
             num: readChapterNum
@@ -287,16 +291,18 @@ export default function(router) {
           const canReadResult = await canReadFunc(thisBook.chapters[0].num)
           ctx.body = {
             ok: true,
+            msg: '获取章节详情成功',
             canRead: canReadResult.canRead,
             autoBuy: canReadResult.autoBuy,
             doAutoBuy: canReadResult.doAutoBuy,
-            msg: '获取章节详情成功',
             top: readChapterScrollTop,
             scroll: readChapterScroll,
             bookname: thisBook.name,
             headimg: thisBook.img_url,
             author: thisBook.author,
             newest: thisBook.newest_chapter,
+            update_status: thisBook.update_status,
+            rss: hasRssTheBook,
             data: thisBook.chapters[0]
           }
         } else {

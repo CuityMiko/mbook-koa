@@ -209,7 +209,7 @@ UserSchema.statics.sendMessage = async function(userid, type, data, extra) {
         reject({ ok: false, msg: 'formId不存在' })
         return false
       }
-      sendWxMessage(current.openid, '66RVt2pXdkIQG3zFp6EyJtM66fIkaBBVHveO9oXpm-I', 'pages/loading/loading?bookid=' + extra.bookid, formid, data)
+      sendWxMessage(current.openid, '66RVt2pXdkIQG3zFp6EyJsG8BAh4SrKhEnUaJ6Gi3hQ', 'pages/loading/loading?bookid=' + extra.bookid, formid, data)
         .then(async res => {
           if (res.errcode === 0) {
             await FormId.updateFormId(userid, formid)
