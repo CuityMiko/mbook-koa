@@ -42,7 +42,7 @@ async function readUpdateNotice(bookId, chapterId) {
   }
   // 查找所有收藏本书籍的用户, 最近7天有阅读记录的
   let now = Date.now()
-  let noticeUsers = await BookList.find({ 'books.bookid': bookId, 'books.time': { $gte: now - 7 * 24 * 60 * 60 * 1000, $lte: now } }, 'userid')
+  let noticeUsers = await BookList.find({ 'books.bookid': bookId, 'books.time': { $gte: now - 7 * 24 * 60 * 60 * 1000, $lte: now }, 'books.rss': 1 }, 'userid')
   let queue = new Queue({ concurrency: 10, autoStart: false })
   noticeUsers.forEach(async item => {
     queue.add(() =>
@@ -50,9 +50,9 @@ async function readUpdateNotice(bookId, chapterId) {
         item.userid,
         'book-update',
         {
-          keyword1: { value: `《${thisBook.name}》` },
-          keyword2: { value: '书籍更新提醒' },
-          keyword3: { value: `更新章节：第${thisChapter.num}章 ${thisChapter.name}\n更新时间：${moment(thisChapter.create_time).format('YYYY年MM月DD日 HH:mm:ss')}\n点击消息立即阅读吧~` }
+          keyword1: { value: thisBook.name },
+          keyword2: { value: moment(thisChapter.create_time).format('YYYY年MM月DD日 HH:mm:ss') },
+          keyword3: { value: `更新章节：第${thisChapter.num}章 ${thisChapter.name}\n点击消息立即阅读吧~` }
         },
         { bookid: bookId }
       )
