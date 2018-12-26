@@ -369,8 +369,7 @@ export default function(router) {
   
   /**
    * 后台管理新增章节
-   * TODO
-   * @method get
+   * @method post
    * @param {String} book_id 书籍id
    */
   router.post('/api/:book_id/chapter', async (ctx, next) => {
@@ -383,16 +382,9 @@ export default function(router) {
         num = parseInt(num)
         if (name) {
           if (content) {
-            // 判断num是否重复
             // 检查num是否重复
-            let oldChapter = await Book.findById(id).populate({
-              path: 'chapters',
-              select: 'num'
-            })
-            let isExist = oldChapter.chapters.some(item => {
-              return item.num == num
-            })
-            if (!isExist) {
+            let oldChapter = await Chapter.findOne({ bookid: id, num })
+            if (!oldChapter) {
               let addResult = await Chapter.create({
                 num,
                 name,
@@ -401,24 +393,12 @@ export default function(router) {
               })
               // 更新book.chapters
               if (addResult._id) {
-                let updateResult = await Book.update(
-                  { _id: id },
-                  {
-                    $addToSet: {
-                      chapters: addResult._id
-                    }
-                  }
-                )
-                if (updateResult.ok) {
-                  // 更改书籍更新时间
-                  Book.updateTime(id)
-                  // 阅读更新通知
-                  console.log(`开始发送书籍更新提示, 书籍id ${id} 章节id ${addResult._id}`)
-                  readUpdateNotice(id, addResult._id)
-                  ctx.body = { ok: true, msg: '新增章节成功', data: addResult }
-                } else {
-                  ctx.body = { ok: false, msg: '新增章节失败' }
-                }
+                // 更改书籍更新时间
+                Book.updateTime(id)
+                // 阅读更新通知
+                console.log(`开始发送书籍更新提示, 书籍id ${id} 章节id ${addResult._id}`)
+                readUpdateNotice(id, addResult._id)
+                ctx.body = { ok: true, msg: '新增章节成功', data: addResult }
               } else {
                 ctx.body = { ok: false, msg: '新增章节失败' }
               }
@@ -436,22 +416,28 @@ export default function(router) {
       }
     }
   })
-  // delete
-  router.delete('/api/:book_id/chapter/:chapter_id', async (ctx, next) => {
+  /**
+   * 后台管理删除章节
+   * @method delete
+   * @param {String} book_id 书籍id
+   * @param {String} chapter_id 章节id
+   */
+  router.delete('/api/chapter/:chapter_id', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'chapter_get')
     if (userid) {
-      let book_id = ctx.params.book_id
       let chapter_id = ctx.params.chapter_id
-      let thisBook = await Book.findById(book_id, 'chapters')
-      let newChapters = thisBook.chapters.filter(item => {
-        return item.toString() !== chapter_id
-      })
+      let thisChapter = await Chapter.findById(chapter_id)
+      if (!thisChapter) {
+        ctx.body = { ok: false, msg: '删除章节失败，章节不存在' }
+        return false
+      }
       await Chapter.remove({ _id: chapter_id })
+      let newestChapter = await Chapter.findOne({ bookid: thisChapter.bookid }, 'num').sort({ num: -1 }).limit(1)
       let updateResult = await Book.update(
-        { _id: book_id },
+        { _id: thisChapter.bookid.toString() },
         {
           $set: {
-            chapters: newChapters
+            newest_chapter: newestChapter.num,
           }
         }
       )
@@ -464,11 +450,19 @@ export default function(router) {
       }
     }
   })
-  // 后台书籍列表更新
+
+  /**
+   * 后台管理章节更新
+   * @method patch
+   * @param {String} id 章节id
+   * @param {String} name 章节名称
+   * @param {Number} num 章节序号
+   * @param {String} conent 章节内容
+   */
   router.patch('/api/chapter/:id', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'theme_update')
     if (userid) {
-      let { bookid, name, num, content } = ctx.request.body
+      let { name, num, content } = ctx.request.body
       let id = ctx.params.id
       let result = await Chapter.update(
         { _id: id },
@@ -490,9 +484,14 @@ export default function(router) {
       }
     }
   })
-  // 后台章节upload
+
+  /**
+   * 后台管理章节上传
+   * @method post
+   * @param {String} book_id 书籍id
+   */
   router.post('/api/:book_id/chapter_upload', convert(body()), async (ctx, next) => {
-    let userid = await checkAdminToken(ctx, next, 'theme_update')
+    let userid = await checkAdminToken(ctx, next, 'chapter_upload')
     if (userid) {
       let book_id = ctx.params.book_id
       let addErrors = []
@@ -504,20 +503,8 @@ export default function(router) {
           if (name) {
             if (content) {
               // 检查num是否重复
-              let oldChapter = await Book.findById(book_id).populate({
-                path: 'chapters',
-                select: 'num'
-              })
-              let tmp = {}
-              let isExist = oldChapter.chapters.some(item => {
-                if (item.num === num) {
-                  tmp = item
-                  return true
-                } else {
-                  return false
-                }
-              })
-              if (!isExist) {
+              let oldChapter = await Chapter.find({ bookid: book_id, num })
+              if (!oldChapter) {
                 let addResult = await Chapter.create({
                   num,
                   name,
@@ -526,31 +513,17 @@ export default function(router) {
                 })
                 // 更新book.chapters
                 if (addResult._id) {
-                  let updateResult = await Book.update(
-                    { _id: book_id },
-                    {
-                      $addToSet: {
-                        chapters: addResult._id
-                      }
-                    }
-                  )
-                  if (updateResult.ok) {
-                    return addResult._id
-                    rightNum++
-                  } else {
-                    addErrors.push('第' + ++index + '行更新Book.chapters失败')
-                    return ''
-                  }
+                  rightNum++
+                  return addResult._id
                 } else {
                   addErrors.push('第' + ++index + '行新增章节失败')
                   return ''
                 }
               } else {
-                // addErrors.push('第' + ++index + '行章节序号重复')
                 // 不再提示错误，自动覆盖原来章节
                 let updateResult = await Chapter.update(
                   {
-                    _id: tmp.id
+                    _id: oldChapter.id
                   },
                   {
                     $set: {
@@ -562,7 +535,7 @@ export default function(router) {
                 )
                 if (updateResult.ok) {
                   rightNum++
-                  return tmp.id
+                  return oldChapter.id
                 } else {
                   addErrors.push('第' + ++index + '行章节更新失败')
                   return ''
@@ -581,6 +554,8 @@ export default function(router) {
           return ''
         }
       }
+
+      // 开始处理上传的文件
       try {
         // 判断上传的文件是excel还是text
         const type = ctx.request.files[0].type
@@ -589,11 +564,8 @@ export default function(router) {
           return new Promise(async (resolve, reject) => {
             try {
               // 已存在章节号
-              let chapterHasExisted = await Book.findById(book_id).populate({
-                path: 'chapters',
-                select: 'num'
-              })
-              chapterHasExisted = chapterHasExisted.chapters.map(item => {
+              let chapterHasExisted = await Chapter.find({ bookid: book_id }, 'num')
+              chapterHasExisted = chapterHasExisted.map(item => {
                 return item.num
               })
               // 用户上传了txt
@@ -622,22 +594,19 @@ export default function(router) {
                     while ((result = chapterTitleReg.exec(hasReadText)) !== null) {
                       if (count === 0 && !startFromChapterTitle) {
                         // 更新断章
-                        const thisChapter = await Book.findById(book_id).populate({
-                          path: 'chapters',
-                          match: { num: lastChapterNumber },
-                          select: '_id num content'
-                        })
-                        if (thisChapter && thisChapter.chapters.length === 1) {
-                          const updateResult = await Chapter.update(
-                            { _id: thisChapter.chapters[0]._id },
-                            {
-                              $set: {
-                                content: thisChapter.chapters[0].content + hasReadText.substring(1, result.index).trim()
-                              }
+                        let thisChapter = await Chapter.find({ bookid: book_id, num: lastChapterNumber }, 'content')
+                        await Chapter.update(
+                          {
+                            bookid: book_id,
+                            num: lastChapterNumber
+                          },
+                          {
+                            $set: {
+                              content: thisChapter.content + hasReadText.substring(1, result.index).trim()
                             }
-                          )
-                        }
-                      }
+                          }
+                        )
+                       }
                       const num = tool.chineseParseInt(result[0].match(/第?[零一二两三叁四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰0-9]+章/)[0])
                       const name = result[0]
                         .match(/(?<=章).*$/)[0]
@@ -667,15 +636,11 @@ export default function(router) {
 
                       // 存储章节
                       if (chapterHasExisted.indexOf(chapters[i].num) > -1) {
-                        const thisChapter = await Book.findById(book_id).populate({
-                          path: 'chapters',
-                          match: { num: chapters[i].num },
-                          select: '_id num'
-                        })
-                        if (thisChapter && thisChapter.chapters.length === 1) {
+                        let thisChapter = await Chapter.find({ bookid: book_id, num: chapters[i].num }, 'num')
+                        if (thisChapter) {
                           if (chapters[i].num >= 1 && chapters[i].content && chapters[i].name.length <= 20) {
                             const updateResult = await Chapter.update(
-                              { _id: thisChapter.chapters[0]._id },
+                              { _id: thisChapter.id },
                               {
                                 $set: {
                                   name: chapters[i].name,
