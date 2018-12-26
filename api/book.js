@@ -286,13 +286,7 @@ export default function(router) {
       const total = await Book.count(condition)
       // query book
       let books = await Book.find(condition)
-        .sort({ update_time: -1 })  
-        //.populate({
-        //  path: 'chapters',
-        //  model: 'Chapter',
-        //  select: { content: 0 },
-        //  options: { limit: 5, sort: { num: -1 } }
-        //})
+        .sort({ update_time: -1 })
         .skip((page - 1) * limit)
         .limit(limit)
       ctx.body = { ok: true, total, list: books, msg: '获取书籍列表成功' }
@@ -333,7 +327,6 @@ export default function(router) {
         newest_chapter: newest_chapter,
         total_words: total_words,
         hot_value: hot_value,
-        chapters: [], // empty chapter
         secret: shortid.generate(),
         update_time: new Date(),
         create_time: new Date()

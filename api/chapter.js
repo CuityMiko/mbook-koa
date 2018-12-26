@@ -82,30 +82,34 @@ ReadStreamThrottle.prototype.resume = function() {
 // setInterval(printMemoryUsage, 1000)
 
 export default function(router) {
+  /**
+   * 小程序端获取章节列表的接口
+   * @method get
+   * @param {String} bookid 书籍id
+   * @param {Number} pageid 当期目录翻页数
+   */
   router.get('/api/chapter/list', async (ctx, next) => {
     let { bookid, pageid } = ctx.request.query
     if (!pageid) {
       pageid = 1
     }
-    let thisBook = await Book.findById(bookid, 'id').populate({
-      path: 'chapters',
-      select: 'name num',
-      options: {
-        sort: {
-          num: 1
-        },
-        skip: (pageid - 1) * 50,
-        limit: 50
-      }
-    })
-    let total = (await Book.findById(bookid, 'chapters')).chapters.length
-    if (thisBook) {
-      ctx.body = { ok: true, msg: '获取章节列表成功', data: thisBook, total }
-    } else {
-      ctx.body = { ok: false, msg: '找不到对应的书籍' }
-    }
+
+    let total = await Chapter.count({ bookid })
+    let lists = await Chapter.find({ bookid })
+      .sort({ num: 1 })
+      .skip((pageid - 1) * 50)
+      .limit(50)
+    
+    ctx.body = { ok: true, msg: '获取章节列表成功', data: lists, total }
   })
 
+  /**
+   * 小程序端获取章节详情
+   * @method get
+   * @param {String} bookid 书籍id，可选值
+   * @param {String} chapter_id 章节id，可选值
+   * @param {String} chapter_num 章节序号，可选值
+   */
   router.get('/api/chapter/detail', async (ctx, next) => {
     let userid = await checkUserToken(ctx, next)
     if (userid) {
@@ -238,14 +242,10 @@ export default function(router) {
         }
       } else if (chapter_num) {
         // 通过传递章节数获取章节内容
-        let thisBook = await Book.findById(bookid, 'id name img_url author newest_chapter update_status').populate({
-          path: 'chapters',
-          match: {
-            num: chapter_num
-          }
-        })
-        if (thisBook.chapters[0]) {
-          const canReadResult = await canReadFunc(thisBook.chapters[0].num)
+        const thisChapter = await Chapter.findOne({ bookid, num: chapter_num })
+        const thisBook = await Book.findById(bookid, 'name img_url author newest_chapter update_status')
+        if (thisChapter) {
+          const canReadResult = await canReadFunc(thisChapter.num)
           ctx.body = {
             ok: true,
             msg: '获取章节详情成功',
@@ -259,14 +259,14 @@ export default function(router) {
             author: thisBook.author,
             newest: thisBook.newest_chapter,
             update_status: thisBook.update_status,
-            data: thisBook.chapters[0]
+            data: thisChapter
           }
         } else {
           ctx.body = { ok: false, msg: '获取章节详情失败' }
         }
       } else {
         // 去booklist里读取用户阅读进度
-        let thisBookList = await BookList.findOne({ userid })
+        const thisBookList = await BookList.findOne({ userid })
         let readChapterNum = 1
         let readChapterScrollTop = 0
         let readChapterScroll = 0
@@ -281,14 +281,10 @@ export default function(router) {
             }
           })
         }
-        let thisBook = await Book.findById(bookid, 'id name img_url author newest_chapter update_status').populate({
-          path: 'chapters',
-          match: {
-            num: readChapterNum
-          }
-        })
-        if (thisBook.chapters[0]) {
-          const canReadResult = await canReadFunc(thisBook.chapters[0].num)
+        const thisChapter = await Chapter.findOne({ bookid, num: readChapterNum })
+        const thisBook = await Book.findById(bookid, 'name img_url author newest_chapter update_status')
+        if (thisChapter) {
+          const canReadResult = await canReadFunc(thisChapter.num)
           ctx.body = {
             ok: true,
             msg: '获取章节详情成功',
@@ -303,7 +299,7 @@ export default function(router) {
             newest: thisBook.newest_chapter,
             update_status: thisBook.update_status,
             rss: hasRssTheBook,
-            data: thisBook.chapters[0]
+            data: thisChapter
           }
         } else {
           ctx.body = { ok: false, msg: '获取章节详情失败' }
@@ -312,6 +308,12 @@ export default function(router) {
     }
   })
 
+  /**
+   * 小程序端章节搜索
+   * @method get
+   * @param {String} 书籍id
+   * @param {String} 搜索文字
+   */
   router.get('/api/chapter/search', async (ctx, next) => {
     let { bookid, str } = ctx.request.query
     let queryArr = []
@@ -322,32 +324,11 @@ export default function(router) {
     }
     if (bookid) {
       if (str) {
-        let thisBook = await Book.findById(bookid, 'id').populate({
-          path: 'chapters',
-          match: { $or: queryArr },
-          select: 'name num',
-          options: {
-            sort: {
-              num: 1
-            }
-          }
-        })
-        ctx.body = { ok: true, msg: '搜索目录成功', data: thisBook }
+        let thisChapter = await Chapter.find({ bookid, name: new RegExp(str, 'igm') }, 'name num').sort({ num: 1 }).limit(50)
+        ctx.body = { ok: true, msg: '搜索目录成功', data: thisChapter }
       } else {
-        let thisBook = await Book.findById(bookid, 'id').populate({
-          path: 'chapters',
-          select: 'name num',
-          options: {
-            sort: {
-              num: 1
-            }
-          }
-        })
-        if (thisBook) {
-          ctx.body = { ok: true, msg: '搜索目录成功', data: thisBook }
-        } else {
-          ctx.body = { ok: false, msg: '找不到对应的书籍' }
-        }
+        let thisChapter = await Chapter.find({ bookid }, 'name num').sort({ num: 1 }).limit(50)
+        ctx.body = { ok: true, msg: '搜索目录成功', data: thisChapter }
       }
     } else {
       ctx.body = { ok: false, msg: '获取书籍信息失败，bookid不存在' }
@@ -355,7 +336,9 @@ export default function(router) {
   })
 
   /**
-   * 章节管理后台管理系统
+   * 后台管理获取章节列表，支持分页
+   * @method get
+   * @param {String} book_id 书籍id
    */
   router.get('/api/:book_id/chapter', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'chapter_get')
@@ -373,21 +356,23 @@ export default function(router) {
       } else {
         limit = 10
       }
-      // query book
-      let thisBook = await Book.findById(id, 'name newest_chapter chapters').populate({
-        path: 'chapters',
-        model: 'Chapter',
-        options: { skip: (page - 1) * limit, limit: limit, sort: { num: 1 } }
-      })
-      let total = (await Book.findById(id, 'chapters')).chapters.length
-      if (thisBook) {
-        ctx.body = { ok: true, msg: '获取章节成功', total: total, data: thisBook }
-      } else {
-        ctx.body = { ok: false, msg: '获取章节失败，找不到这样的书籍' }
-      }
+
+      let total = await Chapter.count({ bookid: id })
+      let thisChapter = await Chapter.find({ bookid: id })
+        .sort({ num: 1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+      
+      ctx.body = { ok: true, msg: '获取章节成功', total: total, data: thisChapter }
     }
   })
-  // add
+  
+  /**
+   * 后台管理新增章节
+   * TODO
+   * @method get
+   * @param {String} book_id 书籍id
+   */
   router.post('/api/:book_id/chapter', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'chapter_get')
     if (userid) {

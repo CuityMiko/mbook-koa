@@ -41,13 +41,13 @@
     "querystring": "^0.2.0",
     "request": "^2.83.0",
     "restc": "^0.2.2",
-    "runkoa": "^1.5.9",
     "shelljs": "^0.8.2",
     "shortid": "^2.2.8",
     "uuid": "^3.1.0",
     "xml2js": "^0.4.6"
   },
   "devDependencies": {
-    "nodemon": "^1.8.1"
+    "nodemon": "^1.8.1",
+    "runkoa": "^1.5.9"
   }
 }
