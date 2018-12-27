@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import { Chapter } from './index'
 
 const BookSchema = new mongoose.Schema(
   {
@@ -14,7 +15,9 @@ const BookSchema = new mongoose.Schema(
     hot_value: Number, // 热度值
     update_time: Date, // 更新时间
     secret: { type: String, unique: true }, // 书籍秘钥
-    create_time: Date // 创建时间
+    create_time: Date, // 创建时间
+    // TODO: will be delete
+    chapters: []
   },
   { versionKey: false }
 )
@@ -26,19 +29,24 @@ BookSchema.statics.updateTime = function(id) {
   if (!id) {
     return false
   }
-  let self = this
-  self.findById(id, function(merr, mres) {
+  this.findById(id, async (merr, mres) => {
     if (merr) {
       console.log('更改书籍更新时间失败，找不到此书籍', merr)
       return false
     }
-    let newestChapter = mres.chapters.length
-    self.update({ _id: id }, { $set: { newest_chapter: newestChapter,update_time: new Date() } }, function(err, res) {
-      if (err) {
-        console.log('更改书籍更新时间失败', err)
-        return false
+    let newestChapter = await Chapter.findOne({ bookid: id }, 'num').sort({ num: -1 }).limit(1)
+    let updateResult = await this.update({ _id: id }, {
+      $set: {
+        newest_chapter: newestChapter.num,
+        update_time: new Date()
       }
     })
+    if (updateResult.ok === 1) {
+      return true
+    } else {
+      console.log('更改书籍更新时间失败', updateResult)
+      return false
+    }
   })
   
 }

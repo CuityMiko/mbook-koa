@@ -363,7 +363,9 @@ export default function(router) {
         .skip((page - 1) * limit)
         .limit(limit)
       
-      ctx.body = { ok: true, msg: '获取章节成功', total: total, data: thisChapter }
+      let thisBook = await Book.findById(id, 'name newest_chapter')
+      
+      ctx.body = { ok: true, msg: '获取章节成功', total: total, lists: thisChapter, bookInfo: thisBook }
     }
   })
   
@@ -433,6 +435,7 @@ export default function(router) {
       }
       await Chapter.remove({ _id: chapter_id })
       let newestChapter = await Chapter.findOne({ bookid: thisChapter.bookid }, 'num').sort({ num: -1 }).limit(1)
+      console.log(newestChapter.num);
       let updateResult = await Book.update(
         { _id: thisChapter.bookid.toString() },
         {
@@ -443,7 +446,7 @@ export default function(router) {
       )
       if (updateResult.ok) {
         // 更改书籍更新时间
-        Book.updateTime(book_id)
+        Book.updateTime(thisChapter.bookid.toString())
         ctx.body = { ok: true, msg: '删除章节成功' }
       } else {
         ctx.body = { ok: false, msg: '删除章节失败' }
@@ -464,6 +467,11 @@ export default function(router) {
     if (userid) {
       let { name, num, content } = ctx.request.body
       let id = ctx.params.id
+      let thisChapter = await Chapter.findById(id, 'bookid')
+      if (!thisChapter) {
+        ctx.body = { ok: false, msg: '更新章节失败，找不到对应章节' }
+        return false
+      }
       let result = await Chapter.update(
         { _id: id },
         {
@@ -476,7 +484,7 @@ export default function(router) {
       )
       if (result.ok === 1) {
         // 更改书籍更新时间
-        Book.updateTime(bookid)
+        Book.updateTime(thisChapter.bookid.toString())
         let newest = await Chapter.findById(id)
         ctx.body = { ok: true, msg: '更新章节成功', data: newest }
       } else {
@@ -636,6 +644,7 @@ export default function(router) {
 
                       // 存储章节
                       if (chapterHasExisted.indexOf(chapters[i].num) > -1) {
+                        // 数据库中已存在当前章节，做更新
                         let thisChapter = await Chapter.find({ bookid: book_id, num: chapters[i].num }, 'num')
                         if (thisChapter) {
                           if (chapters[i].num >= 1 && chapters[i].content && chapters[i].name.length <= 20) {
@@ -661,28 +670,18 @@ export default function(router) {
                           addErrors.push(`第${chapters[i].num}章 ${chapters[i].name} 更新时查找失败`)
                         }
                       } else {
+                        // 数据库中不存在当前章节，做新增
                         const addResut = await Chapter.create({
+                          bookid: await Chapter.transId(book_id),
                           name: chapters[i].name,
                           num: chapters[i].num,
                           content: chapters[i].content,
                           create_time: new Date()
                         })
                         if (addResut._id) {
-                          let updateResult = await Book.update(
-                            { _id: book_id },
-                            {
-                              $addToSet: {
-                                chapters: addResut._id
-                              }
-                            }
-                          )
-                          if (updateResult.ok) {
-                            lastChapterId = addResut._id
-                            rightNum++
-                            chapterHasExisted.push(chapters[i].num)
-                          } else {
-                            addErrors.push(`第${chapters[i].num}章 ${chapters[i].name} 创建成功，更新BOOK失败`)
-                          }
+                          lastChapterId = addResut._id
+                          rightNum++
+                          chapterHasExisted.push(chapters[i].num)
                         } else {
                           addErrors.push(`第${chapters[i].num}章 ${chapters[i].name} 创建失败`)
                         }
@@ -713,11 +712,6 @@ export default function(router) {
               console.error(err)
               reject(next())
             }
-
-            process.on('unhandledRejection', (reason, p) => {
-              console.log('Unhandled Rejection at:', p, 'reason:', reason)
-              // application specific logging, throwing an error, or other logic here
-            })
           }).catch(error => {
             console.error(error)
           })

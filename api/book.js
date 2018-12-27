@@ -3,7 +3,10 @@ import { checkAdminToken, checkUserToken, tool } from '../utils'
 import shortid from 'shortid'
 
 export default function(router) {
-  // 获取书籍详情接口
+  /**
+   * 小程序端获取书籍详情
+   * @method get
+   */
   router.get('/api/book/get_detail', async (ctx, next) => {
     // 解析jwt，取出userid查询booklist表，判断是否已经加入了书架
     let userid = await checkUserToken(ctx, next)
