@@ -11,6 +11,13 @@ const ChapterSchema = new mongoose.Schema(
   { versionKey: false }
 )
 
+/**
+ * 将字母id装换成mongodb的ObjectId对象的静态函数
+ */
+ChapterSchema.statics.transId = async function(id) {
+  return mongoose.Types.ObjectId(id)
+}
+
 // 使用bookid和num作为索引
 ChapterSchema.index({ bookid: 1, num: 1 })
 

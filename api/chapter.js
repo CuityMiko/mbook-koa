@@ -388,6 +388,7 @@ export default function(router) {
             let oldChapter = await Chapter.findOne({ bookid: id, num })
             if (!oldChapter) {
               let addResult = await Chapter.create({
+                bookid: await Chapter.transId(id),
                 num,
                 name,
                 content,
