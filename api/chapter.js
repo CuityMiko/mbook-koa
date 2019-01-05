@@ -95,12 +95,12 @@ export default function(router) {
     }
 
     let total = await Chapter.count({ bookid })
-    let lists = await Chapter.find({ bookid })
+    let lists = await Chapter.find({ bookid }, 'num name')
       .sort({ num: 1 })
       .skip((pageid - 1) * 50)
       .limit(50)
     
-    ctx.body = { ok: true, msg: '获取章节列表成功', data: lists, total }
+    ctx.body = { ok: true, msg: '获取章节列表成功', list: lists, total }
   })
 
   /**

@@ -1,4 +1,4 @@
-import { Book, BookList, Good, Setting, Theme, Secret, Comment } from '../models'
+import { Book, BookList, Good, Setting, Chapter, Theme, Secret, Comment } from '../models'
 import { checkAdminToken, checkUserToken, tool } from '../utils'
 import shortid from 'shortid'
 
@@ -377,15 +377,13 @@ export default function(router) {
 
   // 后台书籍列表删除
   router.delete('/api/book/:id', async (ctx, next) => {
-    let userid = await checkAdminToken(ctx, next, 'theme_delete')
+    let userid = await checkAdminToken(ctx, next, 'book_delete')
     if (userid) {
       let id = ctx.params.id
       let thisBook = await Book.findById(id)
       if (thisBook) {
         // 清除对应的章节
-        thisBook.chapters.forEach(async item => {
-          await Chapter.remove({ _id: item.toString() })
-        })
+        await Chapter.remove({ bookid: thisBook.id })
         // 清除对应的商品
         await Good.remove({ bookid: thisBook.id })
         // 清除书籍对应的评论
