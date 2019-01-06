@@ -13,10 +13,10 @@ mongoose
   .connect(
     config.mongo_url,
     {
-      // user: config.mongo_user,
-      // pass: config.mongo_pass,
-      // auth: { authdb: config.mongo_dbname, authMechanism: 'MONGODB-CR' },
-      // useMongoClient: true
+      user: config.mongo_user,
+      pass: config.mongo_pass,
+      auth: { authdb: config.mongo_dbname, authMechanism: 'MONGODB-CR' },
+      useMongoClient: true
     }
   )
   .then(async db => {
