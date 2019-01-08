@@ -507,7 +507,6 @@ export default function(router) {
       let rightNum = 0
       let lastChapterId = '' // 最后一章的ID
       async function saveChapter(index, num, name, content) {
-        console.log(index, num, name, content);
         if (num || num === 0) {
           num = parseInt(num)
           if (name) {
