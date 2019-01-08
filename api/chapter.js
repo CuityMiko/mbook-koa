@@ -507,14 +507,16 @@ export default function(router) {
       let rightNum = 0
       let lastChapterId = '' // 最后一章的ID
       async function saveChapter(index, num, name, content) {
+        console.log(index, num, name, content);
         if (num || num === 0) {
           num = parseInt(num)
           if (name) {
             if (content) {
               // 检查num是否重复
-              let oldChapter = await Chapter.find({ bookid: book_id, num })
+              let oldChapter = await Chapter.findOne({ bookid: book_id, num })
               if (!oldChapter) {
                 let addResult = await Chapter.create({
+                  bookid: await Chapter.transId(book_id),
                   num,
                   name,
                   content,
@@ -523,6 +525,7 @@ export default function(router) {
                 // 更新book.chapters
                 if (addResult._id) {
                   rightNum++
+                  console.log(addResult._id);
                   return addResult._id
                 } else {
                   addErrors.push('第' + ++index + '行新增章节失败')
@@ -603,7 +606,7 @@ export default function(router) {
                     while ((result = chapterTitleReg.exec(hasReadText)) !== null) {
                       if (count === 0 && !startFromChapterTitle) {
                         // 更新断章
-                        let thisChapter = await Chapter.find({ bookid: book_id, num: lastChapterNumber }, 'content')
+                        let thisChapter = await Chapter.findOne({ bookid: book_id, num: lastChapterNumber }, 'content')
                         await Chapter.update(
                           {
                             bookid: book_id,
@@ -646,7 +649,7 @@ export default function(router) {
                       // 存储章节
                       if (chapterHasExisted.indexOf(chapters[i].num) > -1) {
                         // 数据库中已存在当前章节，做更新
-                        let thisChapter = await Chapter.find({ bookid: book_id, num: chapters[i].num }, 'num')
+                        let thisChapter = await Chapter.findOne({ bookid: book_id, num: chapters[i].num }, 'num')
                         if (thisChapter) {
                           if (chapters[i].num >= 1 && chapters[i].content && chapters[i].name.length <= 20) {
                             const updateResult = await Chapter.update(
