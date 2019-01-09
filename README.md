@@ -195,6 +195,23 @@ sudo mongorestore -h 118.24.94.40:27017 -d mbook-new -u mbook -p 121960425mbook 
 sudo tar -cvf mbook-new.tar.gz mbook-new/
 ```
 
+## 导出为json或者csv
+```
+# 导出为json
+mongoexport -d dbName -c collectionName -q {name: 'xxx'} -o ./fileName.json
+# 导出为csv
+mongoexport -d dbName -c collectionName -q {name: 'xxx'} --fields name,author --type=csv -o ./fileName.csv
+```
+
+```
+# A服务器打包
+sudo mongodump -h localhost:27017 -d mbook-new -u mbook -p 121960425mbook -o ./
+# 直接全量恢复B服务器的数据库
+sudo mongorestore -h 118.24.94.40:27017 -d mbook-new -u mbook -p 121960425mbook mbook-new/ --drop
+# 打包导出的数据
+sudo tar -cvf mbook-new.tar.gz mbook-new/
+```
+
 ### 运行自动化脚本
 
 bin 下面每个脚本都有自己的用途，请参照说明
