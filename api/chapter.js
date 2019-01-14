@@ -324,7 +324,7 @@ export default function(router) {
     }
     if (bookid) {
       if (str) {
-        let thisChapter = await Chapter.find({ bookid, name: new RegExp(str, 'igm') }, 'name num').sort({ num: 1 }).limit(50)
+        let thisChapter = await Chapter.find({ bookid, '$or': queryArr }, 'name num').sort({ num: 1 }).limit(50)
         ctx.body = { ok: true, msg: '搜索目录成功', data: thisChapter }
       } else {
         let thisChapter = await Chapter.find({ bookid }, 'name num').sort({ num: 1 }).limit(50)
