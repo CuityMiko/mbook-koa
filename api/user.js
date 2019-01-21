@@ -71,11 +71,43 @@ function initUserBooklist(userid) {
 }
 
 async function getGlobalSetting() {
-  let items = ['share', 'wxcode', 'index_dialog', 'charge_tips', 'secret_tips', 'shut_check', 'shut_charge_tips', 'fixed_button', 'friend_help_share']
+  let items = ['share', 'wxcode', 'index_dialog', 'charge_tips', 'secret_tips', 'shut_charge_tips', 'fixed_button', 'friend_help_share']
   return await await Setting.getSetting(items.join('|'))
 }
 
 export default function(router) {
+  /**
+   * 小程序端获取app设置信息
+   * @method get
+   */
+  router.get('/api/user/setting', async (ctx, next) => {
+    let userid = await checkUserToken(ctx, next)
+    if (userid) {
+      // 查询当前用户的邀请信息，如果找不到则创建一个
+      let hisShareInfo = await Share.findOne({ userid })
+      if (!hisShareInfo) {
+        const code = shortid.generate()
+        hisShareInfo = await Share.create({
+          userid: await Share.transId(userid),
+          code,
+          award_records: [],
+          accept_records: [],
+          create_time: new Date()
+        })
+      }
+
+      // 获取设置中的分享设置
+      const globalSetting = await getGlobalSetting()
+
+      ctx.body = { ok: true, msg: '获取app设置成功', data: { share: hisShareInfo, setting: globalSetting } }
+    }
+  })
+
+  /**
+   * 小程序端登录
+   * @method post
+   * @parmas code 微信临时登录凭证
+   */
   router.post('/api/user/login', async (ctx, next) => {
     let { identity } = ctx.request.body
     identity = parseInt(identity)
@@ -101,35 +133,18 @@ export default function(router) {
           // 已注册，生成token并返回
           let userToken = { userid: user._id }
           const token = jwt.sign(userToken, secret, {
-            expiresIn: '4h'
+            expiresIn: '1d'
           })
 
           // 更新用户最近登录时间
           console.log('用户 ' + user._id + ' 于 ' + user.create_time.toDateString() + ' 登录')
           updateLastLoginTime(user._id)
 
-          // 查询当前用户的邀请信息，如果找不到则创建一个
-          let hisShareInfo = await Share.findOne({ userid: user._id })
-          if (!hisShareInfo) {
-            const code = shortid.generate()
-            hisShareInfo = await Share.create({
-              userid: await Share.transId(user._id),
-              code,
-              award_records: [],
-              accept_records: [],
-              create_time: new Date()
-            })
-          }
-          // 获取设置中的分享设置
-          const globalSetting = await getGlobalSetting()
-
           ctx.body = {
             ok: true,
             msg: '登录成功',
             token: token,
-            userinfo: user,
-            code: hisShareInfo.code,
-            globalSetting
+            userinfo: user
           }
         } else {
           // 未注册，重定向到注册页面
@@ -187,7 +202,7 @@ export default function(router) {
           // 产生token
           let userToken = { userid: user._id, identity: identity }
           const token = jwt.sign(userToken, secret, {
-            expiresIn: '4h'
+            expiresIn: '1d'
           })
 
           // 更新用户最近登录时间
@@ -215,6 +230,15 @@ export default function(router) {
     }
   })
 
+  /**
+   * 小程序端注册
+   * @method post 
+   * @parmas code 微信临时登录凭证
+   * @parmas nickName 昵称
+   * @parmas province 省份
+   * @parmas country 国家
+   * @parmas avatarUrl 头像
+   */
   router.post('/api/user/registe', async (ctx, next) => {
     let { identity } = ctx.request.body
     if (identity === 'appuser') {
@@ -262,7 +286,7 @@ export default function(router) {
 
           //token签名 有效期为2小时
           const token = jwt.sign(userToken, secret, {
-            expiresIn: '4h'
+            expiresIn: '1d'
           })
 
           // 初始化书架
@@ -270,61 +294,28 @@ export default function(router) {
           console.log('Info', '用户 ' + user._id + ' 于 ' + user.create_time.toDateString() + ' 注册, 并初始化书架')
           updateLastLoginTime(user._id)
 
-          // 创建分享记录
-          const code = shortid.generate()
-          let hisShareInfo = await Share.create({
-            userid: await Share.transId(user._id),
-            code,
-            award_records: [],
-            accept_records: [],
-            create_time: new Date()
-          })
-
-          // 获取设置中的分享设置
-          const globalSetting = await getGlobalSetting()
-
           ctx.body = {
             ok: true,
             msg: '注册成功',
             token: token,
-            userinfo: user,
-            code: hisShareInfo.code,
-            globalSetting
+            userinfo: user
           }
         } else {
           // 产生token
           let userToken = { userid: isUserExit._id }
           const token = jwt.sign(userToken, secret, {
-            expiresIn: '4h'
+            expiresIn: '1d'
           })
 
           // 更新用户最近登录时间
           console.log('用户 ' + isUserExit._id + ' 于 ' + new Date().toDateString() + ' 登录', '')
           updateLastLoginTime(isUserExit._id)
 
-          // 查询当前用户的邀请信息，如果找不到则创建一个
-          let hisShareInfo = await Share.findOne({ userid: isUserExit._id })
-          if (!hisShareInfo) {
-            const code = shortid.generate()
-            hisShareInfo = await Share.create({
-              userid: await Share.transId(isUserExit._id),
-              code,
-              award_records: [],
-              accept_records: [],
-              create_time: new Date()
-            })
-          }
-
-          // 获取设置中的分享设置
-          const globalSetting = await getGlobalSetting()
-
           ctx.body = {
             ok: true,
             msg: '登录成功',
             token: token,
-            userinfo: isUserExit,
-            code: hisShareInfo.code,
-            globalSetting
+            userinfo: isUserExit
           }
         }
       } else {
