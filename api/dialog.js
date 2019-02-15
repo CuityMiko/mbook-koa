@@ -147,38 +147,35 @@ export default function(router) {
 
   // 小程序端获取弹窗列表
   router.get('/api/wxapp/dialog', async (ctx, next) => {
-    let userid = await checkUserToken(ctx, next, 'dialog_wxapp')
-    if (userid) {
-      let now = new Date()
-      let dialogs = await Dialog.find({
-        start_date: {
-          $lt: now
-        },
-        end_date: {
-          $gte: now
-        }
-      })
-
-      // 整理dialogs的格式
-      let fixedDialog = {}
-      let indexDialog = {}
-      let redpockDialog = {}
-      for( let i=0; i<dialogs.length; i++) {
-        if (dialogs[i].type === 'fixed-btn' && JSON.stringify(fixedDialog) === '{}') {
-          fixedDialog = dialogs[i]
-        }
-        if (dialogs[i].type === 'index-dialog' && JSON.stringify(indexDialog) === '{}') {
-          indexDialog = dialogs[i]
-        }
-        if (dialogs[i].type === 'redpock' && JSON.stringify(redpockDialog) === '{}') {
-          redpockDialog = dialogs[i]
-        }
+    let now = new Date()
+    let dialogs = await Dialog.find({
+      start_date: {
+        $lt: now
+      },
+      end_date: {
+        $gte: now
       }
-      ctx.body = { ok: true, dialog: {
-        'fixed-btn': fixedDialog,
-        'index-dialog': indexDialog,
-        'redpock': redpockDialog
-      }, msg: '获取弹窗列表成功' }
+    })
+
+    // 整理dialogs的格式
+    let fixedDialog = {}
+    let indexDialog = {}
+    let redpockDialog = {}
+    for( let i=0; i<dialogs.length; i++) {
+      if (dialogs[i].type === 'fixed-btn' && JSON.stringify(fixedDialog) === '{}') {
+        fixedDialog = dialogs[i].data
+      }
+      if (dialogs[i].type === 'index-dialog' && JSON.stringify(indexDialog) === '{}') {
+        indexDialog = dialogs[i].data
+      }
+      if (dialogs[i].type === 'redpock' && JSON.stringify(redpockDialog) === '{}') {
+        redpockDialog = dialogs[i].data
+      }
     }
+    ctx.body = { ok: true, dialog: {
+      'fixed-btn': fixedDialog,
+      'index-dialog': indexDialog,
+      'redpock': redpockDialog
+    }, msg: '获取弹窗列表成功' }
   })
 }
