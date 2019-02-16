@@ -85,11 +85,8 @@ export default function(router) {
         updateData.data = data
       }
 
-      console.log(updateData)
-      
       // 新增数据
       const updateResult = await Dialog.update({ _id: dialog_id }, { $set: updateData })
-      console.log(updateResult)
       if (updateResult.ok == 1) {
         ctx.body = { ok: true, msg: '更新弹窗成功' }
       } else {
