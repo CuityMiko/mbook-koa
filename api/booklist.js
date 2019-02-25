@@ -108,7 +108,7 @@ export default function(router) {
     if (userid) {
       let { bookid, chapter_num, chapter_page_index, chapter_page_top, read_time, setting } = ctx.request.body
       // 校验参数合法性
-      if (!(bookid && chapter_num && (chapter_page_index || chapter_page_index == 0) && (chapter_page_top || chapter_page_top == 0) && setting.reader)) {
+      if (!(bookid && chapter_num && (chapter_page_index || chapter_page_index == 0) && (chapter_page_top || chapter_page_top == 0))) {
         ctx.body = { ok: false, msg: '参数错误' }
         return false
       }
@@ -135,7 +135,7 @@ export default function(router) {
           }
         }
       )
-      let updateReadTime = await User.update({ _id: userid }, { $inc: { read_time: parseInt(read_time) }, $set: { 'setting.reader': setting.reader } })
+      let updateReadTime = await User.update({ _id: userid }, { $inc: { read_time: parseInt(read_time) }})
       if (updateResult.ok === 1 && updateReadTime.ok === 1) {
         if (updateResult.nModified === 1) {
           ctx.body = { ok: true, msg: '更新阅读进度成功，最新进度第' + chapter_num + '章，第' + chapter_page_index + '页' }

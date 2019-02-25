@@ -89,16 +89,19 @@ export default function(router) {
    * @param {Number} pageid 当期目录翻页数
    */
   router.get('/api/chapter/list', async (ctx, next) => {
-    let { bookid, pageid } = ctx.request.query
+    let { bookid, pageid, limit } = ctx.request.query
     if (!pageid) {
       pageid = 1
+    }
+    if (!limit) {
+      limit = 50
     }
 
     let total = await Chapter.count({ bookid })
     let lists = await Chapter.find({ bookid }, 'num name')
       .sort({ num: 1 })
-      .skip((pageid - 1) * 50)
-      .limit(50)
+      .skip((pageid - 1) * limit)
+      .limit(limit)
     
     ctx.body = { ok: true, msg: '获取章节列表成功', list: lists, total }
   })
@@ -220,6 +223,7 @@ export default function(router) {
         // 通过传递章节id获取章节内容
         const thisChapter = await Chapter.findById(chapter_id)
         const thisBook = await Book.findById(bookid, 'name img_url author newest_chapter update_status')
+        console.log(bookid, thisBook)
         if (thisChapter._id) {
           const canReadResult = await canReadFunc(thisChapter.num)
           ctx.body = {
