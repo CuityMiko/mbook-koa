@@ -1,0 +1,1 @@
+export { searchThirdPartFaction } from './search'
