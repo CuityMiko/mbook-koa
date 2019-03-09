@@ -146,6 +146,7 @@ export default function(router) {
             token: token,
             userinfo: {
               _id: user._id,
+              username: user.username,
               avatar: user.avatar,
               identity: user.identity,
               amount: user.amount
@@ -305,6 +306,7 @@ export default function(router) {
             token: token,
             userinfo: {
               _id: user._id,
+              username: user.username,
               avatar: user.avatar,
               identity: user.identity,
               amount: user.amount
