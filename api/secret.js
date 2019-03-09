@@ -198,4 +198,63 @@ export default function(router) {
       }
     }
   })
+
+  // 自动解锁书籍函数
+  router.get('/api/secret/auto_open', async (ctx, next) => {
+    let userid = await checkUserToken(ctx, next, 'user_list')
+    if (userid) {
+      let bookid = ctx.request.query.bookid
+      const thisUser = await User.findById(userid, '_id username')
+      if (!thisUser) {
+        ctx.body = { ok: false, msg: '用户不存在' }
+        return false
+      }
+      const thisBook = await Book.findById(bookid, '_id name')
+      if (!thisBook) {
+        ctx.body = { ok: false, msg: '书籍不存在' }
+        return false
+      }
+      if (!await Secret.find({ userid, bookid })) {
+        const thisSecret = await Secret.create({
+          userid: await Secret.transId(userid),
+          bookid: await Secret.transId(bookid),
+          active: true,
+          create_time: new Date()
+        })
+        if (thisSecret) {
+        // 发送秘钥解锁成的通知，延迟三分钟后执行
+        setTimeout(() => {
+          User.sendMessage(
+            userid,
+            'secret',
+            {
+              keyword1: { value: thisUser.username },
+              keyword2: { value: thisBook.name },
+              keyword3: { value: moment().format('YYYY年MM月DD日 HH:mm:ss') },
+              keyword4: { value: '你已经成功解锁书籍--《' + thisBook.name + '》，点击卡片开始阅读书籍吧~' }
+            },
+            { bookid }
+          )
+            .then(res => {
+              if (res.ok) {
+                console.log('解锁成功消息发送成功!')
+              } else {
+                console.log('解锁成功消息发送失败', res.msg)
+                reportError('解锁成功消息发送失败', { extra: { context: ctx } })
+              }
+            })
+            .catch(err => {
+              console.log('解锁成功消息发送失败', err)
+              reportError('解锁成功消息发送失败', { extra: { context: ctx, err } })
+            })
+          }, 0)
+          ctx.body = { ok: true, msg: '解锁成功' }
+        } else {
+          ctx.body = { ok: false, msg: '解锁失败' }
+        }
+      } else {
+        ctx.body = { ok: false, msg: '你已经解锁', repeat: 1 }
+      }
+    }
+  })
 }
