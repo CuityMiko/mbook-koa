@@ -13,12 +13,14 @@ const schedule = require('./bin/shedule')
 const { debug, reportError } = require('./utils')
 // const createAdmin = require('./bin/createAdmin')
 // const addUserSetting = require('./bin/addUserSetting')
+const spider = require('./spider/index')
 const secret = 'mbook'
 // error handler
 onerror(app)
 schedule.run()
 // createAdmin()
 // addUserSetting()
+spider.searchThirdPartFaction()
 
 app.use(
   bodyparser({
