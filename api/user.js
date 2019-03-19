@@ -71,7 +71,7 @@ function initUserBooklist(userid) {
 }
 
 async function getGlobalSetting() {
-  let items = ['share', 'wxcode', 'index_dialog', 'charge_tips', 'secret_tips', 'shut_charge_tips', 'fixed_button', 'friend_help_share']
+  let items = ['share', 'wxcode', 'index_dialog', 'charge_tips', 'secret_tips', 'shut_charge_tips', 'fixed_button', 'friend_help_share', 'share_white_list']
   return await await Setting.getSetting(items.join('|'))
 }
 
@@ -98,8 +98,8 @@ export default function(router) {
 
       // 获取设置中的分享设置
       const globalSetting = await getGlobalSetting()
-
-      ctx.body = { ok: true, msg: '获取app设置成功', data: { share: hisShareInfo, setting: globalSetting } }
+      const inShareWhiteList = globalSetting.share_white_list.indexOf(userid) > -1
+      ctx.body = { ok: true, msg: '获取app设置成功', data: { share: hisShareInfo, share_white_list: inShareWhiteList ,setting: globalSetting } }
     }
   })
 
@@ -144,7 +144,13 @@ export default function(router) {
             ok: true,
             msg: '登录成功',
             token: token,
-            userinfo: user
+            userinfo: {
+              _id: user._id,
+              username: user.username,
+              avatar: user.avatar,
+              identity: user.identity,
+              amount: user.amount
+            }
           }
         } else {
           // 未注册，重定向到注册页面
@@ -298,7 +304,13 @@ export default function(router) {
             ok: true,
             msg: '注册成功',
             token: token,
-            userinfo: user
+            userinfo: {
+              _id: user._id,
+              username: user.username,
+              avatar: user.avatar,
+              identity: user.identity,
+              amount: user.amount
+            }
           }
         } else {
           // 产生token

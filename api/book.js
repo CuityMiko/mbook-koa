@@ -10,70 +10,68 @@ export default function(router) {
   router.get('/api/book/get_detail', async (ctx, next) => {
     // 解析jwt，取出userid查询booklist表，判断是否已经加入了书架
     let userid = await checkUserToken(ctx, next)
-    if (userid) {
-      let result = null
-      let id = ctx.request.query.id
-      if (id) {
-        let book = await Book.findById(id)
-        if (book) {
-          let isInList = await BookList.findOne({ userid, 'books.bookid': id }, '_id')
-          let hasRssTheBook = await BookList.findOne({ userid, 'books.bookid': id, 'books.rss': 1 }, '_id')
-          // 获取书籍的商品属性
-          let good = {}
-          let thisGood = await Good.findOne({ bookid: book._id })
-          if (thisGood) {
-            if (thisGood.type === 4) {
-              good.type = 'free'
-            } else if (thisGood.type === 2) {
-              good.type = 'limit_date'
-              good.limit_start_time = tool.formatTime(thisGood.limit_start_time)
-              good.limit_end_time = tool.formatTime(thisGood.limit_end_time)
-              good.prise = thisGood.prise
-            } else if (thisGood.type === 3) {
-              good.type = 'limit_chapter'
-              good.limit_chapter = thisGood.limit_chapter
-              good.prise = thisGood.prise
-            } else if (thisGood.type === 1) {
-              good.type = 'normal'
-              good.prise = thisGood.prise
-            } else {
-              good.type = 'free'
-            }
-          } else {
-            // 非商品默认免费
-            good.type = 'free'
-          }
-          // 用户是否已经解锁过该书籍
-          // 首先检测是否解锁书籍
-          const hasUnLock = await Secret.findOne({ userid, bookid: id, active: true })
-          // 格式化时间
-          result = {
-            _id: book._id,
-            name: book.name,
-            img_url: book.img_url,
-            author: book.author,
-            des: book.des
-              .replace(/\n/g, '')
-              .replace(/\r/g, '')
-              .replace(/\s/g, ''),
-            classification: book.classification,
-            update_status: book.update_status === '已完结' ? '已完结' : '第' + book.newest_chapter + '章', // 这里日后最好加上章节名
-            newest_chapter: book.newest_chapter,
-            rss: hasRssTheBook ? 1 : 0,
-            total_words: book.total_words,
-            hot_value: book.hot_value,
-            update_time: tool.formatTime(book.update_time),
-            good,
-            hasUnLock: !!hasUnLock
-          }
-          ctx.body = { ok: true, msg: '获取书籍详情成功', data: result, isInList: !!isInList }
-        } else {
-          ctx.body = { ok: false, msg: '获取书籍详情失败' }
-        }
-      } else {
-        ctx.body = { ok: false, msg: '缺少id参数' }
-      }
+    let result = null
+    let id = ctx.request.query.id
+    if (!id) {
+      ctx.body = { ok: false, msg: '缺少id参数' }
+      return false
     }
+    let book = await Book.findById(id)
+    if (!book) {
+      ctx.body = { ok: false, msg: '获取书籍详情失败' }
+      return false
+    }
+    let isInList = userid ? await BookList.findOne({ userid, 'books.bookid': id }, '_id') : false
+    let hasRssTheBook = userid ? await BookList.findOne({ userid, 'books.bookid': id, 'books.rss': 1 }, '_id') : false
+    // 获取书籍的商品属性
+    let good = {}
+    let thisGood = await Good.findOne({ bookid: book._id })
+    if (thisGood) {
+      if (thisGood.type === 4) {
+        good.type = 'free'
+      } else if (thisGood.type === 2) {
+        good.type = 'limit_date'
+        good.limit_start_time = tool.formatTime(thisGood.limit_start_time)
+        good.limit_end_time = tool.formatTime(thisGood.limit_end_time)
+        good.prise = thisGood.prise
+      } else if (thisGood.type === 3) {
+        good.type = 'limit_chapter'
+        good.limit_chapter = thisGood.limit_chapter
+        good.prise = thisGood.prise
+      } else if (thisGood.type === 1) {
+        good.type = 'normal'
+        good.prise = thisGood.prise
+      } else {
+        good.type = 'free'
+      }
+    } else {
+      // 非商品默认免费
+      good.type = 'free'
+    }
+    // 用户是否已经解锁过该书籍
+    // 首先检测是否解锁书籍
+    const hasUnLock = userid ? await Secret.findOne({ userid, bookid: id, active: true }) : false
+    // 格式化时间
+    result = {
+      _id: book._id,
+      name: book.name,
+      img_url: book.img_url,
+      author: book.author,
+      des: book.des
+        .replace(/\n/g, '')
+        .replace(/\r/g, '')
+        .replace(/\s/g, ''),
+      classification: book.classification,
+      update_status: book.update_status === '已完结' ? '已完结' : '第' + book.newest_chapter + '章', // 这里日后最好加上章节名
+      newest_chapter: book.newest_chapter,
+      rss: hasRssTheBook ? 1 : 0,
+      total_words: book.total_words,
+      hot_value: book.hot_value,
+      update_time: tool.formatTime(book.update_time),
+      good,
+      hasUnLock: !!hasUnLock
+    }
+    ctx.body = { ok: true, msg: '获取书籍详情成功', data: result, isInList: !!isInList }
   })
 
   // 获取书籍分类列表的接口

@@ -223,7 +223,6 @@ export default function(router) {
         // 通过传递章节id获取章节内容
         const thisChapter = await Chapter.findById(chapter_id)
         const thisBook = await Book.findById(bookid, 'name img_url author newest_chapter update_status')
-        console.log(bookid, thisBook)
         if (thisChapter._id) {
           const canReadResult = await canReadFunc(thisChapter.num)
           ctx.body = {
