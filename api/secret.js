@@ -1,7 +1,8 @@
-import { Secret, User, Book } from '../models'
+import { Secret, User, Book, Setting } from '../models'
 import shortid from 'shortid'
 import moment from 'moment'
 import { checkAdminToken, checkUserToken, debug, reportError } from '../utils'
+import user from './user'
 
 export default function(router) {
   router.get('/api/secret', async (ctx, next) => {
@@ -199,29 +200,72 @@ export default function(router) {
     }
   })
 
-  // 自动解锁书籍函数
-  router.get('/api/secret/auto_open', async (ctx, next) => {
-    let userid = await checkUserToken(ctx, next, 'user_list')
+  // 管理员分享的时候预创建一个未解锁的secret
+  router.post('/api/secret/pre_create', async (ctx, next) => {
+    const userid = await checkUserToken(ctx, next, 'user_list')
     if (userid) {
-      let bookid = ctx.request.query.bookid
+      // 校验当前用户是否存在分享白名单里
+      const shareWhite = await Setting.findOne({ key: 'share_white_list' }, 'value')
+      if (!shareWhite) {
+        ctx.body = { ok: false, msg: '暂无权限' }
+        return
+      }
+      const shareWhiteList = shareWhite.value
+      if (shareWhiteList.indexOf(userid) < 0) {
+        ctx.body = { ok: false, msg: '暂无权限' }
+        return
+      }
+      // 创建secret
+      const bookid = ctx.request.body.bookid
+      if (!bookid) {
+        ctx.body = { ok: false, msg: '缺乏bookid参数' }
+        return
+      }
+      const book = await Book.findById(bookid, '_id')
+      if (!book) {
+        ctx.body = { ok: false, msg: 'bookid参数错误' }
+        return
+      }
+      const newSecret = await Secret.create({ bookid: await Secret.transId(bookid), active: false, create_time: new Date() })
+      if (newSecret._id) {
+        ctx.body = { ok: true, msg: '创建预分享密钥成功', data: newSecret._id }
+      } else {
+        ctx.body = { ok: false, msg: '创建密钥失败' }
+      }
+    }
+  })
+
+  // 打开预分享密钥, 为用户自动解锁书籍函数
+  router.post('/api/secret/pre_secret_open', async (ctx, next) => {
+    const userid = await checkUserToken(ctx, next, 'user_list')
+    if (userid) {
+      const { pre_secret } = ctx.request.body
+      if (!pre_secret) {
+        ctx.body = { ok: false, msg: '缺乏pre_secret参数' }
+        return false
+      }
       const thisUser = await User.findById(userid, '_id username')
       if (!thisUser) {
         ctx.body = { ok: false, msg: '用户不存在' }
         return false
       }
-      const thisBook = await Book.findById(bookid, '_id name')
-      if (!thisBook) {
-        ctx.body = { ok: false, msg: '书籍不存在' }
+      const thisSecret = await Secret.findById(pre_secret, { active: false }, '_id bookid')
+      if (!thisSecret) {
+        ctx.body = { ok: false, msg: '预分享密钥无效或者已经被使用' }
         return false
       }
-      if (!await Secret.find({ userid, bookid })) {
-        const thisSecret = await Secret.create({
-          userid: await Secret.transId(userid),
-          bookid: await Secret.transId(bookid),
-          active: true,
-          create_time: new Date()
-        })
-        if (thisSecret) {
+      const thisBook = await Book.findById(thisSecret.bookid.toString(), 'name')
+      // 检查是否预分享密钥已经使用过了
+      const updateResult = await Secret.update(
+        { _id: pre_secret },
+        {
+          $set: {
+            userid: await Secret.transId(userid),
+            active: true
+          }
+        }
+      )
+      if (updateResult.ok ===1) {
         // 发送秘钥解锁成的通知，延迟三分钟后执行
         setTimeout(() => {
           User.sendMessage(
@@ -233,27 +277,22 @@ export default function(router) {
               keyword3: { value: moment().format('YYYY年MM月DD日 HH:mm:ss') },
               keyword4: { value: '你已经成功解锁书籍--《' + thisBook.name + '》，点击卡片开始阅读书籍吧~' }
             },
-            { bookid }
+            { bookid: thisBook._id }
           )
             .then(res => {
               if (res.ok) {
                 console.log('解锁成功消息发送成功!')
               } else {
                 console.log('解锁成功消息发送失败', res.msg)
-                reportError('解锁成功消息发送失败', { extra: { context: ctx } })
               }
             })
             .catch(err => {
               console.log('解锁成功消息发送失败', err)
-              reportError('解锁成功消息发送失败', { extra: { context: ctx, err } })
             })
-          }, 0)
-          ctx.body = { ok: true, msg: '解锁成功' }
-        } else {
-          ctx.body = { ok: false, msg: '解锁失败' }
-        }
+        }, 0)
+        ctx.body = { ok: true, msg: '解锁成功' }
       } else {
-        ctx.body = { ok: false, msg: '你已经解锁', repeat: 1 }
+        ctx.body = { ok: false, msg: '解锁失败' }
       }
     }
   })

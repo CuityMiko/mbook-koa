@@ -11,17 +11,16 @@ var port = normalizePort(config.port || '3000')
 async function connectMongo() {
   mongoose.Promise = global.Promise
   mongoose.connection.on('error', console.error.bind(console, '连接数据库失败'))
-  return await mongoose.connect(
-    config.mongo_url,
-    config.mongo_auth
-      ? {
-        user: config.mongo_user,
-        pass: config.mongo_pass,
-        auth: { authdb: config.mongo_dbname, authMechanism: 'MONGODB-CR' },
-        useMongoClient: true
-      }
-      : { useMongoClient: true }
-  )
+  let connectParams = { useMongoClient: true }
+  if (config.mongo_auth) {
+    connectParams = {
+      user: config.mongo_user,
+      pass: config.mongo_pass,
+      auth: { authdb: config.mongo_dbname, authMechanism: 'MONGODB-CR' },
+      useMongoClient: true
+    }
+  }
+  return await mongoose.connect(config.mongo_url, connectParams)
 }
 
 connectMongo().then(() => {

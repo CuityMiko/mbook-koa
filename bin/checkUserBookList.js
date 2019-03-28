@@ -9,16 +9,17 @@ import { User, BookList } from '../models'
 
 mongoose.Promise = global.Promise
 mongoose.connection.on('error', console.error.bind(console, 'Mongo connect failed'))
+let connectParams = { useMongoClient: true }
+if (config.mongo_auth) {
+  connectParams = {
+    user: config.mongo_user,
+    pass: config.mongo_pass,
+    auth: { authdb: config.mongo_dbname, authMechanism: 'MONGODB-CR' },
+    useMongoClient: true
+  }
+}
 mongoose
-  .connect(
-    config.mongo_url,
-    {
-      user: config.mongo_user,
-      pass: config.mongo_pass,
-      auth: { authdb: config.mongo_dbname, authMechanism: 'MONGODB-CR' },
-      useMongoClient: true
-    }
-  )
+  .connect(config.mongo_url, connectParams)
   .then(async db => {
     console.log('mongodb connect success!')
     let current = 20000
