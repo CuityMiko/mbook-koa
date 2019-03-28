@@ -251,7 +251,7 @@ export default function(router) {
       }
       const thisSecret = await Secret.findById(pre_secret, { active: false }, '_id bookid')
       if (!thisSecret) {
-        ctx.body = { ok: false, msg: '预分享密钥无效或者已经被使用' }
+        ctx.body = { ok: false, msg: '预分享密钥无效或者已经被使用', repeat: true }
         return false
       }
       const thisBook = await Book.findById(thisSecret.bookid.toString(), 'name')
