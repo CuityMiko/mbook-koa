@@ -6,17 +6,6 @@ import redis from '../utils/redis'
 
 // superagent添加使用代理ip的插件
 requestProxy(request)
-<<<<<<< Updated upstream
-// 连接redis
-const redis = new Redis({
-  port: config.redis_port, // Redis port
-  host: config.redis_host, // Redis host
-  family: 4, // 4 (IPv4) or 6 (IPv6)
-  password: config.redis_auth ? config.redis_pass : null
-})
-=======
-
->>>>>>> Stashed changes
 
 async function doGetRequest(url) {
   console.log(userAgent())

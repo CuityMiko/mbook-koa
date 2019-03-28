@@ -3,17 +3,7 @@ const request = require('request')
 const qn = require('qn')
 const config = require('../config')
 const sign = require('./wxSign')
-<<<<<<< Updated upstream
-
-const redis = new Redis({
-  port: config.redis_port, // Redis port
-  host: config.redis_host, // Redis host
-  family: 4, // 4 (IPv4) or 6 (IPv6)
-  password: config.redis_auth ? config.redis_pass : null
-})
-=======
 const redis = require('../utils/redis')
->>>>>>> Stashed changes
 
 // qiniu上传设置
 const client = qn.create({
