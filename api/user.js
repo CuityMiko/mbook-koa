@@ -10,6 +10,10 @@ import { checkUserToken, checkAdminToken, reportError, debug } from '../utils'
 
 const secret = 'mbook' // token秘钥
 
+console.log(jwt.sign({ userid: '5c7b82b811661806de76f693' }, secret, {
+  expiresIn: '1d'
+}))
+
 /**
  * 发送GET请求
  * @param {*} url 请求接口地址

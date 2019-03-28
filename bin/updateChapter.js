@@ -9,16 +9,17 @@ import { Book, Chapter } from '../models'
 
 mongoose.Promise = global.Promise
 mongoose.connection.on('error', console.error.bind(console, 'Mongo connect failed'))
+let connectParams = { useMongoClient: true }
+if (config.mongo_auth) {
+  connectParams = {
+    user: config.mongo_user,
+    pass: config.mongo_pass,
+    auth: { authdb: config.mongo_dbname, authMechanism: 'MONGODB-CR' },
+    useMongoClient: true
+  }
+}
 mongoose
-  .connect(
-    config.mongo_url,
-    {
-      user: config.mongo_user,
-      pass: config.mongo_pass,
-      auth: { authdb: config.mongo_dbname, authMechanism: 'MONGODB-CR' },
-      useMongoClient: true
-    }
-  )
+  .connect(config.mongo_url, connectParams)
   .then(async db => {
     try {
       console.log('mongodb connect success!')
@@ -26,12 +27,14 @@ mongoose
       let total = await Book.count()
       console.log('Total book number: ' + total)
       while (current < total) {
-        let book = await Book.find({}, '_id chapters name').skip(current).limit(1)
+        let book = await Book.find({}, '_id chapters name')
+          .skip(current)
+          .limit(1)
         if (book[0]) {
           console.log('Start to change the book ' + book[0].name + ' ...')
-          console.warn('caonima', typeof book[0].chapters, (book[0].chapters instanceof Array), (book[0].chapters instanceof Array) && (book[0].chapters.length > 0));
-          if ((book[0].chapters instanceof Array) && (book[0].chapters.length > 0)) {
-            for(let i=0; i<book[0].chapters.length; i++) {
+          console.warn('caonima', typeof book[0].chapters, book[0].chapters instanceof Array, book[0].chapters instanceof Array && book[0].chapters.length > 0)
+          if (book[0].chapters instanceof Array && book[0].chapters.length > 0) {
+            for (let i = 0; i < book[0].chapters.length; i++) {
               let chapter = await Chapter.findById(book[0].chapters[i].toString())
               if (chapter) {
                 let updateResult = await Chapter.update({ _id: book[0].chapters[i].toString() }, { $set: { bookid: book[0]._id, name: chapter.name.replace(/^[：，.、]+/g, '') } })
@@ -39,26 +42,26 @@ mongoose
                   console.log('Modified chapter ' + chapter.name + ' success')
                 } else {
                   console.log('Modified chapter ' + chapter.name + ' fail ✘')
-                  process.exit(0);
+                  process.exit(0)
                 }
               } else {
                 console.log('Not found the chapter ' + book[0].chapters[i].toString())
               }
             }
             let updateResult = await Book.update({ _id: book[0]._id.toString() }, { $unset: { chapters: 1 } })
-            console.log(updateResult);
+            console.log(updateResult)
             if (updateResult.ok === 1) {
-              console.log('Delete book\'s chapters field success')
+              console.log("Delete book's chapters field success")
             } else {
-              console.log('Delete book\'s chapters field fail ✘')
+              console.log("Delete book's chapters field fail ✘")
             }
           }
           console.log('Finished to change the book ' + book[0].name + ' ...')
         }
-        current ++
+        current++
       }
       console.log('Finished all the update tasks!')
-      process.exit(0);
+      process.exit(0)
     } catch (err) {
       console.log('Error: ' + err)
     }
