@@ -254,6 +254,7 @@ export default function(router) {
         ctx.body = { ok: false, msg: '预分享密钥无效或者已经被使用' }
         return false
       }
+<<<<<<< Updated upstream
       const thisBook = await Book.findById(thisSecret.bookid.toString(), 'name')
       // 检查是否预分享密钥已经使用过了
       const updateResult = await Secret.update(
@@ -266,6 +267,17 @@ export default function(router) {
         }
       )
       if (updateResult.ok ===1) {
+=======
+
+      if (!await Secret.findOne({ userid, bookid })) {
+        const thisSecret = await Secret.create({
+          userid: await Secret.transId(userid),
+          bookid: await Secret.transId(bookid),
+          active: true,
+          create_time: new Date()
+        })
+        if (thisSecret) {
+>>>>>>> Stashed changes
         // 发送秘钥解锁成的通知，延迟三分钟后执行
         setTimeout(() => {
           User.sendMessage(

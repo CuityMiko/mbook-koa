@@ -1,9 +1,9 @@
 // 下载小程序二维码的工具js
-const Redis = require('ioredis')
 const request = require('request')
 const qn = require('qn')
 const config = require('../config')
 const sign = require('./wxSign')
+<<<<<<< Updated upstream
 
 const redis = new Redis({
   port: config.redis_port, // Redis port
@@ -11,6 +11,9 @@ const redis = new Redis({
   family: 4, // 4 (IPv4) or 6 (IPv6)
   password: config.redis_auth ? config.redis_pass : null
 })
+=======
+const redis = require('../utils/redis')
+>>>>>>> Stashed changes
 
 // qiniu上传设置
 const client = qn.create({

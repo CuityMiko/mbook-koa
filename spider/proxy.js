@@ -3,53 +3,69 @@
  * @Author: lidikang
  * @LastEditors: lidikang
  * @Date: 2019-03-19 23:33:51
- * @LastEditTime: 2019-03-21 00:00:30
+ * @LastEditTime: 2019-03-25 23:28:19
  */
 import request from 'superagent'
 import requestProxy from 'superagent-proxy'
 import userAgent from 'fake-useragent'
 import cheerio from 'cheerio'
+import PQueue from 'p-queue'
+import redis from '../utils/redis'
 
 // superagent添加使用代理ip的插件
 requestProxy(request)
 
 function getProxyIpAddress() {
+  redis.set('mbook_spider_proxy_ips', new Set(), 'EX', 10 * 60)
   request
-    .get(`http://www.data5u.com/free/gngn/index.shtml`)
+    .get(`https://www.kuaidaili.com/free/inha/1/`)
     .set({ 'User-Agent': userAgent() })
     .timeout({ response: 5000, deadline: 60000 })
     .end(async (err, res) => {
       const $ = cheerio.load(res.text)
       // 处理数据
       let ips = []
-      $('.wlist .l2 span:first-child li').each((index, element) => {
+      $('table td[data-title="IP"]').each((index, element) => {
         ips.push(
-          `${$(element).text()}:${$('.wlist .l2 span:nth-child(2) li')
+          `${$(element).text()}:${$('table td[data-title="PORT"]')
             .eq(index)
             .text()}`
         )
       })
       console.log(ips)
       // 校验代理的可用性
+      const queue = new PQueue({ concurrency: 1 })
       ips.forEach(item => {
-        testProxy()
+        queue.add(() => {
+          testProxy(item)
+            .then(ip => {
+              console.log('Add useful ip: ' + ip)
+              redis.sadd('mbook_spider_proxy_ips', ip)
+            })
+            .catch(ip => {
+              console.log('Remove useless ip: ' + ip)
+            })
+        })
       })
+      queue.onIdle().then(() => {
+        console.log('12. All work is done');
+      });
     })
 }
 
-function testProxy() {
+function testProxy(ip) {
   return new Promise((resolve, reject) => {
     request
       .get(`http://www.77xsw.la/`)
       .set({ 'User-Agent': userAgent() })
-      .timeout({ response: 5000, deadline: 60000 })
-      .proxy(`http://${}`)
+      .timeout({ response: 10000, deadline: 60000 })
+      .proxy(`http://${ip}`)
       .end(async (err, res) => {
         if (err) {
-          reject(err)
+          reject(ip)
           return
         }
-        resolve(res)
+        resolve(ip)
       })
   })
 }

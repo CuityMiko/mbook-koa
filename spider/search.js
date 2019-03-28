@@ -1,12 +1,12 @@
 import request from 'superagent'
 import requestProxy from 'superagent-proxy'
 import userAgent from 'fake-useragent'
-import Redis from 'ioredis'
-import config from '../config'
 import getProxyIpAddress from './proxy'
+import redis from '../utils/redis'
 
 // superagent添加使用代理ip的插件
 requestProxy(request)
+<<<<<<< Updated upstream
 // 连接redis
 const redis = new Redis({
   port: config.redis_port, // Redis port
@@ -14,14 +14,17 @@ const redis = new Redis({
   family: 4, // 4 (IPv4) or 6 (IPv6)
   password: config.redis_auth ? config.redis_pass : null
 })
+=======
+
+>>>>>>> Stashed changes
 
 async function doGetRequest(url) {
   console.log(userAgent())
   request
     .get('http://www.77xsw.la/')
     .set({ 'User-Agent': userAgent() })
-    .timeout({ response: 5000, deadline: 60000 })
-    .proxy('http://116.209.58.74:9999')
+    .timeout({ response: 10000, deadline: 60000 })
+    .proxy('http://163.204.244.224:9999')
     .end(async (err, res) => {
       console.log('TCL: doGetRequest -> err, res', err, res)
       // 处理数据
