@@ -10,7 +10,6 @@ import { Book, Setting, User } from '../models'
 import { checkUserToken, checkAdminToken } from '../utils'
 import { requestWxCode } from '../utils/wxCode'
 import { mongosync } from '../bin/mongosync'
-import { searchThirdPartFaction } from '../spider'
 
 // qiniu上传设置
 const client = qn.create({
@@ -329,20 +328,5 @@ export default function(router) {
         ctx.body = { ok: false, msg: '同步失败' }
       }
     }
-  })
-
-  // 管理后台搜索其他书源的小说
-  router.get('/api/admin/faction_search', async (ctx, next) => {
-    let userid = await checkAdminToken(ctx, next, 'mongosync')
-    if (!userid) {
-      return false
-    }
-    let { keyword } = ctx.request.query
-    if (!keyword) {
-      ctx.body = { ok: false, msg: '搜索关键字不能为空' }
-      return false
-    }
-    let result = await searchThirdPartFaction(keyword)
-    ctx = { ok: true, msg: '搜索章节成功', list: result }
   })
 }

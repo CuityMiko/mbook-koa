@@ -344,7 +344,7 @@ export default function(router) {
   router.patch('/api/book/:id', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'theme_update')
     if (userid) {
-      let { name, img_url, author, des, classification, classify_order, update_status, newest_chapter, total_words, hot_value } = ctx.request.body
+      let { name, img_url, author, des, classification, classify_order, update_status, newest_chapter, total_words, hot_value, secret, source } = ctx.request.body
       let id = ctx.params.id
       let result = await Book.update(
         { _id: id },
@@ -360,7 +360,9 @@ export default function(router) {
             newest_chapter: newest_chapter,
             total_words: total_words,
             hot_value: hot_value,
-            update_time: new Date()
+            update_time: new Date(),
+            secret,
+            source
           }
         }
       )

@@ -11,9 +11,10 @@ import { Book, Chapter, BookList, User, Setting } from '../models'
  * 发送书籍更新提示
  * @param {*} bookId 书籍id
  * @param {*} chapterId 章节id
+ * @param {*} later 是否延迟发送
  * @returns null
  */
-async function readUpdateNotice(bookId, chapterId) {
+async function readUpdateNotice(bookId, chapterId, later) {
   // 判断设置中是否打开了书籍更新提示
   let setting = await Setting.findOne({ key: 'template_message_setting' }, 'value')
   if (!setting || !setting.value || JSON.parse(setting.value)['book-update'] !== 'true') {

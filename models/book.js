@@ -16,8 +16,7 @@ const BookSchema = new mongoose.Schema(
     update_time: Date, // 更新时间
     secret: { type: String, unique: true }, // 书籍秘钥
     create_time: Date, // 创建时间
-    // TODO: will be delete
-    chapters: []
+    source: [{ type: String }], // 书籍来源
   },
   { versionKey: false }
 )
