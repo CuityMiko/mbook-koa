@@ -1,6 +1,6 @@
-import send from 'koa-send'
 import path from 'path'
 import fs from 'fs'
+import sendfile from 'koa-sendfile'
 // import Canvas from 'canvas'
 import qn from 'qn'
 import https from 'https'
@@ -28,11 +28,10 @@ export default function(router) {
   })
 
   // 下载上传模板文件
-  router.get('/download/upload_example', async (ctx, next) => {
-    //类型
-    ctx.type = '.xlsx'
-    //请求返回，生成的xlsx文件
-    ctx.body = fs.readFileSync(path.join(__dirname + '/../public/upload_example.xlsx'))
+  router.get('/api/download', async (ctx, next) => {
+    const path = ctx.request.query.path
+    ctx.attachment(decodeURI(path));
+    await sendfile(ctx, path);
   })
 
   router.get('/help', async (ctx, next) => {
