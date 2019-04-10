@@ -47,20 +47,21 @@ async function doGetRequest(url) {
  */
 async function getSourceData(source, newest) {
   let result = []
-  if (source.indexOf('www.77xsw.la') > -1) {
+  if (source.indexOf('www.qianqianxs.com') > -1) {
     const html = await doGetRequest(source)
     const $ = cheerio.load(html)
-    $('.panel-chapterlist dd.col-md-3').each((index, element) => {
+    $('.panel-body .list-group li').each((index, element) => {
       const name = $(element).text()
       const chapterTitleReg = /第?[零一二两三叁四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰0-9]+章[\.、：: -]*[^\n]+/
       if (chapterTitleReg.test(name)) {
         const num = chinese2number(name.match(/第?[零一二两三叁四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰0-9]+章/)[0].replace(/[第章]+/g, ''))
-        const link = source + $(element).children('a').attr('href')
+        const link = 'https://www.qianqianxs.com' + $(element).children('a').attr('href')
         if (num > newest) {
           result.push({
             num,
             name: name.replace(/^.*章[、\.：\s:-]*/, ''),
-            link
+            link,
+            selector: '.content-body'
           })
         }
       }
@@ -119,7 +120,7 @@ export async function updateBook() {
       for (let m = 0; m < chapters.length; m++) {
         const html = await doGetRequest(chapters[m].link)
         const $ = cheerio.load(html)
-        chapters[m].content = formatContent($('#htmlContent').text())
+        chapters[m].content = formatContent($(chapters[m].selector).text())
         // 存储章节
         let oldChapter = await Chapter.findOne({ bookid: needUpdateBooks[i]._id, num: chapters[m].num })
         if (!oldChapter) {
@@ -142,9 +143,10 @@ export async function updateBook() {
       // 阅读更新通知
       const lastId = chapters[chapters.length -1].id
       if (lastId) {
-        console.log(`开始发送书籍更新提示, 书籍id ${needUpdateBooks[i]._id} 章节id ${lastId}...`)
-        readUpdateNotice(id, lastId, true)
+        // console.log(`开始发送书籍更新提示, 书籍id ${needUpdateBooks[i]._id} 章节id ${lastId}...`)
+        // readUpdateNotice(id, lastId, true)
       }
+      continue
     }
   }
 }

@@ -18,7 +18,7 @@ requestProxy(request)
  */
 function setLocalIpAddressWhiteList(ip) {
   request
-    .get('http://web.http.cnapi.cc/index/index/save_white?neek=63503&appkey=a56636a4610d15bb0e7cbbd8d8e543b7&white=' + ip)
+    .get('http://web.http.cnapi.cc/index/index/save_white?neek=67203&appkey=1c1c6c34947a721a0ba3c015aaa5a2fb&white=' + ip)
     .set({ 'User-Agent': userAgent() })
     .timeout({ response: 5000, deadline: 60000 })
     .end(async (err, res) => {
