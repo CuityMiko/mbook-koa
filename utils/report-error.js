@@ -1,7 +1,27 @@
 const Sentry = require('@sentry/node')
 const config = require('../config')
+const Redmine = require('node-redmine')
 // 安装日志上传工具
-Sentry.init({ dsn: 'https://b16f63d122694fa3b607a81c285fb900@sentry.io/1310873' })
+// Sentry.init({ dsn: 'https://b16f63d122694fa3b607a81c285fb900@sentry.io/1310873' })
+var redmine = new Redmine('http://118.24.94.40:8080', { apiKey: 'a07af0747a169cb81ee4589f23fc3e9f1cca1b2d' });
+ 
+
+/*
+ * create issue
+ */
+ var issue = {
+  "issue": {
+    "project_id": 1,
+    "subject": 'Redmine REST API by Node.js',
+    "notes": "automative update redmine notes by node js",
+    "priority_id": 4
+  }
+};
+
+redmine.create_issue(issue, function(err, data) {
+  if (err) throw err;
+  console.log(data);
+});
 
 /**
  * 打印调试信息，方便错误跟踪
