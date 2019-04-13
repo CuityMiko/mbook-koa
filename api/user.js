@@ -3,7 +3,6 @@ import request from 'request'
 import querystring from 'querystring'
 import Promise from 'bluebird'
 import config from '../config'
-import moment from 'moment'
 import shortid from 'shortid'
 import { User, BookList, Pay, Share, Attendance, Award, Buy, Comment, FormId, Setting } from '../models'
 import { checkUserToken, checkAdminToken, reportError, debug } from '../utils'
@@ -26,7 +25,7 @@ function doRequest(url) {
       } else {
         reportError(`请求接口${url}失败`, {
           extra: {
-            debug: { url, err: error }
+            debug: { url }
           }
         })
         reject(error || body)
@@ -43,9 +42,9 @@ function updateLastLoginTime(userid) {
   // 更新用户最近登录时间，并将登录次数加1
   User.update({ _id: userid }, { $set: { last_login_time: new Date() }, $inc: { login_times: 1 } }, function(err, res) {
     if (err) {
-      reportError(`更新用户最近登录时间失败`, {
+      reportError(`更新用户最近登录时间失败`, err,  {
         extra: {
-          debug: { userid, err }
+          userid
         }
       })
       return false

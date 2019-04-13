@@ -19,6 +19,7 @@
     "fake-useragent": "^1.0.1",
     "iconv-lite": "^0.4.24",
     "ioredis": "^3.2.2",
+    "jsonify-error": "^1.4.4",
     "jsonwebtoken": "^8.1.0",
     "jssha": "^2.3.1",
     "koa": "^2.2.0",
