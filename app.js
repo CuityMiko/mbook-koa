@@ -62,7 +62,11 @@ app.use(index.routes(), index.allowedMethods())
 // error-handling
 app.on('error', (err, ctx) => {
   console.log('server error', err)
-  // reportError(err, { extra: { context: ctx } })
+  reportError('服务器500错误--' + err.toString(), err, {
+    priority: '紧急',
+    category: '服务器500',
+    extra: { url: `${ctx.method} ${ctx.url}`, query: JSON.stringify(ctx.request.query), body: JSON.stringify(ctx.request.body) }
+  })
 })
 
 module.exports = app

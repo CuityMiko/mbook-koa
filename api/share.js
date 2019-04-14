@@ -151,12 +151,20 @@ export default function(router) {
                         console.log('邀请奖励消息发送成功!')
                       } else {
                         console.log('邀请奖励消息发送失败', res.msg)
-                        reportError('邀请奖励消息发送失败', { extra: { context: ctx } })
+                        reportError('邀请奖励消息发送失败', new Error(res), {
+                          priority: '低',
+                          category: '错误',
+                          extra: { url: `${ctx.method} ${ctx.url}`, query: JSON.stringify(ctx.request.query), body: JSON.stringify(ctx.request.body) }
+                        })
                       }
                     })
                     .catch(err => {
-                      reportError('邀请奖励消息发送失败', { extra: { context: ctx, err } })
                       console.log('邀请奖励消息发送失败', err)
+                      reportError('邀请奖励消息发送失败', err, {
+                        priority: '低',
+                        category: '错误',
+                        extra: { url: `${ctx.method} ${ctx.url}`, query: JSON.stringify(ctx.request.query), body: JSON.stringify(ctx.request.body) }
+                      })
                     })
                   ctx.body = { ok: true, msg: '成功接受邀请，奖励已发放' }
                 } else {

@@ -23,10 +23,10 @@ function doRequest(url) {
       if (!error && response.statusCode == 200) {
         resolve(JSON.parse(body))
       } else {
-        reportError(`请求接口${url}失败`, {
-          extra: {
-            debug: { url }
-          }
+        reportError('请求接口失败', new Error(res), {
+          priority: '普通',
+          category: '错误',
+          extra: { url: url }
         })
         reject(error || body)
       }
@@ -43,9 +43,9 @@ function updateLastLoginTime(userid) {
   User.update({ _id: userid }, { $set: { last_login_time: new Date() }, $inc: { login_times: 1 } }, function(err, res) {
     if (err) {
       reportError(`更新用户最近登录时间失败`, err,  {
-        extra: {
-          userid
-        }
+        priority: '高',
+        category: '错误',
+        extra: { userid }
       })
       return false
     }
@@ -65,10 +65,10 @@ function initUserBooklist(userid) {
       console.log(`初始化用户${userid}书架成功`)
     })
     .catch(err => {
-      reportError(`初始化用户书架失败`, {
-        extra: {
-          debug: { userid, err }
-        }
+      reportError('初始化用户书架失败', new Error(res), {
+        priority: '高',
+        category: '错误',
+        extra: { userid }
       })
     })
 }

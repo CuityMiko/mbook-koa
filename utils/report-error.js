@@ -2,7 +2,7 @@ import config from '../config'
 import Redmine from 'node-redmine'
 import jsonifyError from 'jsonify-error'
 
-const redmine = new Redmine('http://118.24.94.40:8080', { apiKey: 'a07af0747a169cb81ee4589f23fc3e9f1cca1b2d' })
+const redmine = new Redmine('http://118.24.94.40:8080', { apiKey: 'b9e6bfb5cad06de72d1f49162de83a69eae569ba' })
 
 /**
  * 打印调试信息，方便错误跟踪
@@ -21,9 +21,9 @@ const debug = (names, value) => {
   }
 }
 
-const transProperty = property => {
+const transPriority = priority => {
   let id = 1
-  switch (property) {
+  switch (priority) {
     case '低':
       id = 1
       break
@@ -38,6 +38,24 @@ const transProperty = property => {
       break
     case '立刻':
       id = 5
+      break
+    default:
+      break
+  }
+  return id
+}
+
+const transCategory = category => {
+  let id = 1
+  switch (category) {
+    case '服务器500':
+      id = 1
+      break
+    case '打印日志':
+      id = 2
+      break
+    case '错误':
+      id = 3
       break
     default:
       break
@@ -67,7 +85,8 @@ const reportError = (title, error, options) => {
       project_id: 1,
       subject: title || error.toString(),
       description: `${extra}*错误详情*: \n${JSON.stringify(jsonifyError(error), null, 2)}`,
-      priority_id: transProperty(newOptions.priority)
+      priority_id: transPriority(newOptions.priority),
+      category_id: transPriority(newOptions.category)
     }
   }
 

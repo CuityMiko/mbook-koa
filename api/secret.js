@@ -185,12 +185,20 @@ export default function(router) {
                 console.log('解锁成功消息发送成功!')
               } else {
                 console.log('解锁成功消息发送失败', res.msg)
-                reportError('解锁成功消息发送失败', { extra: { context: ctx } })
+                reportError('解锁成功消息发送失败', new Error(res), {
+                  priority: '低',
+                  category: '错误',
+                  extra: { url: `${ctx.method} ${ctx.url}`, query: JSON.stringify(ctx.request.query), body: JSON.stringify(ctx.request.body) }
+                })
               }
             })
             .catch(err => {
               console.log('解锁成功消息发送失败', err)
-              reportError('解锁成功消息发送失败', { extra: { context: ctx, err } })
+              reportError('解锁成功消息发送失败', err, {
+                priority: '低',
+                category: '错误',
+                extra: { url: `${ctx.method} ${ctx.url}`, query: JSON.stringify(ctx.request.query), body: JSON.stringify(ctx.request.body) }
+              })
             })
         }, 0)
         ctx.body = { ok: true, msg: '解锁成功' }

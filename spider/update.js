@@ -10,6 +10,7 @@ import userAgent from 'fake-useragent'
 import { getRandomProxyIp } from './proxy'
 import chinese2number from '../utils/chineseToNum'
 import { readUpdateNotice } from '../bin/readUpdateNotice'
+import { reportError } from '../utils'
 
 // superagent添加使用代理ip的插件
 requestProxy(request)
@@ -90,6 +91,11 @@ function formatContent(str) {
 
 export async function updateBook() {
   let needUpdateBooks = await Book.find({ source: { $ne: null } }, 'name update_status newest_chapter source')
+  reportError('开始执行书籍更新', {}, {
+    priority: '低',
+    category: '打印日志',
+    extra: { need_update_books: needUpdateBooks.length, current_time: (new Date()).toLocaleDateString() }
+  })
   // 逐一遍历所有来源，并汇总所有来源的书籍
   for (let i = 0; i < needUpdateBooks.length; i++) {
     console.log(`正在进行第${i + 1}本书籍《${needUpdateBooks[i].name}》的更新，总共有${needUpdateBooks.length}本...`)
