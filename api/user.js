@@ -23,7 +23,7 @@ function doRequest(url) {
       if (!error && response.statusCode == 200) {
         resolve(JSON.parse(body))
       } else {
-        reportError('请求接口失败', new Error(res), {
+        reportError('请求接口失败', res, {
           priority: '普通',
           category: '错误',
           extra: { url: url }
@@ -42,7 +42,7 @@ function updateLastLoginTime(userid) {
   // 更新用户最近登录时间，并将登录次数加1
   User.update({ _id: userid }, { $set: { last_login_time: new Date() }, $inc: { login_times: 1 } }, function(err, res) {
     if (err) {
-      reportError(`更新用户最近登录时间失败`, err,  {
+      reportError(`更新用户最近登录时间失败`, err, {
         priority: '高',
         category: '错误',
         extra: { userid }
@@ -58,14 +58,14 @@ function updateLastLoginTime(userid) {
  */
 function initUserBooklist(userid) {
   BookList.create({
-    userid: userid,
-    books: []
-  })
+      userid: userid,
+      books: []
+    })
     .then(res => {
       console.log(`初始化用户${userid}书架成功`)
     })
     .catch(err => {
-      reportError('初始化用户书架失败', new Error(res), {
+      reportError('初始化用户书架失败', err, {
         priority: '高',
         category: '错误',
         extra: { userid }
@@ -102,7 +102,7 @@ export default function(router) {
       // 获取设置中的分享设置
       const globalSetting = await getGlobalSetting()
       const inShareWhiteList = globalSetting.share_white_list.indexOf(userid) > -1
-      ctx.body = { ok: true, msg: '获取app设置成功', data: { share: hisShareInfo, share_white_list: inShareWhiteList ,setting: globalSetting } }
+      ctx.body = { ok: true, msg: '获取app设置成功', data: { share: hisShareInfo, share_white_list: inShareWhiteList, setting: globalSetting } }
     }
   })
 
@@ -402,14 +402,11 @@ export default function(router) {
       if (setting) {
         let thisUser = await User.findById(userid, 'setting')
         if (thisUser) {
-          const updateResult = await User.update(
-            { _id: userid },
-            {
-              $set: {
-                setting: Object.assign(thisUser.setting, setting)
-              }
+          const updateResult = await User.update({ _id: userid }, {
+            $set: {
+              setting: Object.assign(thisUser.setting, setting)
             }
-          )
+          })
           if (updateResult.ok === 1) {
             ctx.body = { ok: true, msg: '更新设置成功' }
           } else {
@@ -501,14 +498,11 @@ export default function(router) {
     if (userid) {
       let { amount } = ctx.request.body
       let id = ctx.params.id
-      let result = await User.update(
-        { _id: id },
-        {
-          $set: {
-            amount: amount
-          }
+      let result = await User.update({ _id: id }, {
+        $set: {
+          amount: amount
         }
-      )
+      })
       if (result.ok === 1) {
         ctx.body = { ok: true, msg: '更新用户成功' }
       } else {

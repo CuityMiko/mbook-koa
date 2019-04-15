@@ -7,35 +7,32 @@ import { sendWxMessage } from '../utils/wxCode'
 import { reportError } from '../utils'
 const SALT_WORK_FACTOR = 10
 
-const UserSchema = new mongoose.Schema(
-  {
-    username: { type: String, required: true },
-    password: String,
-    avatar: String,
-    identity: Number, // 区分用户是普通用户还是系统管理员，1：小程序用户，2：系统管理员
-    openid: { type: String, unique: true }, // 小程序openid
-    // unionid: String, // 小程序unionid
-    amount: 0, // 书币数量
-    setting: {
-      updateNotice: Boolean,
-      reader: {
-        fontSize: Number,
-        fontFamily: String,
-        bright: Number,
-        mode: String, // 模式
-        overPage: 0 // 0表示左右翻页模式，1表示上下翻页模式
-      },
-      autoBuy: { type: Boolean, default: true } // 是否自动购买下一章
+const UserSchema = new mongoose.Schema({
+  username: { type: String, required: true },
+  password: String,
+  avatar: String,
+  identity: Number, // 区分用户是普通用户还是系统管理员，1：小程序用户，2：系统管理员
+  openid: { type: String, unique: true }, // 小程序openid
+  // unionid: String, // 小程序unionid
+  amount: 0, // 书币数量
+  setting: {
+    updateNotice: Boolean,
+    reader: {
+      fontSize: Number,
+      fontFamily: String,
+      bright: Number,
+      mode: String, // 模式
+      overPage: 0 // 0表示左右翻页模式，1表示上下翻页模式
     },
-    is_active: Boolean, // 后台管理账号是否激活标志
-    permission: [], // 后台管理系统权限配置字段
-    read_time: { type: Number, default: 0 },
-    create_time: Date,
-    last_login_time: Date, // 最近登录时间
-    login_times: { type: Number, default: 0 } // 登录次数
+    autoBuy: { type: Boolean, default: true } // 是否自动购买下一章
   },
-  { versionKey: false }
-)
+  is_active: Boolean, // 后台管理账号是否激活标志
+  permission: [], // 后台管理系统权限配置字段
+  read_time: { type: Number, default: 0 },
+  create_time: Date,
+  last_login_time: Date, // 最近登录时间
+  login_times: { type: Number, default: 0 } // 登录次数
+}, { versionKey: false })
 
 UserSchema.index({ openid: 1 }, { unique: true })
 
@@ -144,10 +141,10 @@ UserSchema.statics.sendMessage = async function(userid, type, data, extra) {
             await FormId.updateFormId(userid, formid)
             resolve({ ok: true, msg: '发送模板消息成功' })
           } else {
-            reportError('发送邀请奖励模板消息失败', new Error(res), {
+            reportError('发送邀请奖励模板消息失败', res, {
               priority: '低',
               category: '错误',
-              extra: { 
+              extra: {
                 openid: current.openid,
                 template_id: 'dzNZy9ArO1_JpwQ4cb994P-FikeIBHIoH0d4_gTcDXc',
                 url: 'pages/loading/loading?goto=share',
@@ -187,10 +184,10 @@ UserSchema.statics.sendMessage = async function(userid, type, data, extra) {
             await FormId.updateFormId(userid, formid)
             resolve({ ok: true, msg: '发送模板消息成功' })
           } else {
-            reportError('发送邀请奖励模板消息失败', new Error(res), {
+            reportError('发送邀请奖励模板消息失败', res, {
               priority: '低',
               category: '错误',
-              extra: { 
+              extra: {
                 openid: current.openid,
                 template_id: '94Oee2UU-xv0FmAAW1Pc1HRsivBFUdth9cV4CWMAiac',
                 url: 'pages/loading/loading?bookid=' + extra.bookid,
@@ -225,10 +222,10 @@ UserSchema.statics.sendMessage = async function(userid, type, data, extra) {
             await FormId.updateFormId(userid, formid)
             resolve({ ok: true, msg: '发送模板消息成功' })
           } else {
-            reportError('发送书籍更新模板消息失败', new Error(res), {
+            reportError('发送书籍更新模板消息失败', res, {
               priority: '低',
               category: '错误',
-              extra: { 
+              extra: {
                 openid: current.openid,
                 template_id: '66RVt2pXdkIQG3zFp6EyJsG8BAh4SrKhEnUaJ6Gi3hQ',
                 url: 'pages/loading/loading?bookid=' + extra.bookid,
@@ -242,7 +239,7 @@ UserSchema.statics.sendMessage = async function(userid, type, data, extra) {
         .catch(err => {
           reject({ ok: false, msg: '发送模板消息失败', err })
         })
-    }  else if (type === 'comment') {
+    } else if (type === 'comment') {
       // 评论回复消息提示
       if (!extra.bookid) {
         console.log('发送书评模板消息时bookid不存在', JSON.stringify({ userid, type, data, extra }))
@@ -263,10 +260,10 @@ UserSchema.statics.sendMessage = async function(userid, type, data, extra) {
             await FormId.updateFormId(userid, formid)
             resolve({ ok: true, msg: '发送模板消息成功' })
           } else {
-            reportError('发送书评模板消息失败', new Error(res), {
+            reportError('发送书评模板消息失败', res, {
               priority: '低',
               category: '错误',
-              extra: { 
+              extra: {
                 openid: current.openid,
                 template_id: 'JU9Bw6ogf-NGNm8hykXoZTYGjOFEp4X9juG54LEpSBY',
                 url: 'pages/loading/loading?bookid=' + extra.bookid,

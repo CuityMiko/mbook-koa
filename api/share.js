@@ -91,17 +91,14 @@ export default function(router) {
                 return item.accept_records.length > 0
               })
               // 新增接受分享的记录
-              await Share.update(
-                { code },
-                {
-                  $addToSet: {
-                    accept_records: {
-                      uid: await Share.transId(userid),
-                      accept_time: now
-                    }
+              await Share.update({ code }, {
+                $addToSet: {
+                  accept_records: {
+                    uid: await Share.transId(userid),
+                    accept_time: now
                   }
                 }
-              )
+              })
               if (hasBeInvited) {
                 ctx.body = { ok: false, msg: '您今天已经接受过邀请了' }
               } else {
@@ -111,60 +108,53 @@ export default function(router) {
                 if (acceptAward && launchAward) {
                   // 新增奖励记录
                   let launchUser = await User.findById(thisShareLog.userid.toString(), 'username')
-                  await Share.update(
-                    { userid },
-                    {
-                      $addToSet: {
-                        award_records: {
-                          name: '接受邀请奖励',
-                          user: launchUser ? launchUser.username : '',
-                          amount: 15,
-                          award_time: new Date()
-                        }
+                  await Share.update({ userid }, {
+                    $addToSet: {
+                      award_records: {
+                        name: '接受邀请奖励',
+                        user: launchUser ? launchUser.username : '',
+                        amount: 15,
+                        award_time: new Date()
                       }
                     }
-                  )
-                  const currentUser = await User.findById(userid, 'username')
-                  await Share.update(
-                    { code },
-                    {
-                      $addToSet: {
-                        award_records: {
-                          name: '邀请别人奖励',
-                          amount: 15,
-                          user: currentUser ? currentUser.username : '',
-                          award_time: new Date()
-                        }
-                      }
-                    }
-                  )
-                  // 使用微信小程序模板消息通知用户邀请他人成功
-                  User.sendMessage(thisShareLog.userid.toString(), 'accept', {
-                    keyword1: { value: launchUser.username },
-                    keyword2: { value: currentUser.username },
-                    keyword3: { value: '您的好友--' + currentUser.username + '已经接受您的阅读邀请。邀请更多好友可以获得更多奖励哦~' },
-                    keyword4: { value: '15书币' },
-                    keyword5: { value: moment().format('YYYY年MM月DD日 HH:mm:ss') }
                   })
+                  const currentUser = await User.findById(userid, 'username')
+                  await Share.update({ code }, {
+                    $addToSet: {
+                      award_records: {
+                        name: '邀请别人奖励',
+                        amount: 15,
+                        user: currentUser ? currentUser.username : '',
+                        award_time: new Date()
+                      }
+                    }
+                  })
+                  // 使用微信小程序模板消息通知用户邀请他人成功
+                  const fail = (data) => {
+                    reportError('邀请奖励消息发送失败', data, {
+                      priority: '低',
+                      category: '错误',
+                      extra: { url: `${ctx.method} ${ctx.url}`, query: JSON.stringify(ctx.request.query), body: JSON.stringify(ctx.request.body) }
+                    })
+                  }
+                  User.sendMessage(thisShareLog.userid.toString(), 'accept', {
+                      keyword1: { value: launchUser.username },
+                      keyword2: { value: currentUser.username },
+                      keyword3: { value: '您的好友--' + currentUser.username + '已经接受您的阅读邀请。邀请更多好友可以获得更多奖励哦~' },
+                      keyword4: { value: '15书币' },
+                      keyword5: { value: moment().format('YYYY年MM月DD日 HH:mm:ss') }
+                    })
                     .then(res => {
                       if (res.ok) {
                         console.log('邀请奖励消息发送成功!')
                       } else {
                         console.log('邀请奖励消息发送失败', res.msg)
-                        reportError('邀请奖励消息发送失败', new Error(res), {
-                          priority: '低',
-                          category: '错误',
-                          extra: { url: `${ctx.method} ${ctx.url}`, query: JSON.stringify(ctx.request.query), body: JSON.stringify(ctx.request.body) }
-                        })
+                        fail(res)
                       }
                     })
                     .catch(err => {
                       console.log('邀请奖励消息发送失败', err)
-                      reportError('邀请奖励消息发送失败', err, {
-                        priority: '低',
-                        category: '错误',
-                        extra: { url: `${ctx.method} ${ctx.url}`, query: JSON.stringify(ctx.request.query), body: JSON.stringify(ctx.request.body) }
-                      })
+                      fail(err)
                     })
                   ctx.body = { ok: true, msg: '成功接受邀请，奖励已发放' }
                 } else {

@@ -100,17 +100,14 @@ export default function(router) {
         ctx.body = { ok: false, msg: '秘钥格式错误' }
         return false
       }
-      const updateResult = await Secret.update(
-        { _id: id },
-        {
-          $set: {
-            userid: await Secret.transId(userid),
-            bookid: await Secret.transId(bookid),
-            secret,
-            active: !!active
-          }
+      const updateResult = await Secret.update({ _id: id }, {
+        $set: {
+          userid: await Secret.transId(userid),
+          bookid: await Secret.transId(bookid),
+          secret,
+          active: !!active
         }
-      )
+      })
       if (updateResult.ok === 1) {
         ctx.body = { ok: true, msg: '更新秘钥成功' }
       } else {
@@ -169,36 +166,33 @@ export default function(router) {
       if (thisSecret) {
         // 发送秘钥解锁成的通知，延迟三分钟后执行
         setTimeout(() => {
+          const fail = (data) => {
+            reportError('解锁成功消息发送失败', data, {
+              priority: '低',
+              category: '错误',
+              extra: { url: `${ctx.method} ${ctx.url}`, query: JSON.stringify(ctx.request.query), body: JSON.stringify(ctx.request.body) }
+            })
+          }
           User.sendMessage(
-            userid,
-            'secret',
-            {
-              keyword1: { value: thisUser.username },
-              keyword2: { value: thisBook.name },
-              keyword3: { value: moment().format('YYYY年MM月DD日 HH:mm:ss') },
-              keyword4: { value: '你已经成功解锁书籍--《' + thisBook.name + '》，点击卡片开始阅读书籍吧~' }
-            },
-            { bookid }
-          )
+              userid,
+              'secret', {
+                keyword1: { value: thisUser.username },
+                keyword2: { value: thisBook.name },
+                keyword3: { value: moment().format('YYYY年MM月DD日 HH:mm:ss') },
+                keyword4: { value: '你已经成功解锁书籍--《' + thisBook.name + '》，点击卡片开始阅读书籍吧~' }
+              }, { bookid }
+            )
             .then(res => {
               if (res.ok) {
                 console.log('解锁成功消息发送成功!')
               } else {
                 console.log('解锁成功消息发送失败', res.msg)
-                reportError('解锁成功消息发送失败', new Error(res), {
-                  priority: '低',
-                  category: '错误',
-                  extra: { url: `${ctx.method} ${ctx.url}`, query: JSON.stringify(ctx.request.query), body: JSON.stringify(ctx.request.body) }
-                })
+                fail(res)
               }
             })
             .catch(err => {
               console.log('解锁成功消息发送失败', err)
-              reportError('解锁成功消息发送失败', err, {
-                priority: '低',
-                category: '错误',
-                extra: { url: `${ctx.method} ${ctx.url}`, query: JSON.stringify(ctx.request.query), body: JSON.stringify(ctx.request.body) }
-              })
+              fail(err)
             })
         }, 0)
         ctx.body = { ok: true, msg: '解锁成功' }
@@ -264,29 +258,24 @@ export default function(router) {
       }
       const thisBook = await Book.findById(thisSecret.bookid.toString(), 'name')
       // 检查是否预分享密钥已经使用过了
-      const updateResult = await Secret.update(
-        { _id: pre_secret },
-        {
-          $set: {
-            userid: await Secret.transId(userid),
-            active: true
-          }
+      const updateResult = await Secret.update({ _id: pre_secret }, {
+        $set: {
+          userid: await Secret.transId(userid),
+          active: true
         }
-      )
-      if (updateResult.ok ===1) {
+      })
+      if (updateResult.ok === 1) {
         // 发送秘钥解锁成的通知，延迟三分钟后执行
         setTimeout(() => {
           User.sendMessage(
-            userid,
-            'secret',
-            {
-              keyword1: { value: thisUser.username },
-              keyword2: { value: thisBook.name },
-              keyword3: { value: moment().format('YYYY年MM月DD日 HH:mm:ss') },
-              keyword4: { value: '你已经成功解锁书籍--《' + thisBook.name + '》，点击卡片开始阅读书籍吧~' }
-            },
-            { bookid: thisBook._id }
-          )
+              userid,
+              'secret', {
+                keyword1: { value: thisUser.username },
+                keyword2: { value: thisBook.name },
+                keyword3: { value: moment().format('YYYY年MM月DD日 HH:mm:ss') },
+                keyword4: { value: '你已经成功解锁书籍--《' + thisBook.name + '》，点击卡片开始阅读书籍吧~' }
+              }, { bookid: thisBook._id }
+            )
             .then(res => {
               if (res.ok) {
                 console.log('解锁成功消息发送成功!')

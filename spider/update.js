@@ -7,6 +7,7 @@ import cheerio from 'cheerio'
 import requestProxy from 'superagent-proxy'
 import requestCharset from 'superagent-charset'
 import userAgent from 'fake-useragent'
+import moment from 'moment';
 import { getRandomProxyIp } from './proxy'
 import chinese2number from '../utils/chineseToNum'
 import { readUpdateNotice } from '../bin/readUpdateNotice'
@@ -90,69 +91,82 @@ function formatContent(str) {
 }
 
 export async function updateBook() {
-  let needUpdateBooks = await Book.find({ source: { $ne: null } }, 'name update_status newest_chapter source')
-  reportError('开始执行书籍更新', {}, {
-    priority: '低',
-    category: '打印日志',
-    extra: { need_update_books: needUpdateBooks.length, current_time: (new Date()).toLocaleDateString() }
-  })
-  // 逐一遍历所有来源，并汇总所有来源的书籍
-  for (let i = 0; i < needUpdateBooks.length; i++) {
-    console.log(`正在进行第${i + 1}本书籍《${needUpdateBooks[i].name}》的更新，总共有${needUpdateBooks.length}本...`)
-    if (needUpdateBooks[i].source && needUpdateBooks[i].source instanceof Array) {
-      let sources = []
-      for (let k = 0; k < needUpdateBooks[i].source.length; k++) {
-        const chapters = await getSourceData(needUpdateBooks[i].source[k], needUpdateBooks[i].newest_chapter)
-        sources = sources.concat(chapters)
+  try {
+    let needUpdateBooks = await Book.find({ source: { $ne: null } }, 'name update_status newest_chapter source')
+    reportError('开始执行书籍更新', {}, {
+      priority: '低',
+      category: '打印日志',
+      extra: {
+        need_update_books: JSON.stringify(needUpdateBooks, null, 2),
+        current_time: moment().format("YYYY-MM-DD hh:mm:ss")
       }
-
-      if (sources.length <= 0) {
-        console.log('暂无最新章节')
-        continue
-      }
-
-      // 多来源去重
-      let chapterNums = []
-      let chapters = []
-      for (let j = 0; j < sources.length; j++) {
-        if (chapterNums.indexOf(sources[j].num) < 0) {
-          chapters.push(sources[j])
-          chapterNums.push(sources[j].num)
+    })
+    // 逐一遍历所有来源，并汇总所有来源的书籍
+    for (let i = 0; i < needUpdateBooks.length; i++) {
+      console.log(`正在进行第${i + 1}本书籍《${needUpdateBooks[i].name}》的更新，总共有${needUpdateBooks.length}本...`)
+      if (needUpdateBooks[i].source && needUpdateBooks[i].source instanceof Array) {
+        let sources = []
+        for (let k = 0; k < needUpdateBooks[i].source.length; k++) {
+          const chapters = await getSourceData(needUpdateBooks[i].source[k], needUpdateBooks[i].newest_chapter)
+          sources = sources.concat(chapters)
         }
-      }
-      console.log(`共找到${chapters.length}个最新章节`)
 
-      // 逐一爬取章节
-      for (let m = 0; m < chapters.length; m++) {
-        const html = await doGetRequest(chapters[m].link)
-        const $ = cheerio.load(html)
-        chapters[m].content = formatContent($(chapters[m].selector).text())
-        // 存储章节
-        let oldChapter = await Chapter.findOne({ bookid: needUpdateBooks[i]._id, num: chapters[m].num })
-        if (!oldChapter) {
-          let newChapter = await Chapter.create({
-            bookid: await Chapter.transId(needUpdateBooks[i]._id),
-            num: chapters[m].num,
-            name: chapters[m].name,
-            content: chapters[m].content,
-            create_time: new Date()
-          })
-          if (newChapter && newChapter._id) {
-            chapters[m].id = newChapter._id
+        if (sources.length <= 0) {
+          console.log('暂无最新章节')
+          continue
+        }
+
+        // 多来源去重
+        let chapterNums = []
+        let chapters = []
+        for (let j = 0; j < sources.length; j++) {
+          if (chapterNums.indexOf(sources[j].num) < 0) {
+            chapters.push(sources[j])
+            chapterNums.push(sources[j].num)
           }
         }
+        console.log(`共找到${chapters.length}个最新章节`)
+
+        // 逐一爬取章节
+        for (let m = 0; m < chapters.length; m++) {
+          const html = await doGetRequest(chapters[m].link)
+          const $ = cheerio.load(html)
+          chapters[m].content = formatContent($(chapters[m].selector).text())
+          // 存储章节
+          let oldChapter = await Chapter.findOne({ bookid: needUpdateBooks[i]._id, num: chapters[m].num })
+          if (!oldChapter) {
+            let newChapter = await Chapter.create({
+              bookid: await Chapter.transId(needUpdateBooks[i]._id),
+              num: chapters[m].num,
+              name: chapters[m].name,
+              content: chapters[m].content,
+              create_time: new Date()
+            })
+            if (newChapter && newChapter._id) {
+              chapters[m].id = newChapter._id
+            }
+          }
+        }
+        console.log(`已经更新章节: ${chapters.map(item => `第${item.num}章 ${item.name}`)}`)
+        // 更改书籍更新时间
+        Book.updateTime(needUpdateBooks[i]._id)
+        console.log('已更新书籍更新时间...')
+        // 阅读更新通知
+        const lastId = chapters[chapters.length - 1].id
+        if (lastId) {
+          // console.log(`开始发送书籍更新提示, 书籍id ${needUpdateBooks[i]._id} 章节id ${lastId}...`)
+          // readUpdateNotice(id, lastId, true)
+        }
+        continue
       }
-      console.log(`已经更新章节: ${chapters.map(item => `第${item.num}章 ${item.name}`)}`)
-      // 更改书籍更新时间
-      Book.updateTime(needUpdateBooks[i]._id)
-      console.log('已更新书籍更新时间...')
-      // 阅读更新通知
-      const lastId = chapters[chapters.length -1].id
-      if (lastId) {
-        // console.log(`开始发送书籍更新提示, 书籍id ${needUpdateBooks[i]._id} 章节id ${lastId}...`)
-        // readUpdateNotice(id, lastId, true)
-      }
-      continue
     }
+  } catch (err) {
+    reportError('执行书籍更新失败', err, {
+      priority: '紧急',
+      category: '错误',
+      extra: {
+        current_time: moment().format("YYYY-MM-DD hh:mm:ss")
+      }
+    })
   }
 }
