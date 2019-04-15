@@ -141,17 +141,17 @@ UserSchema.statics.sendMessage = async function(userid, type, data, extra) {
             await FormId.updateFormId(userid, formid)
             resolve({ ok: true, msg: '发送模板消息成功' })
           } else {
-            reportError('发送邀请奖励模板消息失败', res, {
-              priority: '低',
-              category: '错误',
-              extra: {
-                openid: current.openid,
-                template_id: 'dzNZy9ArO1_JpwQ4cb994P-FikeIBHIoH0d4_gTcDXc',
-                url: 'pages/loading/loading?goto=share',
-                formid,
-                data,
-              }
-            })
+            // reportError('发送邀请奖励模板消息失败', res, {
+            //   priority: '低',
+            //   category: '错误',
+            //   extra: {
+            //     openid: current.openid,
+            //     template_id: 'dzNZy9ArO1_JpwQ4cb994P-FikeIBHIoH0d4_gTcDXc',
+            //     url: 'pages/loading/loading?goto=share',
+            //     formid,
+            //     data,
+            //   }
+            // })
             reject({ ok: false, msg: res.errmsg })
           }
         })
@@ -184,17 +184,17 @@ UserSchema.statics.sendMessage = async function(userid, type, data, extra) {
             await FormId.updateFormId(userid, formid)
             resolve({ ok: true, msg: '发送模板消息成功' })
           } else {
-            reportError('发送邀请奖励模板消息失败', res, {
-              priority: '低',
-              category: '错误',
-              extra: {
-                openid: current.openid,
-                template_id: '94Oee2UU-xv0FmAAW1Pc1HRsivBFUdth9cV4CWMAiac',
-                url: 'pages/loading/loading?bookid=' + extra.bookid,
-                formid,
-                data,
-              }
-            })
+            // reportError('发送邀请奖励模板消息失败', res, {
+            //   priority: '低',
+            //   category: '错误',
+            //   extra: {
+            //     openid: current.openid,
+            //     template_id: '94Oee2UU-xv0FmAAW1Pc1HRsivBFUdth9cV4CWMAiac',
+            //     url: 'pages/loading/loading?bookid=' + extra.bookid,
+            //     formid,
+            //     data,
+            //   }
+            // })
             reject({ ok: false, msg: res.errmsg })
           }
         })
@@ -222,17 +222,17 @@ UserSchema.statics.sendMessage = async function(userid, type, data, extra) {
             await FormId.updateFormId(userid, formid)
             resolve({ ok: true, msg: '发送模板消息成功' })
           } else {
-            reportError('发送书籍更新模板消息失败', res, {
-              priority: '低',
-              category: '错误',
-              extra: {
-                openid: current.openid,
-                template_id: '66RVt2pXdkIQG3zFp6EyJsG8BAh4SrKhEnUaJ6Gi3hQ',
-                url: 'pages/loading/loading?bookid=' + extra.bookid,
-                formid,
-                data,
-              }
-            })
+            // reportError('发送书籍更新模板消息失败', res, {
+            //   priority: '低',
+            //   category: '错误',
+            //   extra: {
+            //     openid: current.openid,
+            //     template_id: '66RVt2pXdkIQG3zFp6EyJsG8BAh4SrKhEnUaJ6Gi3hQ',
+            //     url: 'pages/loading/loading?bookid=' + extra.bookid,
+            //     formid,
+            //     data,
+            //   }
+            // })
             reject({ ok: false, msg: res.errmsg })
           }
         })
@@ -260,17 +260,17 @@ UserSchema.statics.sendMessage = async function(userid, type, data, extra) {
             await FormId.updateFormId(userid, formid)
             resolve({ ok: true, msg: '发送模板消息成功' })
           } else {
-            reportError('发送书评模板消息失败', res, {
-              priority: '低',
-              category: '错误',
-              extra: {
-                openid: current.openid,
-                template_id: 'JU9Bw6ogf-NGNm8hykXoZTYGjOFEp4X9juG54LEpSBY',
-                url: 'pages/loading/loading?bookid=' + extra.bookid,
-                formid,
-                data,
-              }
-            })
+            // reportError('发送书评模板消息失败', res, {
+            //   priority: '低',
+            //   category: '错误',
+            //   extra: {
+            //     openid: current.openid,
+            //     template_id: 'JU9Bw6ogf-NGNm8hykXoZTYGjOFEp4X9juG54LEpSBY',
+            //     url: 'pages/loading/loading?bookid=' + extra.bookid,
+            //     formid,
+            //     data,
+            //   }
+            // })
             reject({ ok: false, msg: res.errmsg })
           }
         })

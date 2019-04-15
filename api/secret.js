@@ -187,12 +187,12 @@ export default function(router) {
                 console.log('解锁成功消息发送成功!')
               } else {
                 console.log('解锁成功消息发送失败', res.msg)
-                fail(res)
+                // fail(res)
               }
             })
             .catch(err => {
               console.log('解锁成功消息发送失败', err)
-              fail(err)
+              // fail(err)
             })
         }, 0)
         ctx.body = { ok: true, msg: '解锁成功' }

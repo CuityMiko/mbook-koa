@@ -149,12 +149,12 @@ export default function(router) {
                         console.log('邀请奖励消息发送成功!')
                       } else {
                         console.log('邀请奖励消息发送失败', res.msg)
-                        fail(res)
+                        // fail(res)
                       }
                     })
                     .catch(err => {
                       console.log('邀请奖励消息发送失败', err)
-                      fail(err)
+                      // fail(err)
                     })
                   ctx.body = { ok: true, msg: '成功接受邀请，奖励已发放' }
                 } else {
