@@ -73,7 +73,7 @@ const reportError = (title, error, options) => {
     // 上传错误日志
     extra += `*调试信息*:\n`
     for (let i in newOptions.extra) {
-      extra += `${i}: ${newOptions.extra[i]}\n`
+      extra += `${i}: ${typeof newOptions.extra[i] === 'object' ? JSON.stringify(newOptions.extra[i]) : newOptions.extra[i]}\n`
     }
     extra += '\n'
   }
