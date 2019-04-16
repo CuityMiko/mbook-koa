@@ -3,7 +3,7 @@
  * @Author: lidikang
  * @LastEditors: lidikang
  * @Date: 2019-03-19 23:33:51
- * @LastEditTime: 2019-04-07 10:40:01
+ * @LastEditTime: 2019-04-16 23:41:13
  */
 import request from 'superagent'
 import requestProxy from 'superagent-proxy'
@@ -45,7 +45,7 @@ function setLocalIpAddressWhiteList(ip) {
  * 从redis随机读取一个ip作为代理
  */
 async function getRandomProxyIp() {
-  let ipStr = await redis.get('mbook_spider_proxy_ips')
+  let ipStr = await redis.get('mbook_spider_proxy_ips') || ''
   let ipArr = ipStr.split(',')
   return ipArr[parseInt(Math.random(0, 1) * ipArr.length, 10)] || ''
 }

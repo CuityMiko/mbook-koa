@@ -1,5 +1,3 @@
-import path from 'path'
-import fs from 'fs'
 import sendfile from 'koa-sendfile'
 // import Canvas from 'canvas'
 import qn from 'qn'
@@ -10,6 +8,7 @@ import { Book, Setting, User } from '../models'
 import { checkUserToken, checkAdminToken } from '../utils'
 import { requestWxCode } from '../utils/wxCode'
 import { mongosync } from '../bin/mongosync'
+import { updateBook } from '../spider/update'
 
 // qiniu上传设置
 const client = qn.create({
@@ -326,6 +325,15 @@ export default function(router) {
       } else {
         ctx.body = { ok: false, msg: '同步失败' }
       }
+    }
+  })
+
+  // 手动更新书籍 
+  router.get('/api/update_book', async (ctx, next) => {
+    let userid = await checkAdminToken(ctx, next, 'update_book')
+    if (userid) {
+      await updateBook()
+      ctx.body = { ok: true, msg: '更新成功' }
     }
   })
 }
