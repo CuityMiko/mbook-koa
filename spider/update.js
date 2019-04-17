@@ -95,7 +95,11 @@ function formatContent(str) {
 
 export async function updateBook() {
   try {
-    await getProxyIpAddress()
+    let getProxyIpSuccess = await getProxyIpAddress()
+    if (!getProxyIpAddress) {
+      logger.debug('获取代理ip地址失败')
+      return
+    }
     logger.debug('开始执行书城更新...\n当前时间: ' + moment().format('YYYY-MM-DD hh:mm:ss'))
     let needUpdateBooks = await Book.find({ source: { $ne: null } }, 'name update_status newest_chapter source')
     if (needUpdateBooks.length === 0) {
