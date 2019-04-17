@@ -9,6 +9,8 @@ import request from 'superagent'
 import requestProxy from 'superagent-proxy'
 import userAgent from 'fake-useragent'
 import redis from '../utils/redis'
+import { logger } from './log'
+console.log(logger)
 
 // superagent添加使用代理ip的插件
 requestProxy(request)
@@ -23,20 +25,20 @@ function setLocalIpAddressWhiteList(ip) {
     .timeout({ response: 5000, deadline: 60000 })
     .end(async (err, res) => {
       if (err) {
-        console.log('add failed!', err.toString())
+        logger.error('add failed!', err.toString())
         return
       }
 
       try {
         const data = JSON.parse(res.text)
         if (data.code === 0) {
-          console.log('add success!')
-          console.log('get proxy again...')
+          logger.debug('add to white list success!')
+          logger.debug('get proxy again...')
           // 重新获取ip
           getProxyIpAddress()
         }
       } catch (error) {
-        console.log('add failed!', error.toString())
+        logger.error('add failed! ' + error.toString())
       }
     })
 }
@@ -58,7 +60,7 @@ async function removeProxyIpFromRedis(address) {
   let ipArr = ipStr.split(',')
   ipArr = ipArr.filter(item => item !== address)
   redis.set('mbook_spider_proxy_ips', ipArr.join(','))
-  console.log('remove address ' + address + ' from redis')
+  logger.debug('remove address ' + address + ' from redis')
 }
 
 /**
@@ -72,7 +74,7 @@ function getProxyIpAddress() {
     .timeout({ response: 5000, deadline: 60000 })
     .end(async (err, res) => {
       if (err) {
-        console.log('proxy ip getting failed!')
+        logger.error('proxy ip getting failed! ' + err.toString())
         return
       }
       try {
@@ -82,19 +84,19 @@ function getProxyIpAddress() {
           const ipTemp = data.msg.match(reg)
           if (ipTemp) {
             const ip = ipTemp[0]
-            console.log(`add ${ip} to white list..`)
+            logger.debug(`add ${ip} to white list..`)
             setLocalIpAddressWhiteList(ip)
           }
           return
         } else if (data.code === 0) {
           const ips = data.data.map(item => `${item.ip}:${item.port}`)
           redis.set('mbook_spider_proxy_ips', ips.join(','))
-          console.log('add proxy ip: ' + ips.join(', '))
+          logger.debug('add proxy ip: ' + ips.join(', '))
         } else {
-          console.log('proxy ip getting failed!', data.msg)
+          logger.debug('proxy ip getting failed!', data.msg)
         }
       } catch (error) {
-        console.log('proxy ip getting failed!', error.toString())
+        logger.debug('proxy ip getting failed! ' + error.toString())
       }
     })
 }

@@ -2,44 +2,31 @@
  * 定期更新章节
  */
 import { Book, Chapter } from '../models'
-import path from 'path'
 import request from 'superagent'
 import cheerio from 'cheerio'
 import requestProxy from 'superagent-proxy'
 import requestCharset from 'superagent-charset'
 import userAgent from 'fake-useragent'
 import moment from 'moment'
-import log4js from 'log4js'
-import { getRandomProxyIp, removeProxyIpFromRedis } from './proxy'
+import { getRandomProxyIp, getProxyIpAddress } from './proxy'
 import chinese2number from '../utils/chineseToNum'
 import { readUpdateNotice } from '../bin/readUpdateNotice'
 import { reportError } from '../utils'
-
-// 设置日志
-log4js.configure({
-  appenders: {
-    console: { type: 'console' },
-    updateBook: {
-      type: 'file',
-      filename: path.join(__dirname, '../logs/updateBook.log')
-    }
-  },
-  categories: {
-    default: { appenders: ['updateBook', 'console'], level: 'DEBUG' }
-  }
-})
-const logger = log4js.getLogger('default')
+import { logger } from './log'
 
 // superagent添加使用代理ip的插件
 requestProxy(request)
 requestCharset(request)
+
+// 重新获取代理ip
+getProxyIpAddress()
 
 /**
  * 发送请求
  * @param {*} url 请求地址
  * @param {*} callback 回调函数
  */
-async function doGetRequest(url, proxy) {
+async function doGetRequest(url) {
   logger.debug(`请求地址 ${url}`)
   const proxyIp = await getRandomProxyIp()
   logger.debug('proxyIp: ' + proxyIp)
@@ -54,8 +41,6 @@ async function doGetRequest(url, proxy) {
     return response.text || ''
   } catch (err) {
     logger.error('请求发生错误，尝试重新请求, ' + err.toString())
-    // 剔除当前不能访问的ip地址
-    await removeProxyIpFromRedis(proxyIp)
     return await doGetRequest(url)
   }
 }
@@ -70,18 +55,13 @@ async function getSourceData(source, newest) {
   let result = []
   if (source.indexOf('www.qianqianxs.com') > -1) {
     const html = await doGetRequest(source)
-    logger.debug(html)
     const $ = cheerio.load(html)
     $('.panel-body .list-group li').each((index, element) => {
       const name = $(element).text()
       const chapterTitleReg = /第?[零一二两三叁四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰0-9]+章[\.、：: -]*[^\n]+/
       if (chapterTitleReg.test(name)) {
         const num = chinese2number(name.match(/第?[零一二两三叁四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰0-9]+章/)[0].replace(/[第章]+/g, ''))
-        const link =
-          'https://www.qianqianxs.com' +
-          $(element)
-            .children('a')
-            .attr('href')
+        const link = 'https://www.qianqianxs.com' + $(element).children('a').attr('href')
         if (num > newest) {
           result.push({
             num,
@@ -151,7 +131,6 @@ export async function updateBook() {
         // 逐一爬取章节
         for (let m = 0; m < chapters.length; m++) {
           const html = await doGetRequest(chapters[m].link)
-          logger.debug(html)
           const $ = cheerio.load(html)
           chapters[m].content = formatContent($(chapters[m].selector).text())
           // 存储章节
