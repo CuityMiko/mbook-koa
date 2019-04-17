@@ -10,7 +10,7 @@ import requestCharset from 'superagent-charset'
 import userAgent from 'fake-useragent'
 import moment from 'moment'
 import log4js from 'log4js'
-import { getRandomProxyIp } from './proxy'
+import { getRandomProxyIp, removeProxyIpFromRedis } from './proxy'
 import chinese2number from '../utils/chineseToNum'
 import { readUpdateNotice } from '../bin/readUpdateNotice'
 import { reportError } from '../utils'
@@ -39,7 +39,7 @@ requestCharset(request)
  * @param {*} url 请求地址
  * @param {*} callback 回调函数
  */
-async function doGetRequest(url) {
+async function doGetRequest(url, proxy) {
   logger.debug(`请求地址 ${url}`)
   const proxyIp = await getRandomProxyIp()
   logger.debug('proxyIp: ' + proxyIp)
@@ -54,6 +54,8 @@ async function doGetRequest(url) {
     return response.text || ''
   } catch (err) {
     logger.error('请求发生错误，尝试重新请求, ' + err.toString())
+    // 剔除当前不能访问的ip地址
+    await removeProxyIpFromRedis(proxyIp)
     return await doGetRequest(url)
   }
 }
@@ -68,6 +70,7 @@ async function getSourceData(source, newest) {
   let result = []
   if (source.indexOf('www.qianqianxs.com') > -1) {
     const html = await doGetRequest(source)
+    logger.debug(html)
     const $ = cheerio.load(html)
     $('.panel-body .list-group li').each((index, element) => {
       const name = $(element).text()
@@ -148,6 +151,7 @@ export async function updateBook() {
         // 逐一爬取章节
         for (let m = 0; m < chapters.length; m++) {
           const html = await doGetRequest(chapters[m].link)
+          logger.debug(html)
           const $ = cheerio.load(html)
           chapters[m].content = formatContent($(chapters[m].selector).text())
           // 存储章节

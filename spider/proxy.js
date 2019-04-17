@@ -51,12 +51,23 @@ async function getRandomProxyIp() {
 }
 
 /**
+ * 从redis中移除不能使用的ip地址
+ */
+async function removeProxyIpFromRedis(address) {
+  let ipStr = await redis.get('mbook_spider_proxy_ips') || ''
+  let ipArr = ipStr.split(',')
+  ipArr = ipArr.filter(item => item !== address)
+  redis.set('mbook_spider_proxy_ips', ipArr.join(','))
+  console.log('remove address ' + address + ' from redis')
+}
+
+/**
  * 向芝麻代理请求可用ip地址，并村存储到redis中
  */
 function getProxyIpAddress() {
   redis.del('mbook_spider_proxy_ips')
   request
-    .get('http://webapi.http.zhimacangku.com/getip?num=10&type=2&pro=&city=0&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=')
+    .get('http://webapi.http.zhimacangku.com/getip?num=50&type=2&pro=&city=0&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=')
     .set({ 'User-Agent': userAgent() })
     .timeout({ response: 5000, deadline: 60000 })
     .end(async (err, res) => {
@@ -88,4 +99,4 @@ function getProxyIpAddress() {
     })
 }
 
-export default { getRandomProxyIp, getProxyIpAddress }
+export default { getRandomProxyIp, getProxyIpAddress, removeProxyIpFromRedis }

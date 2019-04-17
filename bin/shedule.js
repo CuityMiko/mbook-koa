@@ -20,7 +20,6 @@ async function run() {
   // 每隔10分钟刷新redis中的代理ip地址
   schedule.scheduleJob('*/10 * * * *', getProxyIpAddress)
   // 每天凌晨执行更新
-  schedule.scheduleJob('0 0 3 * * *', async function() {
     const result = shell.exec('npx runkoa ./bin/updateBook.js')
     if (result !== 0) {
       reportError('执行书城更新shell失败', result, {
@@ -31,7 +30,6 @@ async function run() {
         }
       })
     }
-  })
 }
 
 module.exports = {
