@@ -40,7 +40,6 @@ async function doGetRequest(url) {
     logger.error('请求发生错误，尝试重新请求, ' + err.toString())
     // 剔除当前不能访问的ip地址
     await removeProxyIpFromRedis(proxyIp)
-    console.log(proxyIp)
     return await doGetRequest(url)
   }
 }
