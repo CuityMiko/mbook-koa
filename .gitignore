@@ -3,3 +3,4 @@ config/
 .vscode/
 .push.settings.jsonc
 dump.rdb
+logs/

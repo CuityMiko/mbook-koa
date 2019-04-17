@@ -1,8 +1,11 @@
 // 每周定时清除用户阅读时长
 import schedule from 'node-schedule'
+import shell from 'shelljs'
 import { User } from '../models'
 import { getProxyIpAddress } from '../spider/proxy'
-import { updateBook } from '../spider/update'
+import moment from 'moment'
+import { reportError } from '../utils'
+
 
 async function run() {
   // 每星期天清除阅读时间
@@ -18,7 +21,16 @@ async function run() {
   schedule.scheduleJob('*/10 * * * *', getProxyIpAddress)
   // 每天凌晨执行更新
   schedule.scheduleJob('0 0 3 * * *', async function() {
-    await updateBook()
+    const result = shell.exec('npx runkoa ./bin/updateBook.js')
+    if (result !== 0) {
+      reportError('执行书城更新shell失败', result, {
+        priority: '低',
+        category: '打印日志',
+        extra: {
+          current_time: moment().format("YYYY-MM-DD hh:mm:ss")
+        }
+      })
+    }
   })
 }
 

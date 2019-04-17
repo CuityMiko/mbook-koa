@@ -2,16 +2,33 @@
  * 定期更新章节
  */
 import { Book, Chapter } from '../models'
+import path from 'path'
 import request from 'superagent'
 import cheerio from 'cheerio'
 import requestProxy from 'superagent-proxy'
 import requestCharset from 'superagent-charset'
 import userAgent from 'fake-useragent'
-import moment from 'moment';
+import moment from 'moment'
+import log4js from 'log4js'
 import { getRandomProxyIp } from './proxy'
 import chinese2number from '../utils/chineseToNum'
 import { readUpdateNotice } from '../bin/readUpdateNotice'
 import { reportError } from '../utils'
+
+// 设置日志
+log4js.configure({
+  appenders: {
+    console: { type: 'console' },
+    updateBook: {
+      type: 'file',
+      filename: path.join(__dirname, '../logs/updateBook.log')
+    }
+  },
+  categories: {
+    default: { appenders: ['updateBook', 'console'], level: 'DEBUG' }
+  }
+})
+const logger = log4js.getLogger('default')
 
 // superagent添加使用代理ip的插件
 requestProxy(request)
@@ -23,9 +40,9 @@ requestCharset(request)
  * @param {*} callback 回调函数
  */
 async function doGetRequest(url) {
-  console.log(`请求地址 ${url}`)
+  logger.debug(`请求地址 ${url}`)
   const proxyIp = await getRandomProxyIp()
-  console.log('proxyIp: ' + proxyIp)
+  logger.debug('proxyIp: ' + proxyIp)
   try {
     let response = await request
       .get(url)
@@ -36,7 +53,7 @@ async function doGetRequest(url) {
       .proxy(`http://${proxyIp}`)
     return response.text || ''
   } catch (err) {
-    console.log('请求发生错误，尝试重新请求')
+    logger.error('请求发生错误，尝试重新请求, ' + err.toString())
     return await doGetRequest(url)
   }
 }
@@ -57,7 +74,11 @@ async function getSourceData(source, newest) {
       const chapterTitleReg = /第?[零一二两三叁四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰0-9]+章[\.、：: -]*[^\n]+/
       if (chapterTitleReg.test(name)) {
         const num = chinese2number(name.match(/第?[零一二两三叁四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰0-9]+章/)[0].replace(/[第章]+/g, ''))
-        const link = 'https://www.qianqianxs.com' + $(element).children('a').attr('href')
+        const link =
+          'https://www.qianqianxs.com' +
+          $(element)
+            .children('a')
+            .attr('href')
         if (num > newest) {
           result.push({
             num,
@@ -92,18 +113,15 @@ function formatContent(str) {
 
 export async function updateBook() {
   try {
+    logger.debug('开始执行书城更新...\n当前时间: ' + moment().format('YYYY-MM-DD hh:mm:ss'))
     let needUpdateBooks = await Book.find({ source: { $ne: null } }, 'name update_status newest_chapter source')
-    reportError('开始执行书籍更新', {}, {
-      priority: '低',
-      category: '打印日志',
-      extra: {
-        need_update_books: JSON.stringify(needUpdateBooks, null, 2),
-        current_time: moment().format("YYYY-MM-DD hh:mm:ss")
-      }
-    })
+    if (needUpdateBooks.length === 0) {
+      logger.debug('当前没有书籍需要更新')
+      return
+    }
     // 逐一遍历所有来源，并汇总所有来源的书籍
     for (let i = 0; i < needUpdateBooks.length; i++) {
-      console.log(`正在进行第${i + 1}本书籍《${needUpdateBooks[i].name}》的更新，总共有${needUpdateBooks.length}本...`)
+      logger.debug(`正在进行第${i + 1}本书籍《${needUpdateBooks[i].name}》的更新，总共有${needUpdateBooks.length}本...`)
       if (needUpdateBooks[i].source && needUpdateBooks[i].source instanceof Array) {
         let sources = []
         for (let k = 0; k < needUpdateBooks[i].source.length; k++) {
@@ -112,7 +130,7 @@ export async function updateBook() {
         }
 
         if (sources.length <= 0) {
-          console.log('暂无最新章节')
+          logger.debug('暂无最新章节')
           continue
         }
 
@@ -125,7 +143,7 @@ export async function updateBook() {
             chapterNums.push(sources[j].num)
           }
         }
-        console.log(`共找到${chapters.length}个最新章节`)
+        logger.debug(`共找到${chapters.length}个最新章节`)
 
         // 逐一爬取章节
         for (let m = 0; m < chapters.length; m++) {
@@ -147,10 +165,10 @@ export async function updateBook() {
             }
           }
         }
-        console.log(`已经更新章节: ${chapters.map(item => `第${item.num}章 ${item.name}`)}`)
+        logger.debug(`已经更新章节: ${chapters.map(item => `第${item.num}章 ${item.name}`)}`)
         // 更改书籍更新时间
         Book.updateTime(needUpdateBooks[i]._id)
-        console.log('已更新书籍更新时间...')
+        logger.debug('已更新书籍更新时间...')
         // 阅读更新通知
         const lastId = chapters[chapters.length - 1].id
         if (lastId) {
@@ -161,11 +179,12 @@ export async function updateBook() {
       }
     }
   } catch (err) {
+    logger.error('执行书籍更新失败, ' + err.toString())
     reportError('执行书籍更新失败', err, {
       priority: '紧急',
       category: '错误',
       extra: {
-        current_time: moment().format("YYYY-MM-DD hh:mm:ss")
+        current_time: moment().format('YYYY-MM-DD hh:mm:ss')
       }
     })
   }

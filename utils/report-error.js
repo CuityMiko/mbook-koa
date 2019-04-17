@@ -84,7 +84,7 @@ const reportError = (title, error, options) => {
     issue: {
       project_id: 1,
       subject: title || error.toString(),
-      description: `${extra}*错误详情*: \n${JSON.stringify(jsonifyError(error), null, 2)}`,
+      description: `${extra}*错误详情*: \n${JSON.stringify(jsonifyError(error || {}), null, 2)}`,
       priority_id: transPriority(newOptions.priority),
       category_id: transPriority(newOptions.category)
     }
@@ -92,8 +92,10 @@ const reportError = (title, error, options) => {
 
   redmine.create_issue(issue, function(err, data) {
     if (err) throw err;
-    console.log(error)
-    console.log('已上传该错误')
+    if (error) {
+      console.log(error)
+      console.log('已上传该错误')
+    }
   });
 }
 
