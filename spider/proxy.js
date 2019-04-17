@@ -10,7 +10,6 @@ import requestProxy from 'superagent-proxy'
 import userAgent from 'fake-useragent'
 import redis from '../utils/redis'
 import { logger } from './log'
-console.log(logger)
 
 // superagent添加使用代理ip的插件
 requestProxy(request)

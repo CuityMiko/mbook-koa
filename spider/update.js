@@ -8,7 +8,7 @@ import requestProxy from 'superagent-proxy'
 import requestCharset from 'superagent-charset'
 import userAgent from 'fake-useragent'
 import moment from 'moment'
-import { getRandomProxyIp, getProxyIpAddress } from './proxy'
+import { getRandomProxyIp, getProxyIpAddress, removeProxyIpFromRedis } from './proxy'
 import chinese2number from '../utils/chineseToNum'
 import { readUpdateNotice } from '../bin/readUpdateNotice'
 import { reportError } from '../utils'
@@ -41,6 +41,8 @@ async function doGetRequest(url) {
     return response.text || ''
   } catch (err) {
     logger.error('请求发生错误，尝试重新请求, ' + err.toString())
+    // 剔除当前不能访问的ip地址
+    await removeProxyIpFromRedis(proxyIp)
     return await doGetRequest(url)
   }
 }
