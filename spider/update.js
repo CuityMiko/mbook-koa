@@ -18,9 +18,6 @@ import { logger } from './log'
 requestProxy(request)
 requestCharset(request)
 
-// 重新获取代理ip
-getProxyIpAddress()
-
 /**
  * 发送请求
  * @param {*} url 请求地址
@@ -43,6 +40,7 @@ async function doGetRequest(url) {
     logger.error('请求发生错误，尝试重新请求, ' + err.toString())
     // 剔除当前不能访问的ip地址
     await removeProxyIpFromRedis(proxyIp)
+    console.log(proxyIp)
     return await doGetRequest(url)
   }
 }
@@ -98,6 +96,7 @@ function formatContent(str) {
 
 export async function updateBook() {
   try {
+    await getProxyIpAddress()
     logger.debug('开始执行书城更新...\n当前时间: ' + moment().format('YYYY-MM-DD hh:mm:ss'))
     let needUpdateBooks = await Book.find({ source: { $ne: null } }, 'name update_status newest_chapter source')
     if (needUpdateBooks.length === 0) {

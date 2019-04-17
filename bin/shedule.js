@@ -30,16 +30,6 @@ async function run() {
       })
     }
   })
-  const result = shell.exec('npx runkoa ./bin/updateBook.js')
-  if (result !== 0) {
-    reportError('执行书城更新shell失败', result, {
-      priority: '低',
-      category: '打印日志',
-      extra: {
-        current_time: moment().format("YYYY-MM-DD hh:mm:ss")
-      }
-    })
-  }
 }
 
 module.exports = {
