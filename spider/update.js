@@ -8,6 +8,7 @@ import requestProxy from 'superagent-proxy'
 import requestCharset from 'superagent-charset'
 import userAgent from 'fake-useragent'
 import moment from 'moment'
+import Queue from 'p-queue'
 import { getRandomProxyIp, getProxyIpAddress, removeProxyIpFromRedis } from './proxy'
 import chinese2number from '../utils/chineseToNum'
 import { readUpdateNotice } from '../bin/readUpdateNotice'
@@ -33,7 +34,7 @@ async function doGetRequest(url) {
       .charset('gbk')
       .buffer(true)
       .set({ 'User-Agent': userAgent() })
-      .timeout({ response: 10000, deadline: 60000 })
+      .timeout({ response: 10000, deadline: 10000 })
       .proxy(`http://${proxyIp}`)
     return response.text || ''
   } catch (err) {
@@ -60,7 +61,11 @@ async function getSourceData(source, newest) {
       const chapterTitleReg = /第?[零一二两三叁四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰0-9]+章[\.、：: -]*[^\n]+/
       if (chapterTitleReg.test(name)) {
         const num = chinese2number(name.match(/第?[零一二两三叁四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰0-9]+章/)[0].replace(/[第章]+/g, ''))
-        const link = 'https://www.qianqianxs.com' + $(element).children('a').attr('href')
+        const link =
+          'https://www.qianqianxs.com' +
+          $(element)
+            .children('a')
+            .attr('href')
         if (num > newest) {
           result.push({
             num,
@@ -93,10 +98,74 @@ function formatContent(str) {
   return result.trim()
 }
 
+function updateEveryBook(index, book, total) {
+  return new Promise((resolve, reject) => {
+    try {
+      logger.debug(`正在进行第${index}本书籍《${book.name}》的更新，总共有${total}本...`)
+      if (book.source && book.source instanceof Array) {
+        let sources = []
+        const sub1Quene = new Queue({ concurrency: 1, autoStart: false })
+        book.source.forEach((item, index) => {
+          sub1Quene.add(async () => {
+            const chapters = await getSourceData(item, book.newest_chapter)
+            sources = sources.concat(chapters)
+          })
+        })
+        sub1Quene.start()
+        sub1Quene.onIdle().then(() => {
+          // 多个来源爬取完毕，现在对数据做去重处理
+          let chapterNums = []
+          let chapters = []
+          for (let j = 0; j < sources.length; j++) {
+            if (chapterNums.indexOf(sources[j].num) < 0) {
+              chapters.push(sources[j])
+              chapterNums.push(sources[j].num)
+            }
+          }
+          logger.debug(`共找到${chapters.length}个最新章节`)
+          // 逐一爬取最新的章节，并存储到数据库中
+          const sub2Queue = new Queue({ concurrency: 1, autoStart: false })
+          chapters.forEach((chapter, index) => {
+            sub2Queue.add(async () => {
+              const html = await doGetRequest(chapter.link)
+              const $ = cheerio.load(html)
+              const content = formatContent($(chapter.selector).text())
+              const oldChapter = await Chapter.findOne({ bookid: book._id, num: chapter.num })
+              if (!oldChapter) {
+                const newChapter = await Chapter.create({
+                  bookid: await Chapter.transId(book._id),
+                  num: chapter.num,
+                  name: chapter.name,
+                  content,
+                  create_time: new Date()
+                })
+                logger.debug(`已经创建章节: id: ${newChapter.id}, name: ${newChapter.name}, num: ${newChapter.num}, content: ${newChapter.content.slice(0, 10)}...`)
+              }
+            })
+          })
+          sub2Queue.start()
+          sub2Queue.onIdle().then(() => {
+            logger.debug(`已经更新章节: ${chapters.map(item => `第${item.num}章 ${item.name}`)}`)
+            // 更改书籍更新时间
+            Book.updateTime(book._id)
+            logger.debug('已更新书籍更新时间...')
+            // 更新提醒
+            // console.log(`开始发送书籍更新提示, 书籍id ${needUpdateBooks[i]._id} 章节id ${lastId}...`)
+            // readUpdateNotice(id, lastId, true)
+            resolve(true)
+          })
+        })
+      }
+    } catch (err) {
+      reject(err)
+    }
+  })
+}
+
 export async function updateBook() {
   try {
     let getProxyIpSuccess = await getProxyIpAddress()
-    if (!getProxyIpAddress) {
+    if (!getProxyIpSuccess) {
       logger.debug('获取代理ip地址失败')
       return
     }
@@ -106,65 +175,18 @@ export async function updateBook() {
       logger.debug('当前没有书籍需要更新')
       return
     }
-    // 逐一遍历所有来源，并汇总所有来源的书籍
-    for (let i = 0; i < needUpdateBooks.length; i++) {
-      logger.debug(`正在进行第${i + 1}本书籍《${needUpdateBooks[i].name}》的更新，总共有${needUpdateBooks.length}本...`)
-      if (needUpdateBooks[i].source && needUpdateBooks[i].source instanceof Array) {
-        let sources = []
-        for (let k = 0; k < needUpdateBooks[i].source.length; k++) {
-          const chapters = await getSourceData(needUpdateBooks[i].source[k], needUpdateBooks[i].newest_chapter)
-          sources = sources.concat(chapters)
-        }
-
-        if (sources.length <= 0) {
-          logger.debug('暂无最新章节')
-          continue
-        }
-
-        // 多来源去重
-        let chapterNums = []
-        let chapters = []
-        for (let j = 0; j < sources.length; j++) {
-          if (chapterNums.indexOf(sources[j].num) < 0) {
-            chapters.push(sources[j])
-            chapterNums.push(sources[j].num)
-          }
-        }
-        logger.debug(`共找到${chapters.length}个最新章节`)
-
-        // 逐一爬取章节
-        for (let m = 0; m < chapters.length; m++) {
-          const html = await doGetRequest(chapters[m].link)
-          const $ = cheerio.load(html)
-          chapters[m].content = formatContent($(chapters[m].selector).text())
-          // 存储章节
-          let oldChapter = await Chapter.findOne({ bookid: needUpdateBooks[i]._id, num: chapters[m].num })
-          if (!oldChapter) {
-            let newChapter = await Chapter.create({
-              bookid: await Chapter.transId(needUpdateBooks[i]._id),
-              num: chapters[m].num,
-              name: chapters[m].name,
-              content: chapters[m].content,
-              create_time: new Date()
-            })
-            if (newChapter && newChapter._id) {
-              chapters[m].id = newChapter._id
-            }
-          }
-        }
-        logger.debug(`已经更新章节: ${chapters.map(item => `第${item.num}章 ${item.name}`)}`)
-        // 更改书籍更新时间
-        Book.updateTime(needUpdateBooks[i]._id)
-        logger.debug('已更新书籍更新时间...')
-        // 阅读更新通知
-        const lastId = chapters[chapters.length - 1].id
-        if (lastId) {
-          // console.log(`开始发送书籍更新提示, 书籍id ${needUpdateBooks[i]._id} 章节id ${lastId}...`)
-          // readUpdateNotice(id, lastId, true)
-        }
-        continue
-      }
-    }
+    const queue = new Queue({ concurrency: 1, autoStart: false })
+    needUpdateBooks.forEach((item, index) => {
+      queue.add(async () => {
+        await updateEveryBook(index + 1, item, needUpdateBooks.length)
+      })
+    })
+    // 队列添加完毕，开始批量执行
+    queue.start()
+    // 监听队列执行完毕
+    queue.onIdle().then(() => {
+      console.log(`更新执行完毕`)
+    })
   } catch (err) {
     logger.error('执行书籍更新失败, ' + err.toString())
     reportError('执行书籍更新失败', err, {

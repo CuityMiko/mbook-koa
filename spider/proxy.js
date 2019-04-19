@@ -3,7 +3,7 @@
  * @Author: lidikang
  * @LastEditors: lidikang
  * @Date: 2019-03-19 23:33:51
- * @LastEditTime: 2019-04-16 23:41:13
+ * @LastEditTime: 2019-04-19 00:51:29
  */
 import request from 'superagent'
 import requestProxy from 'superagent-proxy'
@@ -108,7 +108,9 @@ async function removeProxyIpFromRedis(address) {
 function getProxyIpAddress() {
   return new Promise(async (resolve, reject) => {
     let amountEnough = await checkAmount()
-    let setWhiteList = await setLocalIpAddressWhiteList(address.ip())
+    // 请手动设置ip白名单，http://h.zhimaruanjian.com/wirte_list/#recharge
+    // let setWhiteList = await setLocalIpAddressWhiteList(address.ip())
+    let setWhiteList = true
     if (amountEnough && setWhiteList) {
       redis.del('mbook_spider_proxy_ips')
       request
