@@ -40,7 +40,7 @@ async function doGetRequest(url) {
   } catch (err) {
     logger.error('请求发生错误，尝试重新请求, ' + err.toString())
     // 剔除当前不能访问的ip地址
-    await removeProxyIpFromRedis(proxyIp)
+    // await removeProxyIpFromRedis(proxyIp)
     return await doGetRequest(url)
   }
 }
@@ -165,6 +165,9 @@ function updateEveryBook(index, book, total) {
 export async function updateBook() {
   try {
     let getProxyIpSuccess = await getProxyIpAddress()
+    let timer = setInterval(async () => {
+      await getProxyIpAddress()
+    }, 10 * 60 * 1000) 
     if (!getProxyIpSuccess) {
       logger.debug('获取代理ip地址失败')
       return
@@ -185,6 +188,7 @@ export async function updateBook() {
     queue.start()
     // 监听队列执行完毕
     queue.onIdle().then(() => {
+      clearInterval(timer)
       console.log(`更新执行完毕`)
     })
   } catch (err) {

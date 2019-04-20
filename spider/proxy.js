@@ -67,7 +67,7 @@ function checkAmount() {
 
         try {
           const data = JSON.parse(res.text)
-          if (data.code === 0 && data.data && parseInt(data.data.balance, 10) > 5) {
+          if (data.code === 0 && data.data && parseInt(data.data.balance, 10) > 3) {
             resolve(true)
           } else {
             logger.error('amount is not enough !')
@@ -114,7 +114,7 @@ function getProxyIpAddress() {
     if (amountEnough && setWhiteList) {
       redis.del('mbook_spider_proxy_ips')
       request
-        .get('http://webapi.http.zhimacangku.com/getip?num=50&type=2&pro=&city=0&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=')
+        .get('http://webapi.http.zhimacangku.com/getip?num=30&type=2&pro=&city=0&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=')
         .set({ 'User-Agent': userAgent() })
         .timeout({ response: 5000, deadline: 60000 })
         .end(async (err, res) => {
