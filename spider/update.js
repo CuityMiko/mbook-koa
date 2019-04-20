@@ -24,25 +24,49 @@ requestCharset(request)
  * @param {*} url 请求地址
  * @param {*} callback 回调函数
  */
-async function doGetRequest(url) {
-  logger.debug(`请求地址 ${url}`)
-  const proxyIp = await getRandomProxyIp()
-  logger.debug('proxyIp: ' + proxyIp)
-  try {
-    let response = await request
-      .get(url)
-      .charset('gbk')
-      .buffer(true)
-      .set({ 'User-Agent': userAgent() })
-      .timeout({ response: 10000, deadline: 10000 })
-      .proxy(`http://${proxyIp}`)
-    return response.text || ''
-  } catch (err) {
-    logger.error('请求发生错误，尝试重新请求, ' + err.toString())
-    // 剔除当前不能访问的ip地址
-    // await removeProxyIpFromRedis(proxyIp)
-    return await doGetRequest(url)
-  }
+function doGetRequest(url) {
+  return new Promise(async (resolve, reject) => {
+    logger.debug(`请求地址 ${url}`)
+    const proxyIp = await getRandomProxyIp()
+    if (proxyIp) {
+      logger.debug('proxyIp: ' + proxyIp)
+      try {
+        let response = await request
+          .get(url)
+          .charset('gbk')
+          .buffer(true)
+          .set({ 'User-Agent': userAgent() })
+          .timeout({ response: 10000, deadline: 10000 })
+          .proxy(`http://${proxyIp}`)
+        resolve(response.text || '')
+      } catch (err) {
+        logger.error('请求发生错误，尝试重新请求, ' + err.toString())
+        setTimeout(async () => {
+          // 剔除当前不能访问的ip地址
+          // await removeProxyIpFromRedis(proxyIp)
+          resolve(await doGetRequest(url))
+        }, 2000)
+      }
+    } else {
+      // 如果获取proxyIp为空则使用本地ip
+      try {
+        let response = await request
+          .get(url)
+          .charset('gbk')
+          .buffer(true)
+          .set({ 'User-Agent': userAgent() })
+          .timeout({ response: 10000, deadline: 10000 })
+        resolve(response.text || '')
+      } catch (err) {
+        logger.error('请求发生错误，尝试重新请求, ' + err.toString())
+        setTimeout(async () => {
+          // 剔除当前不能访问的ip地址
+          // await removeProxyIpFromRedis(proxyIp)
+          resolve(await doGetRequest(url))
+        }, 2000)
+      }
+    }
+  })
 }
 
 /**
@@ -76,7 +100,29 @@ async function getSourceData(source, newest) {
         }
       }
     })
-    // TODO:章节去重
+  } else if (source.indexOf('www.rzlib.net') > -1) {
+    const html = await doGetRequest(source)
+    const $ = cheerio.load(html)
+    $('.ListChapter').eq(1).children('ul').children('li').each((index, element) => {
+      const name = $(element).text()
+      const chapterTitleReg = /第?[零一二两三叁四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰0-9]+章[\.、：: -]*[^\n]+/
+      if (chapterTitleReg.test(name)) {
+        const num = chinese2number(name.match(/第?[零一二两三叁四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰0-9]+章/)[0].replace(/[第章]+/g, ''))
+        const link =
+          'https://www.rzlib.net' +
+          $(element)
+            .children('a')
+            .attr('href')
+        if (num > newest) {
+          result.push({
+            num,
+            name: name.replace(/^.*章[、\.：\s:-]*/, ''),
+            link,
+            selector: '#chapter_content'
+          })
+        }
+      }
+    })
   }
   return result
 }
@@ -90,7 +136,9 @@ function formatContent(str) {
     /((快来看)|(福利)|(添加)|(美女)|(关注)|(给力)|(好看)).*小说！/g, // 关注微信消息
     /一秒记住【千千小说网 www\.77xsw\.la】，更新快，无弹窗，免费读！/g,
     /-->>/g,
-    /本章未完，点击下一页继续阅读/g
+    /本章未完，点击下一页继续阅读/g,
+    /如果您觉得《.*》还不错的话，请粘贴以下网址分享给你的QQ、微信或微博好友，谢谢支持！/g,
+    /（ 本书网址：.*[\s\n]*\.*/g
   ]
   rules.forEach(item => {
     result = result.replace(item, '')
@@ -170,13 +218,13 @@ export async function updateBook() {
     }, 10 * 60 * 1000) 
     if (!getProxyIpSuccess) {
       logger.debug('获取代理ip地址失败')
-      return
+      return '获取代理ip地址失败，请检查芝麻代理余额'
     }
     logger.debug('开始执行书城更新...\n当前时间: ' + moment().format('YYYY-MM-DD hh:mm:ss'))
     let needUpdateBooks = await Book.find({ source: { $ne: null } }, 'name update_status newest_chapter source')
     if (needUpdateBooks.length === 0) {
       logger.debug('当前没有书籍需要更新')
-      return
+      return '当前没有书籍更新'
     }
     const queue = new Queue({ concurrency: 1, autoStart: false })
     needUpdateBooks.forEach((item, index) => {
@@ -200,5 +248,6 @@ export async function updateBook() {
         current_time: moment().format('YYYY-MM-DD hh:mm:ss')
       }
     })
+    return '执行书籍更新失败, ' + err.toString()
   }
 }

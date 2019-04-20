@@ -439,7 +439,6 @@ export default function(router) {
       }
       await Chapter.remove({ _id: chapter_id })
       let newestChapter = await Chapter.findOne({ bookid: thisChapter.bookid }, 'num').sort({ num: -1 }).limit(1)
-      console.log(newestChapter.num);
       let updateResult = await Book.update(
         { _id: thisChapter.bookid.toString() },
         {

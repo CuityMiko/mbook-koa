@@ -23,6 +23,10 @@ async function run() {
   }
 }
 
+// (async function() {
+//   await updateBook()
+// })()
+
 module.exports = {
   run: run
 }
