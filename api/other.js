@@ -8,7 +8,6 @@ import { Book, Setting, User } from '../models'
 import { checkUserToken, checkAdminToken } from '../utils'
 import { requestWxCode } from '../utils/wxCode'
 import { mongosync } from '../bin/mongosync'
-import { updateBook } from '../spider/update'
 
 // qiniu上传设置
 const client = qn.create({
@@ -332,8 +331,8 @@ export default function(router) {
   router.get('/api/update_book', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'update_book')
     if (userid) {
-      let result = await updateBook()
-      ctx.body = { ok: true, msg: '更新成功', data: result }
+      // let result = await updateBook()
+      ctx.body = { ok: true, msg: '更新成功', data: {} }
     }
   })
 }

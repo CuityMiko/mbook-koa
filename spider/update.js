@@ -1,7 +1,7 @@
 /**
  * 定期更新章节
  */
-import { Book, Chapter } from '../models'
+import mongoose from 'mongoose'
 import request from 'superagent'
 import cheerio from 'cheerio'
 import requestProxy from 'superagent-proxy'
@@ -9,6 +9,10 @@ import requestCharset from 'superagent-charset'
 import userAgent from 'fake-useragent'
 import moment from 'moment'
 import Queue from 'p-queue'
+import delay from 'delay'
+import pidusage from 'pidusage'
+import config from '../config'
+import { Book, Chapter } from '../models'
 import { getRandomProxyIp, getProxyIpAddress, removeProxyIpFromRedis } from './proxy'
 import chinese2number from '../utils/chineseToNum'
 import { readUpdateNotice } from '../bin/readUpdateNotice'
@@ -28,7 +32,7 @@ function doGetRequest(url) {
   return new Promise(async (resolve, reject) => {
     logger.debug(`请求地址 ${url}`)
     const proxyIp = await getRandomProxyIp()
-    if (proxyIp) {
+    if (proxyIp && config.useProxyIp) {
       logger.debug('proxyIp: ' + proxyIp)
       try {
         let response = await request
@@ -41,11 +45,10 @@ function doGetRequest(url) {
         resolve(response.text || '')
       } catch (err) {
         logger.error('请求发生错误，尝试重新请求, ' + err.toString())
-        setTimeout(async () => {
-          // 剔除当前不能访问的ip地址
-          // await removeProxyIpFromRedis(proxyIp)
-          resolve(await doGetRequest(url))
-        }, 2000)
+        await delay(10000)
+        // 剔除当前不能访问的ip地址
+        // await removeProxyIpFromRedis(proxyIp)
+        resolve(await doGetRequest(url))
       }
     } else {
       // 如果获取proxyIp为空则使用本地ip
@@ -59,11 +62,10 @@ function doGetRequest(url) {
         resolve(response.text || '')
       } catch (err) {
         logger.error('请求发生错误，尝试重新请求, ' + err.toString())
-        setTimeout(async () => {
-          // 剔除当前不能访问的ip地址
-          // await removeProxyIpFromRedis(proxyIp)
-          resolve(await doGetRequest(url))
-        }, 2000)
+        await delay(10000)
+        // 剔除当前不能访问的ip地址
+        // await removeProxyIpFromRedis(proxyIp)
+        resolve(await doGetRequest(url))
       }
     }
   })
@@ -103,26 +105,30 @@ async function getSourceData(source, newest) {
   } else if (source.indexOf('www.rzlib.net') > -1) {
     const html = await doGetRequest(source)
     const $ = cheerio.load(html)
-    $('.ListChapter').eq(1).children('ul').children('li').each((index, element) => {
-      const name = $(element).text()
-      const chapterTitleReg = /第?[零一二两三叁四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰0-9]+章[\.、：: -]*[^\n]+/
-      if (chapterTitleReg.test(name)) {
-        const num = chinese2number(name.match(/第?[零一二两三叁四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰0-9]+章/)[0].replace(/[第章]+/g, ''))
-        const link =
-          'https://www.rzlib.net' +
-          $(element)
-            .children('a')
-            .attr('href')
-        if (num > newest) {
-          result.push({
-            num,
-            name: name.replace(/^.*章[、\.：\s:-]*/, ''),
-            link,
-            selector: '#chapter_content'
-          })
+    $('.ListChapter')
+      .eq(1)
+      .children('ul')
+      .children('li')
+      .each((index, element) => {
+        const name = $(element).text()
+        const chapterTitleReg = /第?[零一二两三叁四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰0-9]+章[\.、：: -]*[^\n]+/
+        if (chapterTitleReg.test(name)) {
+          const num = chinese2number(name.match(/第?[零一二两三叁四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰0-9]+章/)[0].replace(/[第章]+/g, ''))
+          const link =
+            'https://www.rzlib.net' +
+            $(element)
+              .children('a')
+              .attr('href')
+          if (num > newest) {
+            result.push({
+              num,
+              name: name.replace(/^.*章[、\.：\s:-]*/, ''),
+              link,
+              selector: '#chapter_content'
+            })
+          }
         }
-      }
-    })
+      })
   }
   return result
 }
@@ -155,6 +161,8 @@ function updateEveryBook(index, book, total) {
         const sub1Quene = new Queue({ concurrency: 1, autoStart: false })
         book.source.forEach((item, index) => {
           sub1Quene.add(async () => {
+            // 暂停10s
+            await delay(10000)
             const chapters = await getSourceData(item, book.newest_chapter)
             sources = sources.concat(chapters)
           })
@@ -175,6 +183,8 @@ function updateEveryBook(index, book, total) {
           const sub2Queue = new Queue({ concurrency: 1, autoStart: false })
           chapters.forEach((chapter, index) => {
             sub2Queue.add(async () => {
+              // 暂停5s
+              await delay(5000)
               const html = await doGetRequest(chapter.link)
               const $ = cheerio.load(html)
               const content = formatContent($(chapter.selector).text())
@@ -210,12 +220,12 @@ function updateEveryBook(index, book, total) {
   })
 }
 
-export async function updateBook() {
+async function updateBook() {
   try {
     let getProxyIpSuccess = await getProxyIpAddress()
     let timer = setInterval(async () => {
       await getProxyIpAddress()
-    }, 10 * 60 * 1000) 
+    }, 30 * 60 * 1000)
     if (!getProxyIpSuccess) {
       logger.debug('获取代理ip地址失败')
       return '获取代理ip地址失败，请检查芝麻代理余额'
@@ -229,6 +239,8 @@ export async function updateBook() {
     const queue = new Queue({ concurrency: 1, autoStart: false })
     needUpdateBooks.forEach((item, index) => {
       queue.add(async () => {
+        // 暂停10s
+        await delay(10000)
         await updateEveryBook(index + 1, item, needUpdateBooks.length)
       })
     })
@@ -251,3 +263,34 @@ export async function updateBook() {
     return '执行书籍更新失败, ' + err.toString()
   }
 }
+
+async function connectMongo() {
+  mongoose.Promise = global.Promise
+  mongoose.connection.on('error', console.error.bind(console, '连接数据库失败'))
+  let connectParams = { useMongoClient: true }
+  if (config.mongo_auth) {
+    connectParams = {
+      user: config.mongo_user,
+      pass: config.mongo_pass,
+      auth: { authdb: config.mongo_dbname, authMechanism: 'MONGODB-CR' },
+      useMongoClient: true
+    }
+  }
+  return await mongoose.connect(config.mongo_url, connectParams)
+}
+
+// 执行爬虫
+connectMongo().then(async () => {
+  // 每过5s打印一次cpu和内存占用，如果当亲cpu占用超过30%，立即停止进程
+  setInterval(async () => {
+    pidusage(process.pid, function (err, stats) {
+      if (err) return
+      logger.debug('当前cpu占用: ' + stats.cpu + '%')
+      if (stats.cpu > 30) {
+        logger.debug('自动退出进程')
+        process.exit(-1)
+      }
+    })
+  }, 5000)
+  await updateBook()
+})

@@ -3,7 +3,7 @@
  * @Author: lidikang
  * @LastEditors: lidikang
  * @Date: 2019-03-19 23:33:51
- * @LastEditTime: 2019-04-20 22:29:37
+ * @LastEditTime: 2019-04-30 14:20:49
  */
 import request from 'superagent'
 import requestProxy from 'superagent-proxy'
@@ -52,7 +52,7 @@ function setLocalIpAddressWhiteList(ip) {
 /**
  * 检查余额
  */
-function checkAmount() {
+ export function checkAmount() {
   return new Promise((resolve, reject) => {
     request
       .get('web.http.cnapi.cc/index/index/get_my_balance?neek=67203&appkey=1c1c6c34947a721a0ba3c015aaa5a2fb')
@@ -85,7 +85,7 @@ function checkAmount() {
 /**
  * 从redis随机读取一个ip作为代理
  */
-async function getRandomProxyIp() {
+ export async function getRandomProxyIp() {
   let ipStr = await redis.get('mbook_spider_proxy_ips') || ''
   let ipArr = ipStr.split(',')
   return ipArr[parseInt(Math.random(0, 1) * ipArr.length, 10)] || ''
@@ -94,7 +94,7 @@ async function getRandomProxyIp() {
 /**
  * 从redis中移除不能使用的ip地址
  */
-async function removeProxyIpFromRedis(address) {
+ export async function removeProxyIpFromRedis(address) {
   let ipStr = await redis.get('mbook_spider_proxy_ips') || ''
   let ipArr = ipStr.split(',')
   ipArr = ipArr.filter(item => item !== address)
@@ -105,7 +105,7 @@ async function removeProxyIpFromRedis(address) {
 /**
  * 向芝麻代理请求可用ip地址，并村存储到redis中
  */
-function getProxyIpAddress() {
+export function getProxyIpAddress() {
   return new Promise(async (resolve, reject) => {
     let amountEnough = await checkAmount()
     // 请手动设置ip白名单，http://h.zhimaruanjian.com/wirte_list/#recharge
@@ -152,5 +152,3 @@ function getProxyIpAddress() {
     }
   })
 }
-
-export default { getRandomProxyIp, getProxyIpAddress, removeProxyIpFromRedis }

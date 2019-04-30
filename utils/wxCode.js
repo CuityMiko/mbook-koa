@@ -172,8 +172,7 @@ async function requestWxTicket(url) {
 // 签名
 async function signTicket() {
   const ticket = await getTicket()
-  console.log(ticket)
-  const url = config.link_url
+  const url = 'https://game.weixin.qq.com/cgi-bin/h5/static/community/club_detail.html?jsapi=1&banner_need=1&uin=&key=&appid=wx35a4657522d31151&topic_id=37467564&ssid=7&is_self=1&cluster_id=&is_article=&_a=1#wechat_redirect'
   return sign(ticket, url)
 }
 

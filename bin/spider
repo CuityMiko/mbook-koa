@@ -1,0 +1,29 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+
+const program = require('commander');
+const runkoa = require('runkoa')
+const path = require('path')
+
+program
+  .version('0.1.0')
+  .description('爬虫命令行工具，用来运行指定爬虫')
+  .option('--name <name>', '指定需要运行的爬虫名称，例如update表示运行更新书城的爬虫')
+  .option('--exec <function>', '运行指定功能，例如flush-proxy表示刷新代理ip')
+  .parse(process.argv);
+
+if (program.name) {
+  switch(program.name) {
+    case 'update':
+      runkoa(path.join(process.cwd(), './spider/update.js'))
+      break;
+    default:
+      console.log('该爬虫暂未定义')
+      break;
+  }
+}
+if (program.exec) console.log('  - pineapple');
+if (!process.argv.slice(2).length) program.help();
