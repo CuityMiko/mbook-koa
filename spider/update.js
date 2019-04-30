@@ -226,7 +226,7 @@ async function updateBook() {
     let getProxyIpSuccess = await getProxyIpAddress()
     let timer = setInterval(async () => {
       await getProxyIpAddress()
-    }, 30 * 60 * 1000)
+    }, 10 * 60 * 1000)
     if (!getProxyIpSuccess) {
       logger.debug('获取代理ip地址失败')
       return '获取代理ip地址失败，请检查芝麻代理余额'
