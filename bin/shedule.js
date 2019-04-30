@@ -1,6 +1,6 @@
 // 每周定时清除用户阅读时长
 import schedule from 'node-schedule'
-import shell from 'shelljs'
+import { exec } from 'child_process'
 import { User } from '../models'
 
 async function run() {
@@ -16,7 +16,7 @@ async function run() {
     })
     // 每天凌晨执行书籍更新
     schedule.scheduleJob('0 0 3 * * *', async () => {
-      shell.exec(`node ./bin/spider --name update`)
+      exec(`node ./bin/spider --name update`)
     })
   } catch (err) {
     console.log(err)

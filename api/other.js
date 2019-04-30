@@ -4,7 +4,7 @@ import qn from 'qn'
 import https from 'https'
 import uuid from 'uuid'
 import config from '../config'
-import shell from 'shelljs'
+import { exec } from 'child_process'
 import { Book, Setting, User } from '../models'
 import { checkUserToken, checkAdminToken } from '../utils'
 import { requestWxCode } from '../utils/wxCode'
@@ -29,8 +29,8 @@ export default function(router) {
   // 下载上传模板文件
   router.get('/api/download', async (ctx, next) => {
     const path = ctx.request.query.path
-    ctx.attachment(decodeURI(path));
-    await sendfile(ctx, path);
+    ctx.attachment(decodeURI(path))
+    await sendfile(ctx, path)
   })
 
   router.get('/help', async (ctx, next) => {
@@ -328,11 +328,11 @@ export default function(router) {
     }
   })
 
-  // 手动更新书籍 
+  // 手动更新书籍
   router.get('/api/update_book', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'update_book')
     if (userid) {
-      shell.exec(`node ./bin/spider --name update`)
+      exec(`node ./bin/spider --name update`)
       ctx.body = { ok: true, msg: '更新成功', data: '爬虫开始执行，请确保芝麻代理余额充足' }
     }
   })

@@ -12,10 +12,6 @@ log4js.configure({
       filename: path.join(__dirname, '../logs/spider.log'),
       pattern: '-yyyy-MM-dd.log',
       alwaysIncludePattern: true,
-      layout: {
-        type: 'pattern',
-        pattern: '[%r]'
-      }
     }
   },
   categories: {

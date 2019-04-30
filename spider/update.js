@@ -11,7 +11,7 @@ import moment from 'moment'
 import Queue from 'p-queue'
 import delay from 'delay'
 import pidusage from 'pidusage'
-import shell from 'shelljs'
+import { exec } from 'child_process'
 import config from '../config'
 import { Book, Chapter } from '../models'
 import { getRandomProxyIp, getProxyIpAddress, removeProxyIpFromRedis } from './proxy'
@@ -290,7 +290,7 @@ connectMongo().then(async () => {
       if (stats.cpu > 30) {
         logger.debug('重启进程....')
         // 重启进程
-        shell.exec(`node ./bin/spider --name update`)
+        exec(`node ./bin/spider --name update`)
         process.exit(-1)
       }
     })
