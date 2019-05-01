@@ -5,6 +5,7 @@ import https from 'https'
 import uuid from 'uuid'
 import config from '../config'
 import { exec } from 'child_process'
+import path from 'path'
 import { Book, Setting, User } from '../models'
 import { checkUserToken, checkAdminToken } from '../utils'
 import { requestWxCode } from '../utils/wxCode'
@@ -332,7 +333,7 @@ export default function(router) {
   router.get('/api/update_book', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'update_book')
     if (userid) {
-      exec(`node ./bin/spider --name update`)
+      exec(`npx runkoa ${path.join(process.cwd(), './spider/update.js')}`)
       ctx.body = { ok: true, msg: '更新成功', data: '爬虫开始执行，请确保芝麻代理余额充足' }
     }
   })

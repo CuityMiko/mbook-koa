@@ -4,9 +4,11 @@
  * Module dependencies.
  */
 
-const program = require('commander');
+const program = require('commander')
 const runkoa = require('runkoa')
 const path = require('path')
+const pidusage = require('pidusage')
+
 
 program
   .version('0.1.0')
@@ -19,7 +21,6 @@ if (program.name) {
   switch(program.name) {
     case 'update':
       runkoa(path.join(process.cwd(), './spider/update.js'))
-      process.exec(0)
       break;
     default:
       console.log('该爬虫暂未定义')
@@ -28,3 +29,15 @@ if (program.name) {
 }
 if (program.exec) console.log('  - pineapple');
 if (!process.argv.slice(2).length) program.help();
+// 检查cpu是否暂用过高
+setInterval(() => {
+    pidusage(process.pid, function (err, stats) {
+      if (err) return
+      console.log('当前cpu占用: ' + stats.cpu + '%')
+      if (stats.cpu > 30) {
+        console.log('结束进程....')
+        // 重启进程
+        process.exit(-1)
+      }
+    })
+  }, 5000)

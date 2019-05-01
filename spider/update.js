@@ -12,6 +12,7 @@ import Queue from 'p-queue'
 import delay from 'delay'
 import pidusage from 'pidusage'
 import { exec } from 'child_process'
+import path from 'path'
 import config from '../config'
 import { Book, Chapter } from '../models'
 import { getRandomProxyIp, getProxyIpAddress, removeProxyIpFromRedis } from './proxy'
@@ -285,14 +286,15 @@ async function connectMongo() {
 connectMongo().then(async () => {
   // 每过5s打印一次cpu和内存占用，如果当亲cpu占用超过30%，立即停止进程
   setInterval(async () => {
-    pidusage(process.pid, function (err, stats) {
+    pidusage(process.pid, async (err, stats) => {
       if (err) return
       logger.debug('当前cpu占用: ' + stats.cpu + '%')
       if (stats.cpu > 30) {
         logger.debug('重启进程....')
         // 重启进程
-        exec(`node ./bin/spider --name update`)
-        process.exit(-1)
+        await delay(60000)
+        exec(`npx runkoa ${path.join(process.cwd(), './spider/update.js')}`)
+        process.exit(0)
       }
     })
   }, 5000)

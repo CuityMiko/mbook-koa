@@ -2,6 +2,7 @@
 import schedule from 'node-schedule'
 import { exec } from 'child_process'
 import { User } from '../models'
+import path from 'path' 
 
 async function run() {
   try {
@@ -16,7 +17,7 @@ async function run() {
     })
     // 每天凌晨执行书籍更新
     schedule.scheduleJob('0 0 3 * * *', async () => {
-      exec(`node ./bin/spider --name update`)
+      exec(`npx runkoa ${path.join(process.cwd(), './spider/update.js')}`)
     })
   } catch (err) {
     console.log(err)
