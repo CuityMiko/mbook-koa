@@ -250,7 +250,8 @@ async function updateBook() {
     // 监听队列执行完毕
     queue.onIdle().then(() => {
       clearInterval(timer)
-      console.log(`更新执行完毕`)
+      logger.debug(`更新执行完毕`)
+      process.exit(0)
     })
   } catch (err) {
     logger.error('执行书籍更新失败, ' + err.toString())

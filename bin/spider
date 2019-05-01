@@ -19,6 +19,7 @@ if (program.name) {
   switch(program.name) {
     case 'update':
       runkoa(path.join(process.cwd(), './spider/update.js'))
+      process.exec(0)
       break;
     default:
       console.log('该爬虫暂未定义')
