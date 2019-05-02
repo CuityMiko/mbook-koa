@@ -69,4 +69,13 @@ app.on('error', (err, ctx) => {
   })
 })
 
+process.on('unhandledRejection', reason => {
+  console.log('捕获到一个错误')
+  console.error(reason)
+  reportError('未处理的Promise错误--' + reason.toString(), reason, {
+    priority: '紧急',
+    category: '服务器500'
+  })
+});
+
 module.exports = app

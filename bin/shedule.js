@@ -2,7 +2,8 @@
 import schedule from 'node-schedule'
 import { exec } from 'child_process'
 import { User } from '../models'
-import path from 'path' 
+import path from 'path'
+import moment from 'moment'
 
 async function run() {
   try {
@@ -17,12 +18,16 @@ async function run() {
     })
     // 每天凌晨执行书籍更新
     schedule.scheduleJob('0 0 3 * * *', async () => {
+      console.log('开始执行书城更新...\n当前时间: ' + moment().format('YYYY-MM-DD hh:mm:ss'))
       exec(`npx runkoa ${path.join(process.cwd(), './spider/update.js')}`)
     })
   } catch (err) {
     console.log(err)
   }
 }
+
+console.log('开始执行书城更新...\n当前时间: ' + moment().format('YYYY-MM-DD hh:mm:ss'))
+exec(`npx runkoa ${path.join(process.cwd(), './spider/update.js')}`)
 
 module.exports = {
   run: run

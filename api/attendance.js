@@ -9,9 +9,9 @@ export default function(router) {
     if (userid) {
       // 查找是否存在签到记录
       let hisAttendance = await Attendance.findOne({ userid: userid })
+      let nowDate = moment().format('YYYY/MM/DD')
       if (hisAttendance) {
         // 计算连续签到次数
-        let nowDate = moment().format('YYYY/MM/DD')
         let keep_times = tool.continueDays(hisAttendance.records)
         let updateResult = await Attendance.update({ userid: userid }, { $addToSet: { records: moment().format('YYYY/MM/DD') }, keep_times: keep_times })
         if (updateResult.ok == 1 && updateResult.nModified == 1) {

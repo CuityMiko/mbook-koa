@@ -181,6 +181,7 @@ function updateEveryBook(index, book, total) {
             }
           }
           logger.debug(`共找到${chapters.length}个最新章节`)
+          // logger.debug(chapters, sources)
           // 逐一爬取最新的章节，并存储到数据库中
           const sub2Queue = new Queue({ concurrency: 1, autoStart: false })
           chapters.forEach((chapter, index) => {
@@ -200,6 +201,8 @@ function updateEveryBook(index, book, total) {
                   create_time: new Date()
                 })
                 logger.debug(`已经创建章节: id: ${newChapter.id}, name: ${newChapter.name}, num: ${newChapter.num}, content: ${newChapter.content.slice(0, 10)}...`)
+                Book.updateTime(book._id)
+                logger.debug('已经更新<' + book.name + '>最新章节数字')
               }
             })
           })
@@ -233,7 +236,7 @@ async function updateBook() {
       return '获取代理ip地址失败，请检查芝麻代理余额'
     }
     logger.debug('开始执行书城更新...\n当前时间: ' + moment().format('YYYY-MM-DD hh:mm:ss'))
-    let needUpdateBooks = await Book.find({ source: { $ne: null } }, 'name update_status newest_chapter source')
+    let needUpdateBooks = await Book.find({ _id: "5b7edb843a9bea56c48e1d11", source: { $ne: null } }, 'name update_status newest_chapter source')
     if (needUpdateBooks.length === 0) {
       logger.debug('当前没有书籍需要更新')
       return '当前没有书籍更新'
@@ -242,8 +245,13 @@ async function updateBook() {
     needUpdateBooks.forEach((item, index) => {
       queue.add(async () => {
         // 暂停10s
-        await delay(10000)
-        await updateEveryBook(index + 1, item, needUpdateBooks.length)
+        try {
+          await delay(10000)
+          await updateEveryBook(index + 1, item, needUpdateBooks.length)
+        } catch (err) {
+          logger.debug('捕获到一个错误')
+          logger.error(err)
+        }
       })
     })
     // 队列添加完毕，开始批量执行
@@ -285,18 +293,29 @@ async function connectMongo() {
 // 执行爬虫
 connectMongo().then(async () => {
   // 每过5s打印一次cpu和内存占用，如果当亲cpu占用超过30%，立即停止进程
-  setInterval(async () => {
-    pidusage(process.pid, async (err, stats) => {
-      if (err) return
-      logger.debug('当前cpu占用: ' + stats.cpu + '%')
-      if (stats.cpu > 30) {
-        logger.debug('重启进程....')
-        // 重启进程
-        await delay(60000)
-        exec(`npx runkoa ${path.join(process.cwd(), './spider/update.js')}`)
-        process.exit(0)
-      }
-    })
-  }, 5000)
-  await updateBook()
+  try {
+    setInterval(async () => {
+      pidusage(process.pid, async (err, stats) => {
+        if (err) return
+        logger.debug('当前cpu占用: ' + stats.cpu + '%')
+        if (stats.cpu > 30) {
+          logger.debug('重启进程....')
+          // 重启进程
+          await delay(60000)
+          exec(`npx runkoa ${path.join(process.cwd(), './spider/update.js')}`)
+          setTimeout(() => {
+            process.exit(0)
+          }, 1000)
+        }
+      })
+    }, 5000)
+    await updateBook()
+    process.on('unhandledRejection', reason => {
+      logger.debug('捕获到一个错误')
+      logger.error(reason)
+    });
+  } catch (err) {
+    logger.error('捕获到一个错误')
+    logger.error(err)
+  }
 })
