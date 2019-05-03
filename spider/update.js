@@ -236,7 +236,7 @@ async function updateBook() {
       return '获取代理ip地址失败，请检查芝麻代理余额'
     }
     logger.debug('开始执行书城更新...\n当前时间: ' + moment().format('YYYY-MM-DD hh:mm:ss'))
-    let needUpdateBooks = await Book.find({ _id: "5b7edb843a9bea56c48e1d11", source: { $ne: null } }, 'name update_status newest_chapter source')
+    let needUpdateBooks = await Book.find({ source: { $ne: null } }, 'name update_status newest_chapter source')
     if (needUpdateBooks.length === 0) {
       logger.debug('当前没有书籍需要更新')
       return '当前没有书籍更新'
