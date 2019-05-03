@@ -26,8 +26,8 @@ async function run() {
   }
 }
 
-console.log('开始执行书城更新...\n当前时间: ' + moment().format('YYYY-MM-DD hh:mm:ss'))
-exec(`npx runkoa ${path.join(process.cwd(), './spider/update.js')}`)
+// console.log('开始执行书城更新...\n当前时间: ' + moment().format('YYYY-MM-DD hh:mm:ss'))
+// exec(`npx runkoa ${path.join(process.cwd(), './spider/update.js')}`)
 
 module.exports = {
   run: run
