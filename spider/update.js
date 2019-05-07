@@ -125,8 +125,8 @@ async function getSourceData(source, newest) {
             result.push({
               num,
               name: name.replace(/^.*章[、\.：\s:-]*/, ''),
-              link,
-              selector: '#chapter_content'
+              link: link.replace('/b/76', '/b/txtt5550'),
+              selector: 'body'
             })
           }
         }
