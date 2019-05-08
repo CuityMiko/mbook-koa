@@ -92,8 +92,8 @@ async function getSourceData(source, newest) {
         const link =
           'https://www.qianqianxs.com' +
           $(element)
-            .children('a')
-            .attr('href')
+          .children('a')
+          .attr('href')
         if (num > newest) {
           result.push({
             num,
@@ -119,13 +119,13 @@ async function getSourceData(source, newest) {
           const link =
             'https://www.rzlib.net' +
             $(element)
-              .children('a')
-              .attr('href')
+            .children('a')
+            .attr('href')
           if (num > newest) {
             result.push({
               num,
               name: name.replace(/^.*章[、\.：\s:-]*/, ''),
-              link: link.replace('/b/76', '/b/txtt5550'),
+              link: link.replace(/\/b\/\d+/, '/b/txtt5550'),
               selector: 'body'
             })
           }
@@ -151,7 +151,8 @@ function formatContent(str) {
   rules.forEach(item => {
     result = result.replace(item, '')
   })
-  return result.trim()
+  // cheerio将换行符替换成4个空格，需要还原
+  return result.replace(/\s{4,}/g, '\n\n  ').trim()
 }
 
 function updateEveryBook(index, book, total) {
@@ -201,6 +202,21 @@ function updateEveryBook(index, book, total) {
                   create_time: new Date()
                 })
                 logger.debug(`已经创建章节: id: ${newChapter.id}, name: ${newChapter.name}, num: ${newChapter.num}, content: ${newChapter.content.slice(0, 10)}...`)
+                Book.updateTime(book._id)
+                logger.debug('已经更新<' + book.name + '>最新章节数字')
+              } else {
+                logger.debug('已存在章节，现在更新此章节...')
+                const updateResult = await Chapter.update({
+                  _id: oldChapter._id,
+                }, {
+                  $set: {
+                    num: chapter.num,
+                    name: chapter.name,
+                    content,
+                    create_time: new Date()
+                  }
+                })
+                logger.debug(`已经更新章节: id: ${oldChapter.id}, name: ${chapter.name}, num: ${chapter.num}, content: ${newChapter.content.slice(0, 10)}...`)
                 Book.updateTime(book._id)
                 logger.debug('已经更新<' + book.name + '>最新章节数字')
               }
