@@ -194,6 +194,7 @@ function updateEveryBook(index, book, total) {
               const $ = cheerio.load(html)
               const content = formatContent($(chapter.selector).text())
               const oldChapter = await Chapter.findOne({ bookid: book._id, num: chapter.num })
+              console.log(content)
               if (!oldChapter) {
                 const newChapter = await Chapter.create({
                   bookid: await Chapter.transId(book._id),
@@ -217,7 +218,7 @@ function updateEveryBook(index, book, total) {
                     create_time: new Date()
                   }
                 })
-                logger.debug(`已经更新章节: id: ${oldChapter.id}, name: ${chapter.name}, num: ${chapter.num}, content: ${newChapter.content.slice(0, 10)}...`)
+                logger.debug(`已经更新章节: id: ${oldChapter.id}, name: ${chapter.name}, num: ${chapter.num}, content: ${content.slice(0, 10)}...`)
                 Book.updateTime(book._id)
                 logger.debug('已经更新<' + book.name + '>最新章节数字')
               }
@@ -253,7 +254,7 @@ async function updateBook() {
       return '获取代理ip地址失败，请检查芝麻代理余额'
     }
     logger.debug('开始执行书城更新...\n当前时间: ' + moment().format('YYYY-MM-DD hh:mm:ss'))
-    let needUpdateBooks = await Book.find({ source: { $ne: null } }, 'name update_status newest_chapter source')
+    let needUpdateBooks = await Book.find({ source: { $ne: null }}, 'name update_status newest_chapter source')
     if (needUpdateBooks.length === 0) {
       logger.debug('当前没有书籍需要更新')
       return '当前没有书籍更新'
