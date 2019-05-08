@@ -92,8 +92,8 @@ async function getSourceData(source, newest) {
         const link =
           'https://www.qianqianxs.com' +
           $(element)
-          .children('a')
-          .attr('href')
+            .children('a')
+            .attr('href')
         if (num > newest) {
           result.push({
             num,
@@ -119,8 +119,8 @@ async function getSourceData(source, newest) {
           const link =
             'https://www.rzlib.net' +
             $(element)
-            .children('a')
-            .attr('href')
+              .children('a')
+              .attr('href')
           if (num > newest) {
             result.push({
               num,
@@ -147,7 +147,7 @@ function formatContent(str) {
     /本章未完，点击下一页继续阅读/g,
     /如果您觉得《.*》还不错的话，请粘贴以下网址分享给你的QQ、微信或微博好友，谢谢支持！/g,
     /（ 本书网址：.*[\s\n]*\.*/g,
-    /章节目录/g,
+    /章节目录/g
   ]
   rules.forEach(item => {
     result = result.replace(item, '')
@@ -194,7 +194,6 @@ function updateEveryBook(index, book, total) {
               const $ = cheerio.load(html)
               const content = formatContent($(chapter.selector).text())
               const oldChapter = await Chapter.findOne({ bookid: book._id, num: chapter.num })
-              console.log(content)
               if (!oldChapter) {
                 const newChapter = await Chapter.create({
                   bookid: await Chapter.transId(book._id),
@@ -208,16 +207,19 @@ function updateEveryBook(index, book, total) {
                 logger.debug('已经更新<' + book.name + '>最新章节数字')
               } else {
                 logger.debug('已存在章节，现在更新此章节...')
-                const updateResult = await Chapter.update({
-                  _id: oldChapter._id,
-                }, {
-                  $set: {
-                    num: chapter.num,
-                    name: chapter.name,
-                    content,
-                    create_time: new Date()
+                const updateResult = await Chapter.update(
+                  {
+                    _id: oldChapter._id
+                  },
+                  {
+                    $set: {
+                      num: chapter.num,
+                      name: chapter.name,
+                      content,
+                      create_time: new Date()
+                    }
                   }
-                })
+                )
                 logger.debug(`已经更新章节: id: ${oldChapter.id}, name: ${chapter.name}, num: ${chapter.num}, content: ${content.slice(0, 10)}...`)
                 Book.updateTime(book._id)
                 logger.debug('已经更新<' + book.name + '>最新章节数字')
@@ -254,7 +256,7 @@ async function updateBook() {
       return '获取代理ip地址失败，请检查芝麻代理余额'
     }
     logger.debug('开始执行书城更新...\n当前时间: ' + moment().format('YYYY-MM-DD hh:mm:ss'))
-    let needUpdateBooks = await Book.find({ source: { $ne: null }}, 'name update_status newest_chapter source')
+    let needUpdateBooks = await Book.find({ source: { $ne: null } }, 'name update_status newest_chapter source')
     if (needUpdateBooks.length === 0) {
       logger.debug('当前没有书籍需要更新')
       return '当前没有书籍更新'
@@ -331,7 +333,7 @@ connectMongo().then(async () => {
     process.on('unhandledRejection', reason => {
       logger.debug('捕获到一个错误')
       logger.error(reason)
-    });
+    })
   } catch (err) {
     logger.error('捕获到一个错误')
     logger.error(err)
