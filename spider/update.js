@@ -146,7 +146,8 @@ function formatContent(str) {
     /-->>/g,
     /本章未完，点击下一页继续阅读/g,
     /如果您觉得《.*》还不错的话，请粘贴以下网址分享给你的QQ、微信或微博好友，谢谢支持！/g,
-    /（ 本书网址：.*[\s\n]*\.*/g
+    /（ 本书网址：.*[\s\n]*\.*/g,
+    /章节目录/g,
   ]
   rules.forEach(item => {
     result = result.replace(item, '')
