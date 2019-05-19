@@ -90,10 +90,20 @@ export default function(router) {
    */
   router.get('/api/chapter/list', async (ctx, next) => {
     let { bookid, pageid, limit } = ctx.request.query
-    if (!pageid) {
+    if (pageid) {
+      pageid = parseInt(pageid)
+      if (pageid < 1) {
+        pageid = 1
+      }
+    } else {
       pageid = 1
     }
-    if (!limit) {
+    if (limit) {
+      limit = parseInt(limit)
+      if (limit < 1) {
+        limit = 1
+      }
+    } else {
       limit = 50
     }
 

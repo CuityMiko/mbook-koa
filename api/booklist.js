@@ -3,34 +3,15 @@ import { checkUserToken, tool } from '../utils'
 
 export default function(router) {
   router.get('/api/booklist/remove_book', async (ctx, next) => {
-    let userid = await checkUserToken(ctx, next)
+    const userid = await checkUserToken(ctx, next)
     if (userid) {
-      let id = ctx.request.query.id
+      const id = ctx.request.query.id
       if (id) {
-        let hisBookList = await BookList.findOne({ userid })
-        let newBookList = []
-        let count = 0
-        for (let i = 0; i < hisBookList.books.length; i++) {
-          if (hisBookList.books[i].bookid.toString() !== id) {
-            newBookList.push({
-              bookid: hisBookList.books[i].bookid,
-              index: count,
-              rss: hisBookList.books[i].rss,
-              time: hisBookList.books[i].time,
-              read: { num: hisBookList.books[i].read.num, top: hisBookList.books[i].read.top, scroll: hisBookList.books[i].read.scroll || 0 }
-            })
-            count++
-          }
-        }
-        if (newBookList.length === hisBookList.books.length) {
-          ctx.body = { ok: false, msg: '书籍不在书架中' }
-        } else if (newBookList.length < hisBookList.books.length) {
-          let updateResult = await BookList.update({ userid }, { $set: { books: newBookList } })
-          if (updateResult.ok === 1) {
-            ctx.body = { ok: true, msg: '删除书籍成功' }
-          } else {
-            ctx.body = { ok: false, msg: '删除书籍失败' }
-          }
+        const updateResult = await BookList.update({ userid: userid }, { $pull: { 'books': { bookid: id } } })
+        if (updateResult.ok === 1) {
+          ctx.body = { ok: true, msg: '删除书籍成功' }
+        } else {
+          ctx.body = { ok: false, msg: '删除书籍失败' }
         }
       } else {
         ctx.body = { ok: false, msg: '缺少id参数' }
@@ -61,7 +42,6 @@ export default function(router) {
             {
               $addToSet: {
                 books: {
-                  index: hisBookList ? hisBookList.books.length : 0,
                   bookid: await BookList.transId(id),
                   rss: 0,
                   time: new Date(),
@@ -149,52 +129,47 @@ export default function(router) {
   })
 
   router.get('/api/booklist/mylist', async (ctx, next) => {
-    let userid = await checkUserToken(ctx, next)
+    const userid = await checkUserToken(ctx, next)
     if (userid) {
-      let thisBookList = await BookList.findOne({ userid }).populate({
-        path: 'books',
-        options: {
-          sort: {
-            time: 1
+      const thisBookList = await BookList.findOne({ userid })
+        .populate({
+          path: 'books.bookid',
+          options: {
+            select: 'name img_url update_status update_time newest_chapter',
           }
-        }
-      })
+        })
       if (!thisBookList) {
         ctx.body = { ok: true, msg: '获取书单信息成功', list: [] }
         return false
       }
-      let newThisBook = []
-      // 获取书籍详情
-      for (let i = 0; i < thisBookList.books.length; i++) {
-        let bookInfo = await Book.findById(thisBookList.books[i].bookid, 'name img_url author')
-        if (bookInfo) {
-          newThisBook.push({
-            bookid: thisBookList.books[i].bookid,
-            index: thisBookList.books[i].index,
-            read_num: thisBookList.books[i].read.num,
-            read_top: thisBookList.books[i].read.top,
-            read_scroll: thisBookList.books[i].read.scroll || 0,
-            rss: thisBookList.books[i].rss,
-            time: thisBookList.books[i].time,
-            name: bookInfo.name,
-            author: bookInfo.author,
-            img_url: bookInfo.img_url
-          })
+      const result = thisBookList.books.map(item => {
+        let sign = ''
+        if (item.read.num < item.bookid.newest_chapter) {
+          sign = 'update'
+        } else if (item.read.num === item.bookid.newest_chapter && item.bookid.update_status === '已完结') {
+          sign = 'over'
         }
-      }
-      // 手动排序
-      newThisBook.sort((book1, book2) => {
+        return {
+          bookid: item.bookid._id,
+          read_num: item.read.num,
+          read_top: item.read.top,
+          read_scroll: item.read.scroll || 0,
+          rss: item.rss,
+          time: item.time,
+          name: item.bookid.name,
+          img_url: item.bookid.img_url,
+          sign,
+        }
+      })
+      // 根据time排序 
+      result.sort((book1, book2) => {
         if (book2.time instanceof Date && book1.time instanceof Date) {
           return book2.time.getTime() - book1.time.getTime()
         } else {
           return new Date(book2.time).getTime() - new Date(book1.time).getTime()
         }
       })
-      if (thisBookList) {
-        ctx.body = { ok: true, msg: '获取书单信息成功', list: newThisBook }
-      } else {
-        ctx.body = { ok: false, msg: '获取书单信息失败' }
-      }
+      ctx.body = { ok: true, msg: '获取书单信息成功', list: result }
     }
   })
 }

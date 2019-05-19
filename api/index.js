@@ -18,6 +18,7 @@ import formid from './formid'
 import friendHelpBook from './friendHelpBook'
 import friendHelp from './friendHelp'
 import dialog from './dialog'
+import notice from './notice'
 import other from './other'
 
 export default function(router) {
@@ -41,5 +42,6 @@ export default function(router) {
   friendHelpBook(router)
   friendHelp(router)
   dialog(router)
+  notice(router)
   other(router)
 }

@@ -8,8 +8,7 @@ const BookListSchema = new mongoose.Schema(
         bookid: { type: mongoose.Schema.Types.ObjectId, ref: 'Book' },
         read: Object, // {"num": 2, "top": 1, "scroll": 0}
         rss: { type: Number, default: 0 }, // 是否订阅了本书籍
-        time: Date,
-        index: Number
+        time: Date
       }
     ], // 所有书籍
     create_time: Date
