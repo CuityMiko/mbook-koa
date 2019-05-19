@@ -3,7 +3,7 @@
  * @Author: lidikang
  * @LastEditors: lidikang
  * @Date: 2019-03-19 23:33:51
- * @LastEditTime: 2019-04-30 14:20:49
+ * @LastEditTime: 2019-05-08 15:17:21
  */
 import request from 'superagent'
 import requestProxy from 'superagent-proxy'
@@ -71,6 +71,8 @@ function setLocalIpAddressWhiteList(ip) {
             resolve(true)
           } else {
             logger.error('amount is not enough !')
+            // 钱不够直接中断爬虫
+            process.exit(0)
             resolve(false)
           }
         } catch (error) {
