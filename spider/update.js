@@ -25,6 +25,9 @@ import { logger } from './log'
 requestProxy(request)
 requestCharset(request)
 
+let updateQueue = null
+
+
 /**
  * 发送请求
  * @param {*} url 请求地址
@@ -261,9 +264,9 @@ async function updateBook() {
       logger.debug('当前没有书籍需要更新')
       return '当前没有书籍更新'
     }
-    const queue = new Queue({ concurrency: 1, autoStart: false })
+    updateQueue = new Queue({ concurrency: 1, autoStart: false })
     needUpdateBooks.forEach((item, index) => {
-      queue.add(async () => {
+      updateQueue.add(async () => {
         // 暂停10s
         try {
           await delay(10000)
@@ -275,9 +278,9 @@ async function updateBook() {
       })
     })
     // 队列添加完毕，开始批量执行
-    queue.start()
+    updateQueue.start()
     // 监听队列执行完毕
-    queue.onIdle().then(() => {
+    updateQueue.onIdle().then(() => {
       clearInterval(timer)
       logger.debug(`更新执行完毕`)
       process.exit(0)
@@ -317,7 +320,7 @@ connectMongo().then(async () => {
     setInterval(async () => {
       pidusage(process.pid, async (err, stats) => {
         if (err) return
-        logger.debug('当前cpu占用: ' + stats.cpu + '%')
+        logger.debug(`当前cpu占用: ${stats.cpu}%，剩余任务数量: ${updateQueue ? updateQueue.size : '--'}, 进行中的任务数：${updateQueue ? updateQueue.pending : '--'}`)
         if (stats.cpu > 30) {
           logger.debug('重启进程....')
           // 重启进程
