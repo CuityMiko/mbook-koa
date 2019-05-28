@@ -26,6 +26,7 @@ requestProxy(request)
 requestCharset(request)
 
 let updateQueue = null
+let checkCpuTimer = null
 
 
 /**
@@ -95,8 +96,8 @@ async function getSourceData(source, newest) {
         const link =
           'https://www.qianqianxs.com' +
           $(element)
-            .children('a')
-            .attr('href')
+          .children('a')
+          .attr('href')
         if (num > newest) {
           result.push({
             num,
@@ -122,8 +123,8 @@ async function getSourceData(source, newest) {
           const link =
             'https://www.rzlib.net' +
             $(element)
-              .children('a')
-              .attr('href')
+            .children('a')
+            .attr('href')
           if (num > newest) {
             result.push({
               num,
@@ -210,19 +211,16 @@ function updateEveryBook(index, book, total) {
                 logger.debug('已经更新<' + book.name + '>最新章节数字')
               } else {
                 logger.debug('已存在章节，现在更新此章节...')
-                const updateResult = await Chapter.update(
-                  {
-                    _id: oldChapter._id
-                  },
-                  {
-                    $set: {
-                      num: chapter.num,
-                      name: chapter.name,
-                      content,
-                      create_time: new Date()
-                    }
+                const updateResult = await Chapter.update({
+                  _id: oldChapter._id
+                }, {
+                  $set: {
+                    num: chapter.num,
+                    name: chapter.name,
+                    content,
+                    create_time: new Date()
                   }
-                )
+                })
                 logger.debug(`已经更新章节: id: ${oldChapter.id}, name: ${chapter.name}, num: ${chapter.num}, content: ${content.slice(0, 10)}...`)
                 Book.updateTime(book._id)
                 logger.debug('已经更新<' + book.name + '>最新章节数字')
@@ -317,11 +315,13 @@ async function connectMongo() {
 connectMongo().then(async () => {
   // 每过5s打印一次cpu和内存占用，如果当亲cpu占用超过30%，立即停止进程
   try {
-    setInterval(async () => {
+    checkCpuTimer = setInterval(async () => {
       pidusage(process.pid, async (err, stats) => {
         if (err) return
         logger.debug(`当前cpu占用: ${stats.cpu}%，剩余任务数量: ${updateQueue ? updateQueue.size : '--'}, 进行中的任务数：${updateQueue ? updateQueue.pending : '--'}`)
+        // 当cpu使用率超过30%，重启爬虫进程
         if (stats.cpu > 30) {
+          clearInterval(checkCpuTimer)
           logger.debug('重启进程....')
           // 重启进程
           await delay(60000)
@@ -329,6 +329,12 @@ connectMongo().then(async () => {
           setTimeout(() => {
             process.exit(0)
           }, 1000)
+        }
+        // 当updateQueue.size下降为0，结束爬虫进程
+        if (updateQueue.size === 0) {
+          clearInterval(checkCpuTimer)
+          logger.debug(`更新执行完毕`)
+          process.exit(0)
         }
       })
     }, 5000)
