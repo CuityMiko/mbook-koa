@@ -202,7 +202,7 @@ UserSchema.statics.sendMessage = async function(userid, type, data, extra) {
           reject({ ok: false, msg: '发送模板消息失败', err })
         })
     } else if (type === 'book-update') {
-      // 书籍更新成功消息通�
+      // 书籍更新成功消息通�
       return false
       if (!extra.bookid) {
         console.log('发送书籍更新模板消息时bookid不存在', JSON.stringify({ userid, type, data, extra }))
