@@ -31,13 +31,13 @@ if (program.exec) console.log('  - pineapple');
 if (!process.argv.slice(2).length) program.help();
 // 检查cpu是否暂用过高
 setInterval(() => {
-    pidusage(process.pid, function (err, stats) {
-      if (err) return
-      console.log('当前cpu占用: ' + stats.cpu + '%')
-      if (stats.cpu > 30) {
-        console.log('结束进程....')
-        // 重启进程
-        process.exit(-1)
-      }
-    })
-  }, 5000)
+  pidusage(process.pid, function (err, stats) {
+    if (err) return
+    console.log('当前cpu占用: ' + stats.cpu + '%')
+    if (stats.cpu > 30) {
+      console.log('结束进程....')
+      // 重启进程
+      process.exit(-1)
+    }
+  })
+}, 5000)
