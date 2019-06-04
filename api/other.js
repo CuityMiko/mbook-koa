@@ -3,12 +3,16 @@ import sendfile from 'koa-sendfile'
 import qn from 'qn'
 import https from 'https'
 import uuid from 'uuid'
+import convert from 'koa-convert'
+import body from 'koa-better-body'
+import fs from 'fs'
 import config from '../config'
 import { exec } from 'child_process'
 import path from 'path'
 import { Book, Setting, User } from '../models'
 import { checkUserToken, checkAdminToken } from '../utils'
 import { requestWxCode } from '../utils/wxCode'
+import qiniuUpload from '../utils/qiniuUpload'
 import { mongosync } from '../bin/mongosync'
 
 // qiniu上传设置
@@ -335,6 +339,22 @@ export default function(router) {
     if (userid) {
       exec(`npx runkoa ${path.join(process.cwd(), './spider/update.js')}`)
       ctx.body = { ok: true, msg: '更新成功', data: '爬虫开始执行，请确保芝麻代理余额充足' }
+    }
+  })
+
+   // 上传图片
+  router.post('/api/upload_img', convert(body()), async (ctx, next) => {
+    const file = ctx.request.files[0] // 获取上传文件
+    // const reader = fs.createReadStream(file.path) // 创建可读流
+    const buffer = fs.readFileSync(file.path)
+    const ext = file.name.split('.').pop() // 获取上传文件扩展名
+    const name = uuid.v1()
+    const key = `mbook/${name}.${ext}`
+    try {
+      const url = await qiniuUpload(buffer, key)
+      ctx.body = { code: 0, msg: '上传图片成功', name, url: url }
+    } catch (err) {
+      ctx.body = { code: -1, msg: '上传图片失败' + err.toString() }
     }
   })
 }
