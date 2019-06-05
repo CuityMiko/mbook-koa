@@ -6,7 +6,6 @@ import request from 'superagent'
 import cheerio from 'cheerio'
 import requestProxy from 'superagent-proxy'
 import requestCharset from 'superagent-charset'
-import userAgent from 'fake-useragent'
 import moment from 'moment'
 import Queue from 'p-queue'
 import delay from 'delay'
@@ -18,6 +17,7 @@ import { Book, Chapter } from '../models'
 import { getRandomProxyIp, getProxyIpAddress, removeProxyIpFromRedis } from './proxy'
 import chinese2number from '../utils/chineseToNum'
 import { readUpdateNotice } from '../bin/readUpdateNotice'
+import userAgent from '../utils/fakeUserAgent'
 import { reportError } from '../utils'
 import { logger } from './log'
 
@@ -129,8 +129,8 @@ async function getSourceData(source, newest) {
             result.push({
               num,
               name: name.replace(/^.*章[、\.：\s:-]*/, ''),
-              link: link.replace(/\/b\/\d+/, '/b/txtt5550'),
-              selector: 'body'
+              link,
+              selector: '#chapter_content'
             })
           }
         }
@@ -197,6 +197,8 @@ function updateEveryBook(index, book, total) {
               const html = await doGetRequest(chapter.link)
               const $ = cheerio.load(html)
               const content = formatContent($(chapter.selector).text())
+              console.log('访问链接: ', chapter.link)
+              console.log('章节内容为：', content)
               const oldChapter = await Chapter.findOne({ bookid: book._id, num: chapter.num })
               if (!oldChapter) {
                 const newChapter = await Chapter.create({
@@ -257,7 +259,8 @@ async function updateBook() {
       return '获取代理ip地址失败，请检查芝麻代理余额'
     }
     logger.debug('开始执行书城更新...\n当前时间: ' + moment().format('YYYY-MM-DD hh:mm:ss'))
-    let needUpdateBooks = await Book.find({ source: { $ne: null } }, 'name update_status newest_chapter source')
+    let needUpdateBooks = await Book.find({ source: { $ne: null }, name: "先生你是谁" }, 'name update_status newest_chapter source')
+    console.log(needUpdateBooks)
     if (needUpdateBooks.length === 0) {
       logger.debug('当前没有书籍需要更新')
       return '当前没有书籍更新'
@@ -331,11 +334,11 @@ connectMongo().then(async () => {
           }, 1000)
         }
         // 当updateQueue.size下降为0，结束爬虫进程
-        if (updateQueue.size === 0) {
-          clearInterval(checkCpuTimer)
-          logger.debug(`更新执行完毕`)
-          process.exit(0)
-        }
+        //if (updateQueue && updateQueue.size === 0) {
+        //  clearInterval(checkCpuTimer)
+        //  logger.debug(`更新执行完毕`)
+        //  process.exit(0)
+        //}
       })
     }, 5000)
     await updateBook()
