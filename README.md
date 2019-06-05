@@ -224,9 +224,12 @@ runkoa bin/checkUserBookList.js
 ### POST 请求出现 413 错误
 
 ![413错误](https://fs.andylistudio.com/1542121256941.png)
-多半是由于 ngxin 对 http 请求 body 大小的限制，修改 nginx 配置文件 nginx.conf，在 http 的下面加上 `client_max_body_size 2
+多半是由于 ngxin 对 http 请求 body 大小的限制，修改 nginx 配置文件 nginx.conf，在 http 的下面加上 `client_max_body_size 2`
 
 ### 安装python包
 ```
 C:/Users/andyliwr/AppData/Local/Programs/Python/Python37/python.exe -m pip install -U flake8 --user
 ```
+
+## 查找所有node进程
+`ps aux | grep node`
