@@ -85,7 +85,7 @@ function doGetRequest(url) {
  */
 function doGetRequestUseBroswer(url) {
   return new Promise(async (resolve, reject) => {
-    console.log(`请求地址 ${url}`)
+    logger.debug(`请求地址 ${url}`)
     try {
       const browser = await puppeteer.launch();
       const page = await browser.newPage();
@@ -95,7 +95,7 @@ function doGetRequestUseBroswer(url) {
       await htmlHandle.dispose();
       resolve(html || '')
     } catch (err) {
-      console.log('请求发生错误，尝试重新请求, ' + err.toString())
+      logger.debug('请求发生错误，尝试重新请求, ' + err.toString())
       await delay(10000)
       resolve(await doGetRequestUseBroswer(url))
     }
@@ -223,8 +223,6 @@ function updateEveryBook(index, book, total) {
               const html = await doGetRequest(chapter.link)
               const $ = cheerio.load(html)
               const content = formatContent($(chapter.selector).text())
-              console.log('访问链接: ', chapter.link)
-              console.log('章节内容为：', content)
               const oldChapter = await Chapter.findOne({ bookid: book._id, num: chapter.num })
               if (!oldChapter) {
                 const newChapter = await Chapter.create({
@@ -285,8 +283,7 @@ async function updateBook() {
       return '获取代理ip地址失败，请检查芝麻代理余额'
     }
     logger.debug('开始执行书城更新...\n当前时间: ' + moment().format('YYYY-MM-DD hh:mm:ss'))
-    let needUpdateBooks = await Book.find({ source: { $ne: null }, name: "先生你是谁" }, 'name update_status newest_chapter source')
-    console.log(needUpdateBooks)
+    let needUpdateBooks = await Book.find({ source: { $ne: null } }, 'name update_status newest_chapter source')
     if (needUpdateBooks.length === 0) {
       logger.debug('当前没有书籍需要更新')
       return '当前没有书籍更新'
