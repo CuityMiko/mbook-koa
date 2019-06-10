@@ -10,6 +10,7 @@ import moment from 'moment'
 import Queue from 'p-queue'
 import delay from 'delay'
 import pidusage from 'pidusage'
+import puppeteer from 'puppeteer'
 import { exec } from 'child_process'
 import path from 'path'
 import config from '../config'
@@ -78,6 +79,31 @@ function doGetRequest(url) {
 }
 
 /**
+ * 发送请求，使用puppeteer去发送请求
+ * @param {*} url 请求地址
+ * @param {*} callback 回调函数
+ */
+function doGetRequestUseBroswer(url) {
+  return new Promise(async (resolve, reject) => {
+    console.log(`请求地址 ${url}`)
+    try {
+      const browser = await puppeteer.launch();
+      const page = await browser.newPage();
+      await page.goto(url);
+      const htmlHandle = await page.$('html');
+      const html = await page.evaluate(body => body.innerHTML, htmlHandle);
+      await htmlHandle.dispose();
+      resolve(html || '')
+    } catch (err) {
+      console.log('请求发生错误，尝试重新请求, ' + err.toString())
+      await delay(10000)
+      resolve(await doGetRequestUseBroswer(url))
+    }
+  })
+}
+
+
+/**
  * 获取书源章节
  * @param {*} source 书籍来源
  * @param {*} newest 书籍章节
@@ -109,7 +135,7 @@ async function getSourceData(source, newest) {
       }
     })
   } else if (source.indexOf('www.rzlib.net') > -1) {
-    const html = await doGetRequest(source)
+    const html = await doGetRequestUseBroswer(source)
     const $ = cheerio.load(html)
     $('.ListChapter')
       .eq(1)
