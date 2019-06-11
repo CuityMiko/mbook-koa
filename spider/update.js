@@ -11,6 +11,7 @@ import Queue from 'p-queue'
 import delay from 'delay'
 import pidusage from 'pidusage'
 import puppeteer from 'puppeteer'
+import yargs from 'yargs'
 import { exec } from 'child_process'
 import path from 'path'
 import config from '../config'
@@ -28,7 +29,7 @@ requestCharset(request)
 
 let updateQueue = null
 let checkCpuTimer = null
-
+let needUpdateBooks = []
 
 /**
  * 发送请求
@@ -86,15 +87,37 @@ function doGetRequest(url) {
 function doGetRequestUseBroswer(url) {
   return new Promise(async (resolve, reject) => {
     logger.debug(`请求地址 ${url}`)
+    const defaultPuppeteerOptions = {
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage'
+      ],
+      devtools: false,
+      headless: true,
+      ignoreHTTPSErrors: true,
+      slowMo: 0
+    };
+
+    const defaultViewport = {
+      deviceScaleFactor: 1,
+      hasTouch: false,
+      height: 1024,
+      isLandscape: false,
+      isMobile: false,
+      width: 1280
+    };
+    const browser = await puppeteer.launch({ ...defaultPuppeteerOptions });
     try {
-      const browser = await puppeteer.launch();
       const page = await browser.newPage();
-      await page.goto(url);
+      await page.goto(url, { timeout: 3000000 });
       const htmlHandle = await page.$('html');
       const html = await page.evaluate(body => body.innerHTML, htmlHandle);
       await htmlHandle.dispose();
+      await browser.close()
       resolve(html || '')
     } catch (err) {
+      await browser.close()
       logger.debug('请求发生错误，尝试重新请求, ' + err.toString())
       await delay(10000)
       resolve(await doGetRequestUseBroswer(url))
@@ -283,9 +306,13 @@ async function updateBook() {
       return '获取代理ip地址失败，请检查芝麻代理余额'
     }
     logger.debug('开始执行书城更新...\n当前时间: ' + moment().format('YYYY-MM-DD hh:mm:ss'))
-    let needUpdateBooks = await Book.find({ source: { $ne: null } }, 'name update_status newest_chapter source')
+    needUpdateBooks = await Book.find({ source: { $ne: null } }, 'name update_status newest_chapter source').skip(yargs.argv.skip || 0)
+    // needUpdateBooks = await Book.find({ source: { $ne: null, $elemMatch: { $regex: "rzlib" } } }, 'name update_status newest_chapter source').skip(yargs.argv.skip || 0)
     if (needUpdateBooks.length === 0) {
       logger.debug('当前没有书籍需要更新')
+      clearInterval(timer)
+      logger.debug(`更新执行完毕`)
+      process.exit(0)
       return '当前没有书籍更新'
     }
     updateQueue = new Queue({ concurrency: 1, autoStart: false })
@@ -351,7 +378,7 @@ connectMongo().then(async () => {
           logger.debug('重启进程....')
           // 重启进程
           await delay(60000)
-          exec(`npx runkoa ${path.join(process.cwd(), './spider/update.js')}`)
+          exec(`npx runkoa ${path.join(process.cwd(), './spider/update.js')} --skip=${needUpdateBooks.length - updateQueue.size}`)
           setTimeout(() => {
             process.exit(0)
           }, 1000)
@@ -368,6 +395,9 @@ connectMongo().then(async () => {
     process.on('unhandledRejection', reason => {
       logger.debug('捕获到一个错误')
       logger.error(reason)
+      // 出现错误结束爬虫进程
+      exec(`ps -ef|grep node|awk '{print $2}'|xargs kill -9`)
+      process.exit(0)
     })
   } catch (err) {
     logger.error('捕获到一个错误')
