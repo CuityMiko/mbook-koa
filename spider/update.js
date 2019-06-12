@@ -243,7 +243,13 @@ function updateEveryBook(index, book, total) {
             sub2Queue.add(async () => {
               // 暂停5s
               await delay(5000)
-              const html = await doGetRequest(chapter.link)
+              // 区分是千千小说还是日照小说
+              let html = ''
+              if (chapter.link.indexOf('www.rzlib.net') > -1) {
+                html = await doGetRequestUseBroswer(chapter.link)
+              } else {
+                html = await doGetRequest(chapter.link)
+              }
               const $ = cheerio.load(html)
               const content = formatContent($(chapter.selector).text())
               const oldChapter = await Chapter.findOne({ bookid: book._id, num: chapter.num })
