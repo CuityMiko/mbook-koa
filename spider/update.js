@@ -253,6 +253,7 @@ function updateEveryBook(index, book, total) {
               const $ = cheerio.load(html)
               const content = formatContent($(chapter.selector).text())
               const oldChapter = await Chapter.findOne({ bookid: book._id, num: chapter.num })
+              // logger.debug('章节内容：' + content)
               if (!oldChapter) {
                 const newChapter = await Chapter.create({
                   bookid: await Chapter.transId(book._id),
@@ -400,13 +401,22 @@ connectMongo().then(async () => {
     await updateBook()
     process.on('unhandledRejection', reason => {
       logger.debug('捕获到一个错误')
-      logger.error(reason)
-      // 出现错误结束爬虫进程
+      logger.error(reason.toString())
+      // 出现错误重启爬虫进程
       exec(`ps -ef|grep node|awk '{print $2}'|xargs kill -9`)
-      process.exit(0)
+      // 重启进程
+      exec(`npx runkoa ${path.join(process.cwd(), './spider/update.js')} --skip=${needUpdateBooks.length - updateQueue.size}`)
+      setTimeout(() => {
+        process.exit(0)
+      }, 1000)
     })
   } catch (err) {
     logger.error('捕获到一个错误')
-    logger.error(err)
+    logger.error(err.toString())
+    // 重启进程
+    exec(`npx runkoa ${path.join(process.cwd(), './spider/update.js')} --skip=${needUpdateBooks.length - updateQueue.size}`)
+    setTimeout(() => {
+      process.exit(0)
+    }, 1000)
   }
 })
