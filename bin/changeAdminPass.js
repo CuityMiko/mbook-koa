@@ -25,6 +25,7 @@ if (config.mongo_auth) {
 mongoose
   .connect(config.mongo_url, connectParams)
   .then(async db => {
+    console.log('开始加密')
     try {
       // 产生一个salt
       bcrypt.genSalt(SALT_WORK_FACTOR, function(err, salt) {
@@ -41,6 +42,7 @@ mongoose
           salt,
           function() {},
           function(err, hash) {
+            console.log('加密完成', err, hash)
             if (err) return next(err)
             // 使用hash覆盖明文密码
             User.update({ password: hash }, { username: 'mbookLidikang' }).then(res => {
@@ -48,11 +50,9 @@ mongoose
             }).catch(err => {
               console.log('密码修改失败', err)
             })
-            user.password = hash
           }
         )
       })
-      process.exit(0)
     } catch (err) {
       console.log('Error: ' + err)
     }

@@ -23,11 +23,6 @@ function doRequest(url) {
       if (!error && response.statusCode == 200) {
         resolve(JSON.parse(body))
       } else {
-        reportError('请求接口失败', res, {
-          priority: '普通',
-          category: '错误',
-          extra: { url: url }
-        })
         reject(error || body)
       }
     })
