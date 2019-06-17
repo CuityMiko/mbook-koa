@@ -38,14 +38,14 @@ mongoose
          * @param callback — Callback with error and hashed result, to be fired once the data has been encrypted
          */
         bcrypt.hash(
-          '4TFTyeSQCSXaPZvN',
+          'new password',
           salt,
           function() {},
           function(err, hash) {
             console.log('加密完成', err, hash)
             if (err) return next(err)
             // 使用hash覆盖明文密码
-            User.update({ password: hash }, { username: 'mbookLidikang' }).then(res => {
+            User.update({ username: 'mbookLidikang' }, { $set: { password: hash  } }).then(res => {
               console.log('密码修改成功', res)
             }).catch(err => {
               console.log('密码修改失败', err)
