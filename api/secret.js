@@ -149,12 +149,12 @@ export default function(router) {
       }
       const secretReg = /^[A-Za-z0-9_\-]{7,14}$/
       if (!secretReg.test(secret)) {
-        ctx.body = { ok: false, msg: '粉丝凭证错误' }
+        ctx.body = { ok: false, msg: '好像不对哦~' }
         return false
       }
       const thisBook2 = await Book.findOne({ _id: bookid, secret }, '_id')
       if (!thisBook2) {
-        ctx.body = { ok: false, msg: '粉丝凭证错误' }
+        ctx.body = { ok: false, msg: '好像不对哦~' }
         return false
       }
       const thisSecret = await Secret.create({
@@ -179,7 +179,7 @@ export default function(router) {
                 keyword1: { value: thisUser.username },
                 keyword2: { value: thisBook.name },
                 keyword3: { value: moment().format('YYYY年MM月DD日 HH:mm:ss') },
-                keyword4: { value: '你已经成功解锁书籍--《' + thisBook.name + '》，点击卡片开始阅读书籍吧~' }
+                keyword4: { value: '《' + thisBook.name + '》，点击卡片开始阅读书籍吧~' }
               }, { bookid }
             )
             .then(res => {
@@ -195,9 +195,9 @@ export default function(router) {
               fail(err)
             })
         }, 0)
-        ctx.body = { ok: true, msg: '解锁成功' }
+        ctx.body = { ok: true, msg: '开始阅读吧~' }
       } else {
-        ctx.body = { ok: false, msg: '解锁失败' }
+        ctx.body = { ok: false, msg: '好像不对哦~' }
       }
     }
   })
@@ -287,9 +287,9 @@ export default function(router) {
               console.log('解锁成功消息发送失败', err)
             })
         }, 0)
-        ctx.body = { ok: true, msg: '解锁成功' }
+        ctx.body = { ok: true, msg: '开始阅读吧~' }
       } else {
-        ctx.body = { ok: false, msg: '解锁失败' }
+        ctx.body = { ok: false, msg: '好像不对哦~' }
       }
     }
   })

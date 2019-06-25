@@ -5,6 +5,7 @@ import fs from 'fs'
 import path from 'path'
 import os from 'os'
 import sendfile from 'koa-sendfile'
+import Queue from 'p-queue'
 
 export default function(router) {
   /**
@@ -475,10 +476,21 @@ export default function(router) {
       // 创建一个临时的txt文件
       const filePath = path.join(os.tmpdir(), `${thisBook.name}.txt`)
       fs.appendFileSync(filePath, `书籍信息:\n书籍名称: ${thisBook.name}\n作者: ${thisBook.author}\n简介: ${thisBook.des}\n更新状态: ${thisBook.update_status}\n最新更新时间: ${thisBook.update_time}\n`)
-      for (let i = 0; i < chapters.length; i++) {
-        fs.appendFileSync(filePath, `\n第${chapters[i].num}章 ${chapters[i].name}\n\n${chapters[i].content}\n`)
-      }
-      ctx.body = { ok: true, msg: '生成txt成功', url: encodeURI(filePath) }
+
+      return new Promise((resolve, reject) => {
+        const queue = new Queue({ concurrency: 1, autoStart: false })
+        chapters.forEach((item, index) => {
+          queue.add(() => {
+            // 暂停10s
+            fs.appendFileSync(filePath, `\n第${item.num}章 ${item.name}\n\n${item.content}\n`)
+          })
+        })
+        queue.start()
+        queue.onIdle().then(() => {
+          resolve(true)
+          ctx.body = { ok: true, msg: '生成txt成功', url: encodeURI(filePath) }
+        })
+      })
     }
   })
 }
