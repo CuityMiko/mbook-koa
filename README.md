@@ -11,6 +11,7 @@
 6. ✓ 管理员分享自动解锁书籍
 7. ✘ 书籍更新提示
 
+<hr>
 
 ## 常见问题
 
@@ -20,7 +21,7 @@
 
 ### 安装`node-canvas`
 
-```
+```bash
 # ubuntu下运行
 sudo apt-get install libcairo2-dev libjpeg-dev libpango1.0-dev libgif-dev build-essential g++
 # mac OS下运行
@@ -34,7 +35,7 @@ cnpm install canvas --save
 没有安装 node-canvas 的依赖包，请参考官网给的[说明](https://github.com/Automattic/node-canvas/wiki/Installation---Windows)
 建议使用[choco](https://chocolatey.org)安装，打开 cmd 管理员界面，运行下面的代码：
 
-```
+```bash
 # 安装choco
 @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))" && SET "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
 
@@ -47,9 +48,19 @@ choco install -y python2 gtk-runtime microsoft-build-tools libjpeg-turbo
 如果出现未能加载 `Visual C++` 组件`VCBuild.exe`的错误
 请打开 powershell，并以管理员身份运行下面的命令：
 
-```
+```bash
 npm install --global --production windows-build-tools
 npm install
+```
+
+### 安装puppetteer错误
+```bash
+/node_modules/puppeteer/.local-chromium/linux-555668/chrome-linux/chrome: error while loading shared libraries: libX11-xcb.so.1: cannot open shared object file: No such file or directory
+```
+
+```bash
+sudo apt-get update 
+sudo apt install -y gconf-service libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils wget
 ```
 
 
@@ -57,7 +68,7 @@ npm install
 
 为了方便数据同步，开发将不再使用本地数据库（主要是每次改了之后还得保存到本地，然后去另一台机器上恢复数据库，也因为这种数据不同步查了好多问题），以后都统一使用 mlab。
 
-```
+```bash
 # 从本地恢复mlab的数据库
 mongorestore -h ds135680.mlab.com:35680 -d mbook -u admin -p 123456 本地数据库地址
 # 备份mlab数据库到本地
@@ -78,7 +89,7 @@ mongodump -h ds135680.mlab.com:35680 -d mbook -u admin -p 123456 -o 需要存储
 
 mongo 数据库出现不该有的索引，这是恢复老数据的时候带过来的，需要在数据库中手动删除索引
 
-```
+```bash
 mongo
 show db;
 use mbook;
@@ -92,7 +103,7 @@ db.chapters.dropIndex("num_1")
 
 两方面原因：第一是因为 ngxin 的默认配置限制了只能传大于 1M 的文件，需要修改 ngxin.conf
 
-```
+```bash
 sudo vi /etc/ngxin/ngxin.conf
 # 在http下新增一行
 client_max_body_size 10M;
@@ -102,7 +113,7 @@ client_max_body_size 10M;
 
 第二是 koa 使用 bodyParser 默认限制的问题，修改 koa 目录下的 app.js
 
-```
+```js
 app.use(bodyparser({
   limit: '10mb',
   formLimit: '10mb',
@@ -125,7 +136,7 @@ app.use(bodyparser({
 
 ## Koa 调试
 
-```
+```json
 {
   "type": "node",
   "request": "launch",
@@ -139,11 +150,13 @@ app.use(bodyparser({
 ```
 ----
 
+<hr>
+
 ## mongo 和 redis 开启认证
 
 ### mongodb开启认证
 
-```shell
+```bash
 # 创建整个数据库的管理员
 use admin;
 db.createUser({user: 'admin', pwd: 'xxx', roles: [{role: 'userAdminAnyDatabase', db: 'admin'}]})
@@ -162,7 +175,7 @@ sudo service mongodb restart
 
 ### redis开启认证
 
-```
+```bash
 sudo vi /etc/redis/redis.conf
 # 修改ip为0.0.0.0， 修改requirepass后面的值为你设置的密码
 sudo service redis-server restart
@@ -170,12 +183,12 @@ sudo service redis-server restart
 
 ### 命令行连接 mongo 的命令
 
-```
+```bash
 mongo 127.0.0.1/admin -u admin -p
 ```
 
 ### 数据库复制
-```
+```bash
 db.copyDatabase(fromdb,todb,fromhost,username,password,mechanism)
 ```
 参数说明:
@@ -188,9 +201,10 @@ db.copyDatabase(fromdb,todb,fromhost,username,password,mechanism)
 
 ------
 
+<hr>
 ## 服务器迁移
 
-```
+```bash
 # A服务器打包
 sudo mongodump -h localhost:27017 -d mbook-new -u mbook -p 121960425mbook -o ./
 # 直接全量恢复B服务器的数据库
@@ -199,15 +213,15 @@ sudo mongorestore -h 118.24.94.40:27017 -d mbook-new -u mbook -p 121960425mbook 
 sudo tar -cvf mbook-new.tar.gz mbook-new/
 ```
 
-## 导出为json或者csv
-```
+### 导出为json或者csv
+```bash
 # 导出为json
 mongoexport -d dbName -c collectionName -q {name: 'xxx'} -o ./fileName.json
 # 导出为csv
 mongoexport -d dbName -c collectionName -q {name: 'xxx'} --fields name,author --type=csv -o ./fileName.csv
 ```
 
-```
+```bash
 # A服务器打包
 sudo mongodump -h localhost:27017 -d mbook-new -u mbook -p 121960425mbook -o ./
 # 直接全量恢复B服务器的数据库
@@ -220,7 +234,7 @@ sudo tar -cvf mbook-new.tar.gz mbook-new/
 
 bin 下面每个脚本都有自己的用途，请参照说明
 
-```
+```bash
 runkoa bin/checkUserBookList.js
 ```
 
@@ -230,9 +244,15 @@ runkoa bin/checkUserBookList.js
 多半是由于 ngxin 对 http 请求 body 大小的限制，修改 nginx 配置文件 nginx.conf，在 http 的下面加上 `client_max_body_size 2`
 
 ### 安装python包
-```
+```bash
 C:/Users/andyliwr/AppData/Local/Programs/Python/Python37/python.exe -m pip install -U flake8 --user
 ```
 
-## 查找所有node进程
-`ps aux | grep node`
+### 查找所有node进程
+```bash
+# 查找所有node进程
+ps aux | grep node
+# 杀死所有node进程，使用pm2启动的进程无法通过此方法杀死，因为会自动重启
+ps -ef|grep node|awk '{print $2}'|xargs kill -9
+```
+

@@ -11,6 +11,6 @@ const UAs = [
 ];
 
 module.exports = () => {
-  const index = UAs.length * Math.random()
-  retrun UAs[index]
+  const index = parseInt(UAs.length * Math.random(), 10)
+  return UAs[index]
 }
