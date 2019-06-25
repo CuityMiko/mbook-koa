@@ -6,6 +6,7 @@ import path from 'path'
 import os from 'os'
 import sendfile from 'koa-sendfile'
 import Queue from 'p-queue'
+import uuid from 'uuid'
 
 export default function(router) {
   /**
@@ -474,7 +475,8 @@ export default function(router) {
       // 获取书籍的所有章节
       const chapters = await Chapter.find({ bookid: bookId })
       // 创建一个临时的txt文件
-      const filePath = path.join(os.tmpdir(), `${thisBook.name}.txt`)
+      const tmpdir = fs.mkdtempSync(path.join(os.tmpdir(), `./${uuid.v1()}`));
+      const filePath = path.join(tmpdir, `${thisBook.name}.txt`)
       fs.appendFileSync(filePath, `书籍信息:\n书籍名称: ${thisBook.name}\n作者: ${thisBook.author}\n简介: ${thisBook.des}\n更新状态: ${thisBook.update_status}\n最新更新时间: ${thisBook.update_time}\n`)
 
       return new Promise((resolve, reject) => {
