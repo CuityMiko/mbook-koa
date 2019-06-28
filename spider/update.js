@@ -304,13 +304,15 @@ function updateEveryBook(index, book, total) {
 
 async function updateBook() {
   try {
-    let getProxyIpSuccess = await getProxyIpAddress()
-    let timer = setInterval(async () => {
-      await getProxyIpAddress()
-    }, 10 * 60 * 1000)
-    if (!getProxyIpSuccess) {
-      logger.debug('获取代理ip地址失败')
-      return '获取代理ip地址失败，请检查芝麻代理余额'
+    if (useProxyIp) {
+      let getProxyIpSuccess = await getProxyIpAddress()
+      let timer = setInterval(async () => {
+        await getProxyIpAddress()
+      }, 10 * 60 * 1000)
+      if (!getProxyIpSuccess) {
+        logger.debug('获取代理ip地址失败')
+        return '获取代理ip地址失败，请检查芝麻代理余额'
+      }
     }
     logger.debug('开始执行书城更新...\n当前时间: ' + moment().format('YYYY-MM-DD hh:mm:ss'))
     needUpdateBooks = await Book.find({ source: { $ne: null } }, 'name update_status newest_chapter source').skip(yargs.argv.skip || 0)
