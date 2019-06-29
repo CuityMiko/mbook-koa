@@ -422,7 +422,7 @@ export default function(router) {
     let userid = await checkAdminToken(ctx, next, 'user_search')
     if (userid) {
       const keyword = ctx.request.query.keyword
-      const users = await User.find({ username: new RegExp(keyword, 'i'), identity: 1 }, 'username')
+      const users = await User.find({ $or: [{ username: new RegExp(keyword, 'i') }, { id: keyword }], identity: 1 }, 'username')
       ctx.body = { ok: true, msg: '搜索用户成功', list: users }
     }
   })

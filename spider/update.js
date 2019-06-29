@@ -30,6 +30,7 @@ requestCharset(request)
 let updateQueue = null
 let checkCpuTimer = null
 let needUpdateBooks = []
+let timer = null
 
 /**
  * 发送请求
@@ -304,9 +305,9 @@ function updateEveryBook(index, book, total) {
 
 async function updateBook() {
   try {
-    if (useProxyIp) {
+    if (config.useProxyIp) {
       let getProxyIpSuccess = await getProxyIpAddress()
-      let timer = setInterval(async () => {
+      timer = setInterval(async () => {
         await getProxyIpAddress()
       }, 10 * 60 * 1000)
       if (!getProxyIpSuccess) {
