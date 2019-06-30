@@ -14,8 +14,8 @@ export default function(router) {
       } else {
         page = 1
       }
-      const startDate = new Date(moment().subtract(7, 'days'))
-      const endDate = new Date()
+      // const startDate = new Date(moment().subtract(14, 'days'))
+      // const endDate = new Date()
       const orParams = []
       orParams.push({ user: {$regex: `.*${userid}.*`} })
       orParams.push( { user: 'all' })
@@ -32,7 +32,7 @@ export default function(router) {
       })
       const notices = await Notice.find({
         $or: orParams,
-        create_time: { $gt: startDate, $lt: endDate }
+        // create_time: { $gt: startDate, $lt: endDate }
       })
       .skip((page - 1) * 10)
       .limit(10)

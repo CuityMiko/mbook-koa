@@ -96,9 +96,19 @@ export default function(router) {
       }
 
       // 获取最近7天通知数量
-      const startDate = new Date(moment().subtract(7, 'days'))
+      const startDate = new Date(moment().subtract(14, 'days'))
       const endDate = new Date()
-      const notices = await Notice.find({ $or: [{ user: {$regex: `.*${userid}.*`} }, { user: 'all' }, { user: 'ios' }, { user: 'android' }], create_time: { $gt: startDate, $lt: endDate } }, '_id')
+      const orParams = []
+      orParams.push({ user: {$regex: `.*${userid}.*`} })
+      orParams.push( { user: 'all' })
+      const userAgent = ctx.request.headers['user-agent']
+      if (/Android/i.test(userAgent)) {
+        orParams.push( { user: 'android' })
+      }
+      if (/iPhone|iPad|iPod/i.test(userAgent)) {
+        orParams.push( { user: 'ios' })
+      }
+      const notices = await Notice.find({ $or: orParams, create_time: { $gt: startDate, $lt: endDate } }, '_id')
 
       // 获取设置中的分享设置
       const globalSetting = await getGlobalSetting()
