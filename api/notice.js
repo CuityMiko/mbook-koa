@@ -1,7 +1,60 @@
 import { Notice } from '../models'
+import moment from 'moment'
 import { checkUserToken, checkAdminToken } from '../utils'
 
 export default function(router) {
+
+  // 前端获取通知列表
+  router.get('/api/wxapp/notice', async (ctx, next) => {
+    let userid = await checkUserToken(ctx, next, 'notice_get')
+    if (userid) {
+      let { page } = ctx.request.query;
+      if (page) {
+        page = parseInt(page)
+      } else {
+        page = 1
+      }
+      const startDate = new Date(moment().subtract(7, 'days'))
+      const endDate = new Date()
+      const orParams = []
+      orParams.push({ user: {$regex: `.*${userid}.*`} })
+      orParams.push( { user: 'all' })
+      const userAgent = ctx.request.headers['user-agent']
+      if (/Android/i.test(userAgent)) {
+        orParams.push( { user: 'android' })
+      }
+      if (/iPhone|iPad|iPod/i.test(userAgent)) {
+        orParams.push( { user: 'ios' })
+      }
+      const total = await Notice.count({
+        $or: orParams,
+        create_time: { $gt: startDate, $lt: endDate }
+      })
+      const notices = await Notice.find({
+        $or: orParams,
+        create_time: { $gt: startDate, $lt: endDate }
+      })
+      .skip((page - 1) * 10)
+      .limit(10)
+      .sort({ create_time: -1 })
+      ctx.body = { ok: true, msg: '获取通知成功', list: notices, total }
+    }
+  })
+
+  // 前端获取通知详情
+  router.get('/api/wxapp/notice/:id/detail', async (ctx, next) => {
+    let userid = await checkUserToken(ctx, next, 'notice_get')
+    if (userid) {
+      // 获取url参数
+      const id = ctx.params.id
+      const thisNotice = await Notice.findById(id)
+      if (thisNotice) {
+        ctx.body = { ok: true, msg: '获取通知详情成功', data: thisNotice }
+      } else {
+        ctx.body = { ok: false, msg: '获取通知详情失败' }
+      }
+    }
+  })
 
   // 后台获取通知列表
   router.get('/api/notice', async (ctx, next) => {
@@ -23,6 +76,7 @@ export default function(router) {
       const notices = await Notice.find({ type: 'system' })
         .skip((page - 1) * limit)
         .limit(limit)
+        .sort({ create_time: -1 })
       ctx.body = { ok: true, msg: '获取通知成功', list: notices, total }
     }
   })
@@ -46,7 +100,7 @@ export default function(router) {
   router.post('/api/notice', async (ctx, next) => {
     const userid = await checkAdminToken(ctx, next)
     if (userid) {
-      const { title='', description='', content='', users='' } = ctx.request.body
+      const { title='', description='', content='', preview='', users='' } = ctx.request.body
       if (!users) {
         ctx.body = { ok: false, msg: '发送用户不能为空' }
         return
@@ -70,6 +124,7 @@ export default function(router) {
         title,
         description,
         content,
+        preview,
         create_time: new Date()
       })
       ctx.body = { ok: true, data: notice, msg: '创建通知成功' }
@@ -85,7 +140,7 @@ export default function(router) {
         ctx.body = { ok: false, msg: '参数错误' }
         return
       }
-      const { title='', description='', content='', users='' } = ctx.request.body
+      const { title='', description='', content='', preview='', users='' } = ctx.request.body
       if (!users) {
         ctx.body = { ok: false, msg: '发送用户不能为空' }
         return
@@ -114,6 +169,7 @@ export default function(router) {
             title,
             description,
             content,
+            preview,
             user: users,
           }
         }

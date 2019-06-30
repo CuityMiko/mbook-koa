@@ -4,7 +4,8 @@ import querystring from 'querystring'
 import Promise from 'bluebird'
 import config from '../config'
 import shortid from 'shortid'
-import { User, BookList, Pay, Share, Attendance, Award, Buy, Comment, FormId, Setting } from '../models'
+import moment from 'moment'
+import { User, BookList, Pay, Share, Attendance, Award, Buy, Comment, FormId, Setting, Notice } from '../models'
 import { checkUserToken, checkAdminToken, reportError, debug } from '../utils'
 
 const secret = 'mbook' // token秘钥
@@ -94,10 +95,15 @@ export default function(router) {
         })
       }
 
+      // 获取最近7天通知数量
+      const startDate = new Date(moment().subtract(7, 'days'))
+      const endDate = new Date()
+      const notices = await Notice.find({ $or: [{ user: {$regex: `.*${userid}.*`} }, { user: 'all' }, { user: 'ios' }, { user: 'android' }], create_time: { $gt: startDate, $lt: endDate } }, '_id')
+
       // 获取设置中的分享设置
       const globalSetting = await getGlobalSetting()
       const inShareWhiteList = globalSetting.share_white_list.indexOf(userid) > -1
-      ctx.body = { ok: true, msg: '获取app设置成功', data: { share: hisShareInfo, share_white_list: inShareWhiteList, setting: globalSetting } }
+      ctx.body = { ok: true, msg: '获取app设置成功', data: { share: hisShareInfo, share_white_list: inShareWhiteList, setting: globalSetting }, notices: notices.map(item => item._id) }
     }
   })
 

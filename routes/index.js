@@ -1,5 +1,7 @@
 const router = require('koa-router')()
 const createApi = require('../api')
+const models = require('../models')
+const { Notice } = models
 
 // 创建api
 createApi(router)
@@ -31,6 +33,23 @@ router.get('/notice', async (ctx, next) => {
   await ctx.render('notice', {
     title: '关注公众号'
   })
+})
+
+// 通知详情页面
+router.get('/notice-detail', async (ctx, next) => {
+  const id = ctx.request.query.id
+  const thisNotice = await Notice.findById(id)
+  if (thisNotice) {
+    await ctx.render('notice-detail', {
+      title: thisNotice.title,
+      content: thisNotice.content
+    })
+  } else {
+    await ctx.render('notice', {
+      title: '通知详情',
+      content: '页面不存在'
+    })
+  }
 })
 
 // 活动页面

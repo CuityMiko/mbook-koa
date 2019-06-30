@@ -7,6 +7,8 @@ const NoticeSchema = new mongoose.Schema(
     title: String,
     description: String,
     content: String, // 消息内容
+    preview: String, // 缩略内容
+    bookid: String, // 更新通知的书籍id
     create_time: Date // 创建时间
   },
   { versionKey: false }
