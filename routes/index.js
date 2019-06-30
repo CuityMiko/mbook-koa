@@ -45,7 +45,7 @@ router.get('/notice-detail', async (ctx, next) => {
       content: thisNotice.content
     })
   } else {
-    await ctx.render('notice', {
+    await ctx.render('notice-detail', {
       title: '通知详情',
       content: '页面不存在'
     })
