@@ -28,7 +28,7 @@ export default function(router) {
       }
       const total = await Notice.count({
         $or: orParams,
-        create_time: { $gt: startDate, $lt: endDate }
+        // create_time: { $gt: startDate, $lt: endDate }
       })
       const notices = await Notice.find({
         $or: orParams,
