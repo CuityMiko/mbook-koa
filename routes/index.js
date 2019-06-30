@@ -36,8 +36,8 @@ router.get('/notice', async (ctx, next) => {
 })
 
 // 通知详情页面
-router.get('/notice-detail', async (ctx, next) => {
-  const id = ctx.request.query.id
+router.get('/notice-detail/:id', async (ctx, next) => {
+  const id = ctx.request.params.id
   const thisNotice = await Notice.findById(id)
   if (thisNotice) {
     await ctx.render('notice-detail', {
