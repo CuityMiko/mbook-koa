@@ -22,6 +22,13 @@ const BookSchema = new mongoose.Schema(
 )
 
 /**
+ * 将字母id装换成mongodb的ObjectId对象的静态函数
+ */
+BookSchema.statics.transId = async function(id) {
+  return mongoose.Types.ObjectId(id)
+}
+
+/**
  * 更改书籍更新时间
  */
 BookSchema.statics.updateTime = function(id) {

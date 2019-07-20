@@ -422,31 +422,7 @@ export default function(router) {
           }
         })
         // 移除书架存储的书
-        let allBookList = await BookList.find({}, 'books').populate({
-          path: 'books',
-          options: {
-            sort: {
-              index: 1
-            }
-          }
-        })
-        allBookList.forEach(async item => {
-          const isCurrentBookInList = item.books.some(bookItem => {
-            return bookItem.bookid.toString() === thisBook.id
-          })
-          if (isCurrentBookInList) {
-            let newBooks = []
-            let currentIndex = 0
-            item.books.forEach((bookItem, bookIndex) => {
-              if (bookItem.bookid.toString() !== thisBook.id) {
-                bookItem.index = currentIndex
-                currentIndex++
-                newBooks.push(bookItem)
-              }
-            })
-            await BookList.update({ _id: item._id }, { $set: { books: newBooks } })
-          }
-        })
+        await BookList.updateMany({ books: { $elemMatch: { bookid: thisBook.id } } }, { $pull: { books: { $elemMatch: { bookid: thisBook.id } } } })
         let result = await Book.remove({ _id: id })
         if (result.result.ok === 1) {
           ctx.body = { ok: true, msg: '删除成功' }
