@@ -10,6 +10,8 @@ const AwardSchema = new mongoose.Schema(
   { versionKey: false }
 )
 
+AwardSchema.index({ userid: 1 })
+
 /**
  * 将字母id装换成mongodb的ObjectId对象的静态函数
  */

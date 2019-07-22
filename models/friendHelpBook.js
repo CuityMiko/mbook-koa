@@ -11,6 +11,8 @@ const FriendHelpBookSchema = new mongoose.Schema(
   { versionKey: false }
 )
 
+FriendHelpBookSchema.index({ bookid: 1 })
+
 /**
  * 将字母id装换成mongodb的ObjectId对象的静态函数
  */

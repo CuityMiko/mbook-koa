@@ -21,6 +21,8 @@ const BookSchema = new mongoose.Schema(
   { versionKey: false }
 )
 
+BookSchema.index({ name: 1 })
+
 /**
  * 将字母id装换成mongodb的ObjectId对象的静态函数
  */

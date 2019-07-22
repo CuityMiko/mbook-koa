@@ -13,6 +13,8 @@ const BuySchema = new mongoose.Schema(
   { versionKey: false }
 )
 
+BuySchema.index({ goodid: 1, userid: 1 })
+
 /**
  * 将字母id装换成mongodb的ObjectId对象的静态函数
  */

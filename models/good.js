@@ -13,6 +13,8 @@ const GoodSchema = new mongoose.Schema(
   { versionKey: false }
 )
 
+GoodSchema.index({ bookid: 1 })
+
 /**
  * 将字母id装换成mongodb的ObjectId对象的静态函数
  */

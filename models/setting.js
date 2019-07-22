@@ -11,6 +11,8 @@ const SettingSchema = new mongoose.Schema(
   { versionKey: false }
 )
 
+SettingSchema.index({ name: 1, key: 1 })
+
 /**
  * 将字母id装换成mongodb的ObjectId对象的静态函数
  */

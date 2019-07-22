@@ -20,6 +20,8 @@ const FriendHelpSchema = new mongoose.Schema(
   { versionKey: false }
 )
 
+FriendHelpSchema.index({ userid: 1, fhbid: 1, fhcode: 1 })
+
 /**
  * 将字母id装换成mongodb的ObjectId对象的静态函数
  */
