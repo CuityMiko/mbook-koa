@@ -25,19 +25,19 @@ export default function(router) {
            * 连续签到15天 额外获得200书币
            * 连续签到30天 额外获得300书币
            */
-          let basePrise = 5
+          let basePrise = 15
           switch (keep_times) {
             case 3:
-              basePrise += 10
+              basePrise += 30
               break
             case 7:
-              basePrise += 15
+              basePrise += 45
               break
             case 15:
-              basePrise += 20
+              basePrise += 60
               break
             case 30:
-              basePrise += 30
+              basePrise += 90
               break
           }
           // 修改用户的书币数
