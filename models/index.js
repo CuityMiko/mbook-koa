@@ -1,4 +1,5 @@
 export { Banner } from './banner'
+export { Advisement } from './advisement'
 export { Theme } from './theme'
 export { Book } from './book'
 export { Chapter } from './chapter'

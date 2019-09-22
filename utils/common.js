@@ -1,6 +1,8 @@
 import Promise from 'bluebird'
 import crypto from 'crypto'
 import xml2js from 'xml2js'
+import bcrypt from 'bcrypt'
+import pathToRegexp from 'path-to-regexp'
 
 /**
  * 格式化日期，转变成'2017/11/19 00:00:00'
@@ -283,13 +285,19 @@ const chineseParseInt = (function() {
   return main
 })()
 
-const isJsonString = str => {
+/**
+ * 验证字符串是否是一个json字符串
+ * @param {String} str
+ * @returns {Boolean} true或者false
+ */
+const isJsonString = (str) => {
   try {
-    if (typeof JSON.parse(str) == 'object') {
-      return true
-    }
-  } catch (e) {}
-  return false
+    str = JSON.parse(str)
+    return true
+  } catch (err) {
+    console.log(err)
+    return false
+  }
 }
 
 const formatDuring = function(mss) {
@@ -308,6 +316,33 @@ const formatDuring = function(mss) {
   console.log(days, hours, minutes)
   return  days + '天 ' + hours + "小时 " + minutes + "分";
 }
+
+/**
+ * 加密密码
+ * @param {String} password 密码
+ */
+export async function generatePasswordHash(password) {
+  const saltRounds = 12
+  return await bcrypt.hash(password, saltRounds)
+}
+
+/**
+ * 路径匹配
+ * @param {String} rulePath 路径规则
+ * @param {String} currentPath 当前路径
+ * @returns {Boolean} true或者false
+ */
+ export function pathMatch(rulePath, currentPath) {
+  const ruleMethod = rulePath.split(' ')[0] || ''
+  const rulePathStr = rulePath.split(' ')[1] || ''
+  const currentMethod = currentPath.split(' ')[0] || ''
+  const currentPathStr = currentPath.split(' ')[1] || ''
+  return (
+    ruleMethod.toLowerCase() === currentMethod.toLowerCase() &&
+    !!pathToRegexp(rulePathStr).exec(currentPathStr)
+  )
+}
+
 
 module.exports = {
   formatTime: formatTime,

@@ -2,10 +2,13 @@ import { Theme, Book, BookList } from '../models'
 import { tool, checkAdminToken } from '../utils'
 
 export default function(router) {
-  // 首页获取栏目数据的接口
-  router.get('/api/theme/index_list', async (ctx, next) => {
+  /**
+   * 前端接口
+   * 首页获取栏目数据的接口
+   */
+  router.get('/api/front/theme', async (ctx, next) => {
     // 查找出所有的需要显示的栏目
-    let allThemes = await Theme.find({ show: true }, 'name layout flush books').sort({ priority: -1 })
+    let allThemes = await Theme.find({ show: true }, 'name layout flush books').sort({ priority: 1 })
     let result = []
     for (let i = 0; i < allThemes.length; i++) {
       let bookList = []
@@ -15,23 +18,19 @@ export default function(router) {
           num = 4
           break
         case 2:
-          num = 3
+          num = 5
           break
         case 3:
-          num = 3
-          break
-        case 4:
           num = 6
           break
         default:
           break
       }
       for (let k = 0; k < allThemes[i].books.length; k++) {
-        // 布局2只需要排名前三的书籍
         if (k >= num) {
           break
         } else {
-          let tmpBook = await Book.findById(allThemes[i].books[k].bookid, 'name img_url des author')
+          let tmpBook = await Book.findById(allThemes[i].books[k].bookid, 'name img_url des author classification')
           tmpBook.des = tmpBook.des
             .replace(/\s/g, '')
             .replace(/\n/g, '')
@@ -42,6 +41,7 @@ export default function(router) {
               name: tmpBook.name,
               author: tmpBook.author,
               img_url: tmpBook.img_url,
+              classify: tmpBook.classification,
               des: tmpBook.des
             })
           }
@@ -58,8 +58,11 @@ export default function(router) {
     ctx.body = { ok: true, msg: '获取栏目成功', list: result }
   })
 
-  // 点击换一批对应的接口
-  router.get('/api/theme/change_list', async (ctx, next) => {
+  /**
+   * 前端接口
+   * 首页点击换一批对应的接口
+   */
+  router.get('/api/front/theme/flush', async (ctx, next) => {
     let { page, theme_id } = ctx.request.query
     if (page) {
       page = parseInt(page)
@@ -80,13 +83,10 @@ export default function(router) {
           num = 4
           break
         case 2:
-          num = 3
+          num = 5
           break
         case 3:
-          num = 3
-          break
-        case 4:
-          num = 6
+          num = 5
           break
         default:
           break
@@ -94,19 +94,39 @@ export default function(router) {
       let bookList = []
       for (let i = 0; i < thisTheme.books.length; i++) {
         if (i > num * (page - 1) && i <= num * page) {
-          let tmpBook = await Book.findById(thisTheme.books[i].bookid)
+          let tmpBook = await Book.findById(thisTheme.books[i].bookid, 'name img_url des author classification')
           if (tmpBook) {
             bookList.push(tmpBook)
           }
         }
       }
-      ctx.body = { ok: true, msg: '获取栏目成功', list: bookList }
+      ctx.body = { ok: true, msg: '获取更多书籍成功', list: bookList }
     } else {
-      ctx.body = { ok: false, msg: '缺少参数theme_id' }
+      ctx.body = { ok: false, msg: '获取更多书籍失败，参数错误' }
     }
   })
 
-  router.post('/api/theme', async (ctx, next) => {
+  /**
+   * 后台接口
+   * 列出所有的主题
+   */
+  router.get('/api/backend/theme', async (ctx, next) => {
+    let userid = await checkAdminToken(ctx, next, 'theme_list')
+    if (userid) {
+      let allThemes = await Theme.find({}, { books: 0 }).sort({ priority: 1 })
+      if (allThemes) {
+        ctx.body = { ok: true, msg: '获取主题列表成功', list: allThemes }
+      } else {
+        ctx.body = { ok: false, msg: '获取主题列表失败' }
+      }
+    }
+  })
+
+  /**
+   * 后台接口
+   * 新增主题
+   */
+  router.post('/api/backend/theme', async (ctx, next) => {
     let { name, des, books, show, layout, flush } = ctx.request.body
     let finalBooks = []
     if (books) {
@@ -136,11 +156,14 @@ export default function(router) {
       flush: flush,
       create_time: new Date()
     })
-    ctx.body = { ok: true, msg: '创建主题成功！', data: theme }
+    ctx.body = { ok: true, msg: '创建主题成功', data: theme }
   })
 
-  // 后台获取主题详细信息
-  router.get('/api/theme/:id', async (ctx, next) => {
+  /**
+   * 后台接口
+   * 获取主题详细信息
+   */
+  router.get('/api/backend/theme/:id', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'theme_list')
     if (userid) {
       let id = ctx.params.id
@@ -157,21 +180,13 @@ export default function(router) {
     }
   })
 
-  // 后台列出主题的接口
-  router.get('/api/theme', async (ctx, next) => {
-    let userid = await checkAdminToken(ctx, next, 'theme_list')
-    if (userid) {
-      let allThemes = await Theme.find({}, { books: 0 }).sort({ priority: 1 })
-      if (allThemes) {
-        ctx.body = { ok: true, msg: '获取主题列表成功', list: allThemes }
-      } else {
-        ctx.body = { ok: false, msg: '获取主题列表失败' }
-      }
-    }
-  })
+  
 
-  // 后台修改主题的接口
-  router.patch('/api/theme/:id', async (ctx, next) => {
+  /**
+   * 后台接口
+   * 修改主题
+   */
+  router.patch('/api/backend/theme/:id', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'theme_update')
     if (userid) {
       let id = ctx.params.id
@@ -190,8 +205,11 @@ export default function(router) {
     }
   })
 
-  // 后台删除主题接口
-  router.delete('/api/theme/:id', async (ctx, next) => {
+  /**
+   * 后台接口
+   * 删除主题
+   */
+  router.delete('/api/backend/theme/:id', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'theme_delete')
     if (userid) {
       let id = ctx.params.id
@@ -204,8 +222,11 @@ export default function(router) {
     }
   })
 
-  // 后台主题排序接口
-  router.post('/api/theme/exchange', async (ctx, next) => {
+  /**
+   * 后台接口
+   * 主题拖拽排序
+   */
+  router.post('/api/backend/theme/exchange', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'theme_update')
     if (userid) {
       let from_index = ctx.request.body.from_index
@@ -247,8 +268,11 @@ export default function(router) {
     }
   })
 
-  // 后台主题书籍排序接口
-  router.post('/api/theme/:id/book_exchange', async (ctx, next) => {
+  /**
+   * 后台接口
+   * 主题书籍排序
+   */
+  router.post('/api/backend/theme/:id/book_exchange', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'theme_update')
     if (userid) {
       let themeId = ctx.params.id
@@ -288,8 +312,11 @@ export default function(router) {
     }
   })
 
-  // 列出主题下的所有书籍
-  router.get('/api/theme/list_book', async (ctx, next) => {
+  /**
+   * 后台接口
+   * 列出主题下的所有书籍
+   */
+  router.get('/api/backend/theme/allbooks', async (ctx, next) => {
     let id = ctx.request.query.id
     let result = await Theme.findById(id)
     if (result) {
@@ -309,42 +336,46 @@ export default function(router) {
     }
   })
 
-  // 后台更新主题中的书籍列表
-  router.put('/api/theme/:id', async (ctx, next) => {
-    let id = ctx.params.id
-    let { books } = ctx.request.body
-    if (id) {
-      let thisTheme = await Theme.findById(id)
-      if (thisTheme) {
-        let allbooks = books ? books.split('|') : []
-        // thisTheme.books.forEach(item => {
-        //   allbooks.push(typeof item.bookid === 'string' ? item.bookid : item.bookid.toString())
-        // })
-        // allbooks = allbooks.concat(books ? books.split('|') : [])
-        // allbooks = tool.unique(allbooks)
-        let finalBooks = []
-        let count = 1
-        for (let i = 0; i < allbooks.length; i++) {
-          let thisBook = await Book.findById(allbooks[i])
-          if (thisBook) {
-            finalBooks.push({
-              bookid: await Theme.transId(allbooks[i]),
-              index: count
-            })
-            count++
-          }
-        }
-        let result = await Theme.update({ _id: id }, { $set: { books: finalBooks } })
-        if (result.ok === 1) {
-          ctx.body = { ok: true, msg: '更新主题书籍成功' }
-        } else {
-          ctx.body = { ok: false, msg: '更新主题书籍失败', data: result }
-        }
-      } else {
-        ctx.body = { ok: false, msg: '找不到这样的主题' }
+  /**
+   * 后台接口
+   * 更新主题中的书籍列表
+   */
+  router.put('/api/backend/theme/:id/updatebooks', async (ctx, next) => {
+    const id = ctx.params.id
+    const { books } = ctx.request.body
+    if (!id) {
+      ctx.body = { ok: false, msg: '更新主题失败，缺乏id参数' }
+      return
+    }
+
+    const thisTheme = await Theme.findById(id)
+    if (!thisTheme) {
+      ctx.body = { ok: false, msg: '更新主题失败，找不到这样的主题' }
+      return
+    }
+    const allbooks = books ? books.split('|') : []
+    // thisTheme.books.forEach(item => {
+    //   allbooks.push(typeof item.bookid === 'string' ? item.bookid : item.bookid.toString())
+    // })
+    // allbooks = allbooks.concat(books ? books.split('|') : [])
+    // allbooks = tool.unique(allbooks)
+    let finalBooks = []
+    let count = 1
+    for (let i = 0; i < allbooks.length; i++) {
+      let thisBook = await Book.findById(allbooks[i])
+      if (thisBook) {
+        finalBooks.push({
+          bookid: await Theme.transId(allbooks[i]),
+          index: count
+        })
+        count++
       }
+    }
+    let result = await Theme.update({ _id: id }, { $set: { books: finalBooks } })
+    if (result.ok === 1) {
+      ctx.body = { ok: true, msg: '更新主题书籍成功' }
     } else {
-      ctx.body = { ok: false, msg: '缺乏id参数' }
+      ctx.body = { ok: false, msg: '更新主题书籍失败', data: result }
     }
   })
 }

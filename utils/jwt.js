@@ -1,11 +1,11 @@
 import { User } from '../models'
+import { jwtSecret } from '../config'
 const jwt = require('jsonwebtoken')
 const Promise = require('bluebird')
-const secret = 'mbook' // token秘钥
 
 const jwtVerify = str => {
   return new Promise((resolve, reject) => {
-    jwt.verify(str, secret, function(err, decoded) {
+    jwt.verify(str, jwtSecret, function(err, decoded) {
       if (err) {
         reject(err)
         return

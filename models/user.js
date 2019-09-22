@@ -10,8 +10,9 @@ const SALT_WORK_FACTOR = 10
 const UserSchema = new mongoose.Schema({
   username: { type: String, required: true },
   password: String,
+  mobile: String,
   avatar: String,
-  identity: Number, // 区分用户是普通用户还是系统管理员，1：小程序用户，2：系统管理员
+  identity: Number, // 区分用户是普通用户还是系统管理员，1：微书用户，2：系统管理员
   openid: { type: String, unique: true }, // 小程序openid
   // unionid: String, // 小程序unionid
   amount: 0, // 书币数量
@@ -35,6 +36,7 @@ const UserSchema = new mongoose.Schema({
 }, { versionKey: false })
 
 UserSchema.index({ openid: 1 }, { unique: true })
+UserSchema.index({ mobile: 1 }, { unique: true })
 
 /**
  * 增加用户书币数的静态函数

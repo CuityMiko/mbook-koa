@@ -7,7 +7,7 @@ import { tool, debug } from '../utils'
 // 初始化微信支付
 const WeiXinPay = require('./weixin-pay/index')
 const weixinpay = new WeiXinPay({
-  appid: config.wx_appid,
+  appid: config.wxMiniprogramAppId,
   mch_id: config.mch_id,
   partner_key: config.partner_key,
   pfx: fs.readFileSync(path.join(__dirname + '/' + config.pfx))

@@ -1,4 +1,5 @@
 import banner from './banner'
+import advisement from './advisement'
 import theme from './theme'
 import book from './book'
 import chapter from './chapter'
@@ -23,6 +24,7 @@ import other from './other'
 
 export default function(router) {
   banner(router)
+  advisement(router)
   theme(router)
   book(router)
   chapter(router)

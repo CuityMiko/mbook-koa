@@ -15,14 +15,6 @@ import { requestWxCode } from '../utils/wxCode'
 import qiniuUpload from '../utils/qiniuUpload'
 import { mongosync } from '../bin/mongosync'
 
-// qiniu上传设置
-const client = qn.create({
-  accessKey: config.accessKey,
-  secretKey: config.secretKey,
-  bucket: 'upload',
-  origin: 'https://fs.andylistudio.com'
-})
-
 export default function(router) {
   router.get('/api/get_text', async (ctx, next) => {
     let arr = ['读万卷书,行万里路。 ——顾炎武', '读过一本好书，像交了一个益友。 ——臧克家', '鸟欲高飞先振翅，人求上进先读书', '书籍是人类思想的宝库', '书山有路勤为径，学海无涯苦作舟']
@@ -137,15 +129,15 @@ export default function(router) {
                       current--
                     }
                     // 上传图片到七牛云
-                    client.upload(canvas.toBuffer(), { key: 'mbook/share/' + uuid.v1() + '.png' }, function(err, result) {
-                      if (err) {
+                    qiniuUpload(canvas.toBuffer(), 'mbook/share/' + uuid.v1() + '.png')
+                      .then(res => {
+                        ctx.body = { ok: true, msg: '分享图片导出成功', url: result.url }
+                        resolve(next())
+                      })
+                      .catch(err => {
                         ctx.body = { ok: false, msg: '分享图片导出失败' }
                         reject('分享图片导出失败')
-                        return
-                      }
-                      ctx.body = { ok: true, msg: '分享图片导出成功', url: result.url }
-                      resolve(next())
-                    })
+                      })
                   } else {
                     ctx.body = { ok: false, msg: '下载书籍封面图片失败' }
                     reject('下载书籍封面图片失败')
@@ -240,15 +232,15 @@ export default function(router) {
                     current--
                   }
                   // 上传图片到七牛云
-                  client.upload(canvas.toBuffer(), { key: 'mbook/share/' + uuid.v1() + '.png' }, function(err, result) {
-                    if (err) {
+                  qiniuUpload(canvas.toBuffer(), 'mbook/share/' + uuid.v1() + '.png')
+                    .then(res => {
+                      ctx.body = { ok: true, msg: '分享图片导出成功', url: result.url }
+                      resolve(next())
+                    })
+                    .catch(err => {
                       ctx.body = { ok: false, msg: '分享图片导出失败' }
                       reject('分享图片导出失败')
-                      return
-                    }
-                    ctx.body = { ok: true, msg: '分享图片导出成功', url: result.url }
-                    resolve(next())
-                  })
+                    })
                 } else {
                   ctx.body = { ok: false, msg: '下载书籍封面图片失败' }
                   reject('下载书籍封面图片失败')

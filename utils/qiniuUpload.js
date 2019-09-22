@@ -1,10 +1,10 @@
 import qn from 'qn'
-import config from '../config'
+import { qiniuAccessKey, qiniuSecretKey } from '../config'
 
 // qiniu上传设置
 const client = qn.create({
-  accessKey: config.accessKey,
-  secretKey: config.secretKey,
+  accessKey: qiniuAccessKey,
+  secretKey: qiniuSecretKey,
   bucket: 'upload',
   origin: 'https://fs.andylistudio.com',
 })

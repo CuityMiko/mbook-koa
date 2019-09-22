@@ -2,8 +2,81 @@ import { Dialog } from '../models'
 import { checkUserToken, checkAdminToken } from '../utils'
 
 export default function(router) {
-  // 后台管理新增弹窗
-  router.post('/api/dialog', async (ctx, next) => {
+  /**
+   * 前端接口
+   * 小程序端获取弹窗列表
+   */
+  router.get('/api/front/dialog', async (ctx, next) => {
+    let now = new Date()
+    let dialogs = await Dialog.find({
+      start_date: {
+        $lt: now
+      },
+      end_date: {
+        $gte: now
+      }
+    })
+
+    // 整理dialogs的格式
+    let fixedDialog = {}
+    let indexDialog = {}
+    let redpockDialog = {}
+    for( let i=0; i<dialogs.length; i++) {
+      if (dialogs[i].type === 'fixed-btn' && JSON.stringify(fixedDialog) === '{}') {
+        fixedDialog = dialogs[i].data
+      }
+      if (dialogs[i].type === 'index-dialog' && JSON.stringify(indexDialog) === '{}') {
+        indexDialog = dialogs[i].data
+      }
+      if (dialogs[i].type === 'redpock' && JSON.stringify(redpockDialog) === '{}') {
+        redpockDialog = dialogs[i].data
+      }
+    }
+    ctx.body = { ok: true, dialog: {
+      'fixed-btn': fixedDialog,
+      'index-dialog': indexDialog,
+      'redpock': redpockDialog
+    }, msg: '获取弹窗列表成功' }
+  })
+
+  /**
+   * 后端接口
+   * 获取弹窗列表
+   */
+  router.get('/api/backend/dialog', async (ctx, next) => {
+    let userid = await checkAdminToken(ctx, next, 'dialog_list')
+    if (userid) {
+      // 参数格式化
+      let { page, limit } = ctx.request.query
+      if (page) {
+        page = parseInt(page)
+        if (page < 1) {
+          page = 1
+        }
+      } else {
+        page = 1
+      }
+      if (limit) {
+        limit = parseInt(limit)
+      } else {
+        limit = 10
+      }
+ 
+      // 查询记录
+      const total = await Dialog.count()
+      const dialogs = await Dialog.find()
+        .sort({ create_time: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+      ctx.body = { ok: true, total, list: dialogs, msg: '获取弹窗列表成功' }
+    }
+  })
+
+  /**
+   * 后端接口
+   * 新增弹窗
+   */
+  router.post('/api/backend/dialog', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'dialog_add')
     if (userid) {
       // 参数检查
@@ -53,8 +126,11 @@ export default function(router) {
     }
   })
 
-  // 后台管理新增弹窗
-  router.put('/api/dialog/:id', async (ctx, next) => {
+  /**
+   * 后端接口
+   * 修改弹窗
+   */
+  router.put('/api/backend/dialog/:id', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'dialog_update')
     if (userid) {
       // 参数检查
@@ -95,8 +171,11 @@ export default function(router) {
     }
   })
 
-  // 后台管理删除弹窗
-  router.delete('/api/dialog/:id', async (ctx, next) => {
+  /**
+   * 后端接口
+   * 删除弹窗
+   */
+  router.delete('/api/backend/dialog/:id', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'dialog_delete')
     if (userid) {
       let id = ctx.params.id
@@ -110,69 +189,5 @@ export default function(router) {
       })
       ctx.body = { ok: true, msg: '删除弹窗成功' }
     }
-  })
-
-  // 后台管理获取弹窗列表
-  router.get('/api/dialog', async (ctx, next) => {
-    let userid = await checkAdminToken(ctx, next, 'dialog_list')
-    if (userid) {
-      // 参数格式化
-      let { page, limit } = ctx.request.query
-      if (page) {
-        page = parseInt(page)
-        if (page < 1) {
-          page = 1
-        }
-      } else {
-        page = 1
-      }
-      if (limit) {
-        limit = parseInt(limit)
-      } else {
-        limit = 10
-      }
- 
-      // 查询记录
-      const total = await Dialog.count()
-      const dialogs = await Dialog.find()
-        .sort({ create_time: -1 })
-        .skip((page - 1) * limit)
-        .limit(limit)
-      ctx.body = { ok: true, total, list: dialogs, msg: '获取弹窗列表成功' }
-    }
-  })
-
-  // 小程序端获取弹窗列表
-  router.get('/api/wxapp/dialog', async (ctx, next) => {
-    let now = new Date()
-    let dialogs = await Dialog.find({
-      start_date: {
-        $lt: now
-      },
-      end_date: {
-        $gte: now
-      }
-    })
-
-    // 整理dialogs的格式
-    let fixedDialog = {}
-    let indexDialog = {}
-    let redpockDialog = {}
-    for( let i=0; i<dialogs.length; i++) {
-      if (dialogs[i].type === 'fixed-btn' && JSON.stringify(fixedDialog) === '{}') {
-        fixedDialog = dialogs[i].data
-      }
-      if (dialogs[i].type === 'index-dialog' && JSON.stringify(indexDialog) === '{}') {
-        indexDialog = dialogs[i].data
-      }
-      if (dialogs[i].type === 'redpock' && JSON.stringify(redpockDialog) === '{}') {
-        redpockDialog = dialogs[i].data
-      }
-    }
-    ctx.body = { ok: true, dialog: {
-      'fixed-btn': fixedDialog,
-      'index-dialog': indexDialog,
-      'redpock': redpockDialog
-    }, msg: '获取弹窗列表成功' }
   })
 }

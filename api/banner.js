@@ -2,14 +2,21 @@ import { checkAdminToken } from '../utils'
 import { Banner } from '../models'
 
 export default function(router) {
-  router.get('/api/banner/list', async (ctx, next) => {
-    // 获取url参数
-    let result = await Banner.find({ show: true }, 'type url img_url des').sort({ priority: 1 })
+  /**
+   * 前端接口
+   * 获取banner列表
+   */
+  router.get('/api/front/banner', async (ctx, next) => {
+    const result = await Banner.find({ show: true }, 'type url img_url des background').sort({ priority: 1 })
     ctx.body = { ok: true, msg: '获取banner成功', list: result }
   })
 
-  router.get('/api/banner', async (ctx, next) => {
-    let userid = await checkAdminToken(ctx, next, 'banner_list')
+  /**
+   * 后端接口
+   * 获取banner列表
+   */
+  router.get('/api/backend/banner', async (ctx, next) => {
+    const userid = await checkAdminToken(ctx, next, 'banner_list')
     if (userid) {
       // 获取url参数
       let { page, limit } = ctx.request.query
@@ -31,30 +38,39 @@ export default function(router) {
         .limit(limit)
         .sort({ priority: 1 })
       let total = await Banner.count()
-      ctx.body = { ok: true, msg: '查询成功', total: total, list: result }
+      ctx.body = { ok: true, msg: '获取banner成功', total: total, list: result }
     }
   })
 
-  router.post('/api/banner', async (ctx, next) => {
-    let userid = await checkAdminToken(ctx, next, 'banner_add')
+  /**
+   * 后端接口
+   * 新增banner
+   */
+  router.post('/api/backend/banner', async (ctx, next) => {
+    const userid = await checkAdminToken(ctx, next, 'banner_add')
     if (userid) {
-      let { show, type, url, img_url, des } = ctx.request.body
+      let { show, type, url, img_url, des, background } = ctx.request.body
       let maxPriority = await Banner.count()
       let result = await Banner.create({
         priority: maxPriority + 1,
-        show: show,
-        type: type,
-        url: url,
-        img_url: img_url,
-        des: des,
+        show,
+        type,
+        url,
+        background,
+        img_url,
+        des,
         create_time: new Date()
       })
       ctx.body = { ok: true, msg: '新增banner成功', data: result, total: maxPriority + 1 }
     }
   })
 
-  router.patch('/api/banner/:id', async (ctx, next) => {
-    let userid = await checkAdminToken(ctx, next, 'banner_update')
+  /**
+   * 后端接口
+   * 修改banner
+   */
+  router.patch('/api/backend/banner/:id', async (ctx, next) => {
+    const userid = await checkAdminToken(ctx, next, 'banner_update')
     if (userid) {
       let id = ctx.params.id
       let result = await Banner.update(
@@ -72,8 +88,12 @@ export default function(router) {
     }
   })
 
-  router.delete('/api/banner/:id', async (ctx, next) => {
-    let userid = await checkAdminToken(ctx, next, 'banner_delete')
+  /**
+   * 后端接口
+   * 删除banner
+   */
+  router.delete('/api/backend/banner/:id', async (ctx, next) => {
+    const userid = await checkAdminToken(ctx, next, 'banner_delete')
     if (userid) {
       let id = ctx.params.id
       let result = await Banner.remove({ _id: id })
@@ -85,8 +105,11 @@ export default function(router) {
     }
   })
 
-  // 交换banner位置
-  router.post('/api/banner/exchange', async (ctx, next) => {
+  /**
+   * 后端接口
+   * 交换banner位置
+   */
+  router.post('/api/backend/banner/exchange', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'banner_update')
     if (userid) {
       let from_index = ctx.request.body.from_index

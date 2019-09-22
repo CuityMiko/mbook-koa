@@ -2,17 +2,22 @@ import jwt from 'jsonwebtoken'
 import request from 'request'
 import querystring from 'querystring'
 import Promise from 'bluebird'
-import config from '../config'
+import { wxMiniprogramAppId, wxMiniprogramSecret, jwtSecret, fakeVertification } from '../config'
 import shortid from 'shortid'
 import moment from 'moment'
-import { User, BookList, Pay, Share, Attendance, Award, Buy, Comment, FormId, Setting, Notice } from '../models'
-import { checkUserToken, checkAdminToken, reportError, debug } from '../utils'
+import crypto from 'crypto'
+import Identicon from 'identicon.js'
+import { User, BookList, Pay, Share, Attendance, Award, Comment, FormId, Setting, Notice } from '../models'
+import { checkUserToken, checkAdminToken, reportError } from '../utils'
+import redis from '../utils/redis'
+import qiniuUpload from '../utils/qiniuUpload'
 
-const secret = 'mbook' // token秘钥
-
-// console.log(jwt.sign({ userid: '5c7b82b811661806de76f693' }, secret, {
-//   expiresIn: '1d'
-// }))
+const createToken = async (user, expiresIn) => {
+  const { id, identify } = user
+  return await jwt.sign({ userid: id, identify }, jwtSecret, {
+    expiresIn,
+  })
+}
 
 /**
  * 发送GET请求
@@ -54,9 +59,9 @@ function updateLastLoginTime(userid) {
  */
 function initUserBooklist(userid) {
   BookList.create({
-      userid: userid,
-      books: []
-    })
+    userid: userid,
+    books: []
+  })
     .then(res => {
       console.log(`初始化用户${userid}书架成功`)
     })
@@ -99,14 +104,14 @@ export default function(router) {
       const startDate = new Date(moment().subtract(14, 'days'))
       const endDate = new Date()
       const orParams = []
-      orParams.push({ user: {$regex: `.*${userid}.*`} })
-      orParams.push( { user: 'all' })
+      orParams.push({ user: { $regex: `.*${userid}.*` } })
+      orParams.push({ user: 'all' })
       const userAgent = ctx.request.headers['user-agent']
       if (/Android/i.test(userAgent)) {
-        orParams.push( { user: 'android' })
+        orParams.push({ user: 'android' })
       }
       if (/iPhone|iPad|iPod/i.test(userAgent)) {
-        orParams.push( { user: 'ios' })
+        orParams.push({ user: 'ios' })
       }
       const notices = await Notice.find({ $or: orParams, create_time: { $gt: startDate, $lt: endDate } }, '_id')
 
@@ -132,8 +137,8 @@ export default function(router) {
       // 向微信服务器发送请求，使用code换取openid和session_key
       let qsdata = {
         grant_type: 'authorization_code',
-        appid: config.wx_appid,
-        secret: config.wx_secret,
+        appid: wxMiniprogramAppId,
+        secret: wxMiniprogramSecret,
         js_code: code
       }
       let content = querystring.stringify(qsdata)
@@ -145,10 +150,7 @@ export default function(router) {
         })
         if (user) {
           // 已注册，生成token并返回
-          let userToken = { userid: user._id }
-          const token = jwt.sign(userToken, secret, {
-            expiresIn: '1d'
-          })
+          const token = createToken(user, '1d')
 
           // 更新用户最近登录时间
           console.log('用户 ' + user._id + ' 于 ' + user.create_time.toDateString() + ' 登录')
@@ -220,10 +222,7 @@ export default function(router) {
         }
         if (isCorrect) {
           // 产生token
-          let userToken = { userid: user._id, identity: identity }
-          const token = jwt.sign(userToken, secret, {
-            expiresIn: '1d'
-          })
+          const token = createToken(user, '1d')
 
           // 更新用户最近登录时间
           console.log('用户 ' + user._id + ' 于 ' + new Date().toDateString() + ' 登录后台管理系统', '')
@@ -251,111 +250,193 @@ export default function(router) {
   })
 
   /**
-   * 小程序端注册
-   * @method post 
+   * 发送验证码到用户手机
+   * 需要参数 mobile 手机号码, usage 注册用户还是登录
+   */
+   router.post('/api/front/user/send_verify', async ctx => {
+    const { mobile, usage } = ctx.request.body
+    // 校验合法性
+    const mobileReg = /^(13|15|17|18|14)[0-9]{9}$/
+    if (!mobile || !mobileReg.test(mobile)) {
+      ctx.body = { code: -1, msg: '手机号码格式错误' }
+      return
+    }
+    if (usage === 'login') {
+      const user = await User.findOne({ where: { mobile, identify: { [Op.not]: 2 } } })
+      if (!user) {
+        ctx.body = { code: -2, msg: '此号码尚未注册' }
+        return
+      }
+    } else if (usage === 'registe') {
+      const user = await User.findOne({ where: { mobile, identify: { [Op.not]: 2 } } })
+      if (user) {
+        ctx.body = { code: -2, msg: '此号码已经被注册过了，请前往登录' }
+        return
+      }
+    } else {
+      ctx.body = { code: -1, msg: '请指明验证码用途' }
+      return
+    }
+
+    // 查询当前redis是已经存在这个手机的验证码
+    const verifyInRedis = await redis.get(`phone_verify_${mobile}`)
+    if (verifyInRedis) {
+      ctx.body = { code: -1, msg: '你请求太过频繁，请稍后再试' }
+      return
+    }
+
+    // 开始发送短信
+    const code = Math.random()
+      .toString()
+      .slice(-6)
+    if (fakeVertification) {
+      console.log(`发送给手机 ${mobile} 验证码: ${code}`)
+      redis.set(`phone_verify_${mobile}`, code, 'EX', 60)
+      ctx.body = { code: 0, msg: '发送短信验证码成功' }
+    } else {
+      const sendResult = await sendMessage('loginOrRegiste', mobile, { "#app#": '钱贷大师', "#code#": code })
+      if (sendResult && sendResult.success) {
+        redis.set(`phone_verify_${mobile}`, code, 'EX', 60)
+        ctx.body = { code: 0, msg: '发送短信验证码成功' }
+      } else {
+        ctx.body = { code: -3, msg: sendResult ? sendResult.message : '发送短信验证码失败' }
+      }
+    }
+  })
+
+
+
+  /**
+   * 用户注册
+   * @method post
    * @parmas code 微信临时登录凭证
    * @parmas nickName 昵称
-   * @parmas province 省份
-   * @parmas country 国家
    * @parmas avatarUrl 头像
    */
-  router.post('/api/user/registe', async (ctx, next) => {
-    let { identity } = ctx.request.body
-    if (identity === 'appuser') {
-      let { code, nickName, province, country, avatarUrl } = ctx.request.body
-      // app用户注册
+  router.post('/api/front/user/registe', async ctx => {
+    const { wey } = ctx.request.body
+    if (wey === 'miniprogram') {
+      // 使用微信小程序注册
+      const { code, nickName, avatarUrl } = ctx.request.body
       // 向微信服务器发送请求，使用code换取openid和session_key
-      let qsdata = {
+      const content = querystring.stringify({
         grant_type: 'authorization_code',
-        appid: config.wx_appid,
-        secret: config.wx_secret,
+        appid: wxMiniprogramAppId,
+        secret: wxMiniprogramSecret,
         js_code: code
+      })
+      const wxdata = await doRequest('https://api.weixin.qq.com/sns/jscode2session?' + content)
+      if (!wxdata || !wxdata.session_key || !wxdata.openid) {
+        ctx.body = { ok: false, msg: '微信认证失败' }
+        return
       }
-      let content = querystring.stringify(qsdata)
-      let wxdata = await doRequest('https://api.weixin.qq.com/sns/jscode2session?' + content)
-      if (wxdata.session_key && wxdata.openid) {
-        let isUserExit = await User.findOne({ openid: wxdata.openid })
-        if (!isUserExit) {
-          let user = await User.create({
-            username: nickName, // 用户名就使用昵称
-            password: null,
-            avatar: avatarUrl,
-            identity: 1, // 区分用户是普通用户还是系统管理员
-            openid: wxdata.openid, // 小程序openid
-            amount: 0, //
-            setting: {
-              updateNotice: true,
-              autoBuy: true,
-              reader: {
-                fontSize: 36,
-                fontFamily: '使用系统字体',
-                bright: 1,
-                mode: '默认', // 模式,
-                overPage: 1 // 翻页模式
-              }
-            },
-            read_time: 0,
-            create_time: new Date(),
-            last_login_time: new Date(),
-            login_times: 0
-          })
-          // 已注册，生成token并返回
-          let userToken = {
-            userid: user._id
-          }
 
-          //token签名 有效期为2小时
-          const token = jwt.sign(userToken, secret, {
-            expiresIn: '1d'
-          })
-
-          // 初始化书架
-          initUserBooklist(user._id)
-          console.log('Info', '用户 ' + user._id + ' 于 ' + user.create_time.toDateString() + ' 注册, 并初始化书架')
-          updateLastLoginTime(user._id)
-
-          ctx.body = {
-            ok: true,
-            msg: '注册成功',
-            token: token,
-            userinfo: {
-              _id: user._id,
-              username: user.username,
-              avatar: user.avatar,
-              identity: user.identity,
-              amount: user.amount
-            }
-          }
-        } else {
-          // 产生token
-          let userToken = { userid: isUserExit._id }
-          const token = jwt.sign(userToken, secret, {
-            expiresIn: '1d'
-          })
-
-          // 更新用户最近登录时间
-          console.log('用户 ' + isUserExit._id + ' 于 ' + new Date().toDateString() + ' 登录', '')
-          updateLastLoginTime(isUserExit._id)
-
-          ctx.body = {
-            ok: true,
-            msg: '登录成功',
-            token: token,
-            userinfo: isUserExit
-          }
-        }
-      } else {
-        ctx.body = {
-          ok: false,
-          msg: '微信认证失败'
-        }
+      // 检查用户是否已经存在
+      const isUserExited = await User.findOne({ openid: wxdata.openid })
+      if (isUserExited) {
+        ctx.body = { ok: false, msg: '用户已注册' }
+        return
       }
-    } else if (identity === 'adminuser') {
-      // 系统管理员注册
-    } else {
+
+      // 创建用户
+      const newUser = await User.create({
+        username: nickName, // 用户名就使用昵称
+        password: null,
+        avatar: avatarUrl,
+        identity: 1, // 区分用户是普通用户还是系统管理员
+        openid: wxdata.openid, // 小程序openid
+        amount: 0, //
+        setting: {
+          updateNotice: true,
+          autoBuy: true,
+          reader: {
+            fontSize: 36,
+            fontFamily: '使用系统字体',
+            bright: 1,
+            mode: '默认', // 模式,
+            overPage: 1 // 翻页模式
+          }
+        },
+        read_time: 0,
+        create_time: new Date(),
+        last_login_time: new Date(),
+        login_times: 0
+      })
+
+      // 生成token签名 有效期为一天
+      const token = createToken(newUser, '1d')
+
+      // 初始化书架
+      initUserBooklist(newUser._id)
+      console.log('Info', `用户 ${user._id} 于 ${newUser.create_time.toDateString()} 注册, 并初始化书架`)
+      // 更新最近登录时间
+      updateLastLoginTime(newUser._id)
+
       ctx.body = {
-        ok: false,
-        msg: '缺少identity参数'
+        ok: true,
+        msg: '注册成功',
+        token: token,
+        userinfo: {
+          _id: newUser._id,
+          username: newUser.username,
+          avatar: newUser.avatar,
+          identity: newUser.identity,
+          amount: newUser.amount
+        }
+      }
+    } else if (wey === 'weixin') {
+      // 使用微信注册
+    } else if (wey === 'mobile') {
+      // 使用手机号码注册
+      const { password, mobile, verification } = ctx.request.body
+      let error = {}
+      const mobileReg = /^(13|15|17|18|14)[0-9]{9}$/
+      const mobileVerifyReg = /^\d{6}$/
+      if (!password || !validator.isLength(password, { min: 6, max: 40 }))
+        error.password = '请输入6到16位的有效密码'
+
+      if (!mobile || !mobileReg.test(mobile)) error.mobile = '请输入正确手机号码'
+      if (!verification || !mobileVerifyReg.test(verification))
+        error.verification = '手机验证码格式错误'
+      if (await User.isRepeat('mobile', mobile)) error.mobile = '手机号码已经被注册'
+
+      const verifyInRedis = await redis.get(`phone_verify_${mobile}`)
+      if (!verifyInRedis) error.verification = '请先获取验证码'
+      if (verifyInRedis && verifyInRedis !== verification) error.verification = '验证码错误'
+
+      // 验证是否出错
+      if (JSON.stringify(error) !== '{}') {
+        ctx.body = { code: -1, error }
+        return
+      }
+
+      // 默认生成hash头像
+      const username = 'u' + mobile // 用户名默认使用u+手机号的格式
+      const hash = crypto.createHash('md5')
+      hash.update(username) // 传入用户名
+      const imgData = new Identicon(hash.digest('hex')).toString()
+      const avatarBuffer = new Buffer(imgData, 'base64')
+      const avatarKey = `loan/avatar/${username}.png`
+      try {
+        const avatar = await qiniuUpload(avatarBuffer, avatarKey)
+        const newUser = await User.create({
+          username, 
+          avatar,
+          password,
+          mobile,
+          identify: 'user',
+        })
+    
+        if (newUser && newUser.id) {
+          // 生成token
+          delete newUser.password
+          const token = await createToken(newUser, '1d')
+          ctx.body = { code: 0, msg: `用户注册成功`, token, user: newUser }
+        } else {
+          ctx.body = { code: -2, msg: `用户注册失败` }
+        }
+      } catch(err) {
+        ctx.body = { code: -1, msg: '上传头像失败' + err.toString() }
       }
     }
   })
@@ -413,11 +494,14 @@ export default function(router) {
       if (setting) {
         let thisUser = await User.findById(userid, 'setting')
         if (thisUser) {
-          const updateResult = await User.update({ _id: userid }, {
-            $set: {
-              setting: Object.assign(thisUser.setting, setting)
+          const updateResult = await User.update(
+            { _id: userid },
+            {
+              $set: {
+                setting: Object.assign(thisUser.setting, setting)
+              }
             }
-          })
+          )
           if (updateResult.ok === 1) {
             ctx.body = { ok: true, msg: '更新设置成功' }
           } else {
@@ -509,11 +593,14 @@ export default function(router) {
     if (userid) {
       let { amount } = ctx.request.body
       let id = ctx.params.id
-      let result = await User.update({ _id: id }, {
-        $set: {
-          amount: amount
+      let result = await User.update(
+        { _id: id },
+        {
+          $set: {
+            amount: amount
+          }
         }
-      })
+      )
       if (result.ok === 1) {
         ctx.body = { ok: true, msg: '更新用户成功' }
       } else {

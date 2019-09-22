@@ -4,14 +4,7 @@ const qn = require('qn')
 const config = require('../config')
 const sign = require('./wxSign')
 const redis = require('../utils/redis')
-
-// qiniu上传设置
-const client = qn.create({
-  accessKey: config.accessKey,
-  secretKey: config.secretKey,
-  bucket: 'upload',
-  origin: 'https://fs.andylistudio.com'
-})
+const qiniuUpload = require('../utils/qiniuUpload')
 
 async function getWxToken(noredis) {
   // 查看redis中是否存在token值
@@ -43,8 +36,8 @@ async function requestWxToken() {
         url: 'https://api.weixin.qq.com/cgi-bin/token',
         qs: {
           grant_type: 'client_credential',
-          appid: config.wx_appid,
-          secret: config.wx_secret
+          appid: config.wxMiniprogramAppId,
+          secret: config.wxMiniprogramSecret
         }
       },
       (error, response, body) => {
@@ -54,8 +47,8 @@ async function requestWxToken() {
             '接口请求参数',
             JSON.stringify({
               grant_type: 'client_credential',
-              appid: config.wx_appid,
-              secret: config.wx_secret
+              appid: config.wxMiniprogramAppId,
+              secret: config.wxMiniprogramSecret
             })
           )
           console.log('微信接口请求失败', error)
@@ -107,14 +100,15 @@ async function requestWxCode(shareId) {
         }
         const image = Buffer.from(body, 'binary')
         // 上传到七牛云
-        client.upload(image, { key: 'mbook/share/' + shareId + '.jpeg' }, function(uploadError, result) {
-          if (uploadError) {
-            console.log('图片上传七牛云失败', uploadError)
-            reject(uploadError)
-            return
-          }
-          resolve(result.url)
-        })
+        qiniuUpload()
+        client.upload(image, 'mbook/share/' + shareId + '.jpeg')
+          .then(result => {
+            resolve(result.url)
+          })
+          .catch(error => {
+            console.log('图片上传七牛云失败', error)
+            reject(error)
+          })
       }
     )
   })
