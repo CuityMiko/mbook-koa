@@ -7,14 +7,15 @@ import shortid from 'shortid'
 import moment from 'moment'
 import crypto from 'crypto'
 import Identicon from 'identicon.js'
+import validator from 'validator'
 import { User, BookList, Pay, Share, Attendance, Award, Comment, FormId, Setting, Notice } from '../models'
 import { checkUserToken, checkAdminToken, reportError } from '../utils'
 import redis from '../utils/redis'
 import qiniuUpload from '../utils/qiniuUpload'
 
-const createToken = async (user, expiresIn) => {
-  const { id, identify } = user
-  return await jwt.sign({ userid: id, identify }, jwtSecret, {
+const createToken = (user, expiresIn) => {
+  const { _id, identify } = user
+  return jwt.sign({ userid: _id, identify }, jwtSecret, {
     expiresIn,
   })
 }
@@ -84,7 +85,7 @@ export default function(router) {
    * 小程序端获取app设置信息
    * @method get
    */
-  router.get('/api/user/setting', async (ctx, next) => {
+  router.get('/api/front/user/setting', async (ctx, next) => {
     let userid = await checkUserToken(ctx, next)
     if (userid) {
       // 查询当前用户的邀请信息，如果找不到则创建一个
@@ -127,7 +128,7 @@ export default function(router) {
    * @method post
    * @parmas code 微信临时登录凭证
    */
-  router.post('/api/user/login', async (ctx, next) => {
+  router.post('/api/front/user/login', async (ctx, next) => {
     let { identity } = ctx.request.body
     identity = parseInt(identity)
     if (identity === 1) {
@@ -150,7 +151,7 @@ export default function(router) {
         })
         if (user) {
           // 已注册，生成token并返回
-          const token = createToken(user, '1d')
+          const token = await createToken(user, '1d')
 
           // 更新用户最近登录时间
           console.log('用户 ' + user._id + ' 于 ' + user.create_time.toDateString() + ' 登录')
@@ -215,7 +216,7 @@ export default function(router) {
       }
 
       // 检测密码正确性
-      user.checkPassword(password, (err, isCorrect) => {
+      user.checkPassword(password, async (err, isCorrect) => {
         if (err) {
           ctx.body = { ok: false, msg: '密码错误' }
           return false
@@ -255,6 +256,7 @@ export default function(router) {
    */
    router.post('/api/front/user/send_verify', async ctx => {
     const { mobile, usage } = ctx.request.body
+    console.log(ctx.request.body)
     // 校验合法性
     const mobileReg = /^(13|15|17|18|14)[0-9]{9}$/
     if (!mobile || !mobileReg.test(mobile)) {
@@ -262,13 +264,13 @@ export default function(router) {
       return
     }
     if (usage === 'login') {
-      const user = await User.findOne({ where: { mobile, identify: { [Op.not]: 2 } } })
+      const user = await User.findOne({ mobile, identify: { $ne: 2 } })
       if (!user) {
         ctx.body = { code: -2, msg: '此号码尚未注册' }
         return
       }
     } else if (usage === 'registe') {
-      const user = await User.findOne({ where: { mobile, identify: { [Op.not]: 2 } } })
+      const user = await User.findOne({ mobile, identify: { $ne: 2 } })
       if (user) {
         ctx.body = { code: -2, msg: '此号码已经被注册过了，请前往登录' }
         return
@@ -310,14 +312,14 @@ export default function(router) {
    * 用户注册
    * @method post
    * @parmas code 微信临时登录凭证
-   * @parmas nickName 昵称
-   * @parmas avatarUrl 头像
+   * @parmas username 昵称
+   * @parmas avatar 头像
    */
   router.post('/api/front/user/registe', async ctx => {
     const { wey } = ctx.request.body
     if (wey === 'miniprogram') {
       // 使用微信小程序注册
-      const { code, nickName, avatarUrl } = ctx.request.body
+      const { code, username, avatar } = ctx.request.body
       // 向微信服务器发送请求，使用code换取openid和session_key
       const content = querystring.stringify({
         grant_type: 'authorization_code',
@@ -334,15 +336,15 @@ export default function(router) {
       // 检查用户是否已经存在
       const isUserExited = await User.findOne({ openid: wxdata.openid })
       if (isUserExited) {
-        ctx.body = { ok: false, msg: '用户已注册' }
+        ctx.body = { ok: false, msg: '用户在小程序上已注册' }
         return
       }
 
       // 创建用户
       const newUser = await User.create({
-        username: nickName, // 用户名就使用昵称
+        username: username, // 用户名就使用昵称
         password: null,
-        avatar: avatarUrl,
+        avatar,
         identity: 1, // 区分用户是普通用户还是系统管理员
         openid: wxdata.openid, // 小程序openid
         amount: 0, //
@@ -368,7 +370,7 @@ export default function(router) {
 
       // 初始化书架
       initUserBooklist(newUser._id)
-      console.log('Info', `用户 ${user._id} 于 ${newUser.create_time.toDateString()} 注册, 并初始化书架`)
+      console.log('Info', `用户 ${newUser._id} 于 ${newUser.create_time.toDateString()} 注册, 并初始化书架`)
       // 更新最近登录时间
       updateLastLoginTime(newUser._id)
 
@@ -379,6 +381,8 @@ export default function(router) {
         userinfo: {
           _id: newUser._id,
           username: newUser.username,
+          mobile: newUser.mobile,
+          openid: newUser.openid,
           avatar: newUser.avatar,
           identity: newUser.identity,
           amount: newUser.amount
@@ -415,8 +419,8 @@ export default function(router) {
       const hash = crypto.createHash('md5')
       hash.update(username) // 传入用户名
       const imgData = new Identicon(hash.digest('hex')).toString()
-      const avatarBuffer = new Buffer(imgData, 'base64')
-      const avatarKey = `loan/avatar/${username}.png`
+      const avatarBuffer = Buffer.from(imgData, 'base64')
+      const avatarKey = `mbook/avatar/${username}.png`
       try {
         const avatar = await qiniuUpload(avatarBuffer, avatarKey)
         const newUser = await User.create({
@@ -424,19 +428,32 @@ export default function(router) {
           avatar,
           password,
           mobile,
-          identify: 'user',
+          identify: 1
         })
     
         if (newUser && newUser.id) {
           // 生成token
           delete newUser.password
-          const token = await createToken(newUser, '1d')
-          ctx.body = { code: 0, msg: `用户注册成功`, token, user: newUser }
+          const token = createToken(newUser, '1d')
+          ctx.body = {
+            code: 0,
+            msg: `用户注册成功`,
+            token,
+            user: {
+              _id: newUser._id,
+              username: newUser.username,
+              mobile: newUser.mobile,
+              openid: newUser.openid,
+              avatar: newUser.avatar,
+              identity: newUser.identity,
+              amount: newUser.amount
+            }
+          }
         } else {
           ctx.body = { code: -2, msg: `用户注册失败` }
         }
       } catch(err) {
-        ctx.body = { code: -1, msg: '上传头像失败' + err.toString() }
+        ctx.body = { code: -1, msg: '注册失败，' + err.toString() }
       }
     }
   })
@@ -463,7 +480,7 @@ export default function(router) {
   })
 
   // 小程序获取个人设置
-  router.get('/api/user/get_user_setting', async (ctx, next) => {
+  router.get('/api/front/user/get_user_setting', async (ctx, next) => {
     let userid = await checkUserToken(ctx, next)
     if (userid) {
       let thisUser = await User.findById(userid)
@@ -487,7 +504,7 @@ export default function(router) {
   })
 
   // 小程序更新个人设置
-  router.put('/api/user/put_user_setting', async (ctx, next) => {
+  router.put('/api/front/user/put_user_setting', async (ctx, next) => {
     let userid = await checkUserToken(ctx, next)
     if (userid) {
       let setting = ctx.request.body.setting
@@ -518,7 +535,7 @@ export default function(router) {
   })
 
   // 后台获取用户列表
-  router.get('/api/user/search', async (ctx, next) => {
+  router.get('/api/admin/user/search', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'user_search')
     if (userid) {
       const keyword = ctx.request.query.keyword
@@ -528,7 +545,7 @@ export default function(router) {
   })
 
   // 后台手动充值书币
-  router.post('/api/user/addmount', async (ctx, next) => {
+  router.post('/api/admin/user/addmount', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'user_search')
     if (userid) {
       let userid = ctx.request.body.userid
@@ -548,7 +565,7 @@ export default function(router) {
   })
 
   // 后台用户管理--获取用户列表
-  router.get('/api/user', async (ctx, next) => {
+  router.get('/api/admin/user', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'user_list')
     if (userid) {
       let { page, limit, name, id } = ctx.request.query
@@ -588,7 +605,7 @@ export default function(router) {
   })
 
   // 后台更新用户信息
-  router.put('/api/user/:id', async (ctx, next) => {
+  router.put('/api/admin/user/:id', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'user_update')
     if (userid) {
       let { amount } = ctx.request.body
@@ -609,7 +626,7 @@ export default function(router) {
     }
   })
 
-  router.delete('/api/user/:id', async (ctx, next) => {
+  router.delete('/api/admin/user/:id', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'user_delete')
     if (userid) {
       let id = ctx.params.id

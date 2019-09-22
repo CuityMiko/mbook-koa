@@ -10,10 +10,10 @@ const SALT_WORK_FACTOR = 10
 const UserSchema = new mongoose.Schema({
   username: { type: String, required: true },
   password: String,
-  mobile: String,
+  mobile: { type: String, sparse: true, unique: true },
   avatar: String,
   identity: Number, // 区分用户是普通用户还是系统管理员，1：微书用户，2：系统管理员
-  openid: { type: String, unique: true }, // 小程序openid
+  openid: { type: String, sparse: true, unique: true }, // 小程序openid
   // unionid: String, // 小程序unionid
   amount: 0, // 书币数量
   setting: {
@@ -35,8 +35,27 @@ const UserSchema = new mongoose.Schema({
   login_times: { type: Number, default: 0 } // 登录次数
 }, { versionKey: false })
 
-UserSchema.index({ openid: 1 }, { unique: true })
-UserSchema.index({ mobile: 1 }, { unique: true })
+UserSchema.index({ openid: 1 }, { sparse: true, unique: true })
+UserSchema.index({ mobile: 1 }, { sparse: true, unique: true })
+
+/**
+ * 用户名或者邮箱查重
+ * @param {String} filed 需要被验证的字段
+ * @param {String} value 需要被验证的字段的值
+ * @param {*} self 去否忽略自己开始验证
+*/
+UserSchema.statics.isRepeat = async function(filed, value, self) {
+  const query = {}
+  query[filed] = value
+  // 忽略admin用户
+  query.identify = { $ne: 2 }
+  if (self) {
+    const users = await User.find(query, '_id')
+    return users.length >= 2
+  } else {
+    return !!(await User.findOne(query, '_id'))
+  }
+}
 
 /**
  * 增加用户书币数的静态函数

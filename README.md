@@ -13,6 +13,16 @@
 
 <hr>
 
+### Mongo需要执行的命令
+```
+db.users.dropIndex("openid_1")
+db.users.dropIndex("mobile_1")
+db.users.createIndex({ openid: 1 }, { sparse: true, unique: true })
+db.users.createIndex({ mobile: 1 }, { sparse: true, unique: true })
+```
+<hr>
+
+
 ## 常见问题
 
 ### 接口报错：`errmsg: 'E11000 duplicate key error collection: mbook.chapters index: num_1 dup key: { : 130 }'`

@@ -21,7 +21,7 @@ const checkUserToken = async (ctx, next) => {
     let token = ctx.header.authorization.split(' ')[1]
     if (token) {
       return new Promise((resolve, reject) => {
-        jwt.verify(token, secret, async function(err, decoded) {
+        jwt.verify(token, jwtSecret, async function(err, decoded) {
           if (err) {
             ctx.status = 401
             ctx.body = { ok: false, msg: '无效token', err: err, authfail: true }
@@ -62,14 +62,16 @@ const checkAdminToken = async (ctx, next, permission) => {
     let token = ctx.header.authorization.split(' ')[1]
     if (token) {
       return new Promise((resolve, reject) => {
-        jwt.verify(token, secret, async function(err, decoded) {
+        jwt.verify(token, jwtSecret, async function(err, decoded) {
           if (err) {
+            console.log(err)
             ctx.status = 401
             ctx.body = { ok: false, msg: '无效token', err: err }
             await next()
             resolve(null)
             return
           }
+          console.log(decoded)
           if (decoded && decoded.userid) {
             // 权限判断
             let user = await User.findById(decoded.userid, 'identity permission')
