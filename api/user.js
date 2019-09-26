@@ -16,8 +16,48 @@ import qiniuUpload from '../utils/qiniuUpload'
 const createToken = (user, expiresIn) => {
   const { _id, identify } = user
   return jwt.sign({ userid: _id, identify }, jwtSecret, {
-    expiresIn,
+    expiresIn
   })
+}
+
+const formatUserOutput = user => {
+  return {
+    userid: user._id,
+    username: user.username,
+    mobile: user.mobile,
+    avatar: user.avatar,
+    identity: user.identity,
+    amount: user.amount,
+    last_login_time: user.last_login_time
+  }
+}
+
+const defautUserTemplate = (data) => {
+  return {
+    username: '', // 用户名就使用昵称
+    password: '',
+    avatar: '',
+    mobile: '', // 手机号码
+    identify: 1, // 区分用户是普通用户还是系统管理员
+    openid: '', // 小程序openid
+    amount: 0, //
+    setting: {
+      updateNotice: true,
+      autoBuy: true,
+      reader: {
+        fontSize: 36,
+        fontFamily: '使用系统字体',
+        bright: 1,
+        mode: '默认', // 模式,
+        overPage: 1 // 翻页模式
+      }
+    },
+    read_time: 0,
+    create_time: new Date(),
+    last_login_time: new Date(),
+    login_times: 0,
+    ...data
+  }
 }
 
 /**
@@ -129,123 +169,106 @@ export default function(router) {
    * @parmas code 微信临时登录凭证
    */
   router.post('/api/front/user/login', async (ctx, next) => {
-    let { identity } = ctx.request.body
-    identity = parseInt(identity)
-    if (identity === 1) {
+    const { wey } = ctx.request.body
+    // 小程序登录
+    if (wey === 'miniprogram') {
       // app用户登录
-      let { code } = ctx.request.body
+      const { code } = ctx.request.body
 
       // 向微信服务器发送请求，使用code换取openid和session_key
-      let qsdata = {
+      const qsdata = {
         grant_type: 'authorization_code',
         appid: wxMiniprogramAppId,
         secret: wxMiniprogramSecret,
         js_code: code
       }
-      let content = querystring.stringify(qsdata)
-      let wxdata = await doRequest('https://api.weixin.qq.com/sns/jscode2session?' + content)
-      if (wxdata.session_key && wxdata.openid) {
-        // 判断用户是否注册
-        let user = await User.findOne({
-          openid: wxdata.openid
-        })
-        if (user) {
-          // 已注册，生成token并返回
-          const token = await createToken(user, '1d')
-
-          // 更新用户最近登录时间
-          console.log('用户 ' + user._id + ' 于 ' + user.create_time.toDateString() + ' 登录')
-          updateLastLoginTime(user._id)
-
-          ctx.body = {
-            ok: true,
-            msg: '登录成功',
-            token: token,
-            userinfo: {
-              _id: user._id,
-              username: user.username,
-              avatar: user.avatar,
-              identity: user.identity,
-              amount: user.amount
-            }
-          }
-        } else {
-          // 未注册，重定向到注册页面
-          ctx.body = {
-            ok: false,
-            msg: '尚未注册',
-            token: null,
-            registe: false
-          }
-        }
-      } else {
-        ctx.body = {
-          ok: false,
-          msg: '微信认证失败'
-        }
-      }
-    } else if (identity === 2) {
-      let { username, password } = ctx.request.body
-      // 系统管理员登录
-      if (!username) {
-        ctx.body = {
-          ok: false,
-          msg: '缺乏username参数'
-        }
-        return false
+      const wxdata = await doRequest('https://api.weixin.qq.com/sns/jscode2session?' + querystring.stringify(qsdata))
+      if (!wxdata || !wxdata.session_key || !wxdata.openid) {
+        ctx.body = { ok: false, msg: '微信认证失败' }
+        return
       }
 
-      if (!password) {
-        ctx.body = {
-          ok: false,
-          msg: '缺乏password参数'
-        }
-        return false
-      }
-
-      let user = await User.findOne({ username: username, identity: identity })
+      // 检查用户是否已经存在
+      const user = await User.findOne({ openid: wxdata.openid })
       if (!user) {
-        ctx.body = { ok: false, msg: '暂无此账户，请联系管理员' }
-        return false
+        ctx.body = { ok: false, msg: '尚未注册', token: null, registe: false }
+        return
       }
 
-      // 检查密码的合法性
-      if (!user.is_active) {
-        ctx.body = { ok: false, msg: '账号未激活，请联系管理员' }
-        return false
+      // 已注册，生成token并返回
+      const token = await createToken(user, '1d')
+
+      // 更新用户最近登录时间
+      console.log('用户 ' + user._id + ' 于 ' + user.create_time.toDateString() + ' 登录')
+      updateLastLoginTime(user._id)
+
+      ctx.body = {
+        ok: true,
+        msg: '登录成功',
+        token: token,
+        userinfo: formatUserOutput(user)
+      }
+    } else if (wey === 'mobile+password') {
+      const { mobile, password } = ctx.request.body
+      // 验证参数
+      const mobileReg = /^(13|15|17|18|14)[0-9]{9}$/
+      if (!mobile || !mobileReg.test(mobile)) {
+        ctx.body = { code: -1, msg: '手机号码格式错误' }
+        return
+      }
+      if (!password || !validator.isLength(password, { min: 7, max: 42 })) {
+        ctx.body = { code: -1, error: { password: '密码格式错误' } }
+        return
+      }
+      // 查找数据库中是否存在指定邮箱和密码的记录
+      const user = await User.findOne({ mobile, identify: { $ne: 2 } })
+      if (!user) {
+        ctx.body = { code: -1, error: { mobile: '手机号码尚未注册' } }
+        return
+      }
+      // 校验密码
+      const isPasswordValid = await user.validatePassword(password)
+      if (!isPasswordValid) {
+        ctx.body = { code: -1, error: { password: '密码错误' } }
+        return
       }
 
-      // 检测密码正确性
-      user.checkPassword(password, async (err, isCorrect) => {
-        if (err) {
-          ctx.body = { ok: false, msg: '密码错误' }
-          return false
-        }
-        if (isCorrect) {
-          // 产生token
-          const token = createToken(user, '1d')
-
-          // 更新用户最近登录时间
-          console.log('用户 ' + user._id + ' 于 ' + new Date().toDateString() + ' 登录后台管理系统', '')
-          updateLastLoginTime(user._id)
-
-          ctx.body = {
-            ok: true,
-            msg: '登录成功',
-            token: token,
-            userinfo: {
-              username: user.username,
-              avatar: user.avatar
-            }
-          }
-        } else {
-          ctx.body = { ok: false, msg: '密码错误' }
-        }
-      })
+      // 验证完毕，生成token
+      const token = await createToken(user, '1d')
+      ctx.body = {
+        ok: true,
+        msg: '登录成功',
+        token: token,
+        userinfo: formatUserOutput(user)
+      }
+    } else if (wey === 'mobile+verification') {
+      const { mobile, verification } = ctx.request.body
+      // 手机号码是否注册过
+      const user = await User.findOne({ mobile, identify: { $ne: 2 } })
+      if (!user) {
+        ctx.body = { code: -1, msg: '手机号码尚未注册' }
+        return
+      }
+      // 验证码是否正确
+      const verifyInRedis = await redis.get(`phone_verify_${mobile}`)
+      if (!verifyInRedis) {
+        ctx.body = { code: -2, msg: '请先获取验证码' }
+        return
+      }
+      if (verifyInRedis && verifyInRedis !== verification) {
+        ctx.body = { code: -2, msg: '验证码错误' }
+        return
+      }
+      // 验证完毕，生成token
+      const token = await createToken(user, JWT_SECRET, '1d')
+      // 清除验证码记录
+      redis.del(`phone_verify_${mobile}`)
+      delete user.password
+      ctx.body = { code: 0, token, user, msg: '登录成功' }
     } else {
       ctx.body = {
         ok: false,
-        msg: '缺少identity参数'
+        msg: '登录类型暂不支持'
       }
     }
   })
@@ -254,7 +277,7 @@ export default function(router) {
    * 发送验证码到用户手机
    * 需要参数 mobile 手机号码, usage 注册用户还是登录
    */
-   router.post('/api/front/user/send_verify', async ctx => {
+  router.post('/api/front/user/send_verify', async ctx => {
     const { mobile, usage } = ctx.request.body
     console.log(ctx.request.body)
     // 校验合法性
@@ -291,12 +314,13 @@ export default function(router) {
     const code = Math.random()
       .toString()
       .slice(-6)
+    // 跳过短信验证，默认验证码666666
     if (fakeVertification) {
-      console.log(`发送给手机 ${mobile} 验证码: ${code}`)
-      redis.set(`phone_verify_${mobile}`, code, 'EX', 60)
+      console.log(`发送给手机 ${mobile} 验证码: 666666`)
+      redis.set(`phone_verify_${mobile}`, 666666, 'EX', 60)
       ctx.body = { code: 0, msg: '发送短信验证码成功' }
     } else {
-      const sendResult = await sendMessage('loginOrRegiste', mobile, { "#app#": '钱贷大师', "#code#": code })
+      const sendResult = await sendMessage('loginOrRegiste', mobile, { '#app#': '钱贷大师', '#code#': code })
       if (sendResult && sendResult.success) {
         redis.set(`phone_verify_${mobile}`, code, 'EX', 60)
         ctx.body = { code: 0, msg: '发送短信验证码成功' }
@@ -305,8 +329,6 @@ export default function(router) {
       }
     }
   })
-
-
 
   /**
    * 用户注册
@@ -341,8 +363,13 @@ export default function(router) {
       }
 
       // 创建用户
-      const newUser = await User.create({
-        username: username, // 用户名就使用昵称
+      const newUser = await User.create(defautUserTemplate({
+        username,
+        avatar,
+        openid: wxdata.openid, // 小程序openid
+        identity: 1, // 区分用户是普通用户还是系统管理员
+      }) {
+        username, // 用户名就使用昵称
         password: null,
         avatar,
         identity: 1, // 区分用户是普通用户还是系统管理员
@@ -378,15 +405,7 @@ export default function(router) {
         ok: true,
         msg: '注册成功',
         token: token,
-        userinfo: {
-          _id: newUser._id,
-          username: newUser.username,
-          mobile: newUser.mobile,
-          openid: newUser.openid,
-          avatar: newUser.avatar,
-          identity: newUser.identity,
-          amount: newUser.amount
-        }
+        userinfo: formatUserOutput(newUser)
       }
     } else if (wey === 'weixin') {
       // 使用微信注册
@@ -396,12 +415,10 @@ export default function(router) {
       let error = {}
       const mobileReg = /^(13|15|17|18|14)[0-9]{9}$/
       const mobileVerifyReg = /^\d{6}$/
-      if (!password || !validator.isLength(password, { min: 6, max: 40 }))
-        error.password = '请输入6到16位的有效密码'
+      if (!password || !validator.isLength(password, { min: 6, max: 40 })) error.password = '请输入6到16位的有效密码'
 
       if (!mobile || !mobileReg.test(mobile)) error.mobile = '请输入正确手机号码'
-      if (!verification || !mobileVerifyReg.test(verification))
-        error.verification = '手机验证码格式错误'
+      if (!verification || !mobileVerifyReg.test(verification)) error.verification = '手机验证码格式错误'
       if (await User.isRepeat('mobile', mobile)) error.mobile = '手机号码已经被注册'
 
       const verifyInRedis = await redis.get(`phone_verify_${mobile}`)
@@ -410,7 +427,7 @@ export default function(router) {
 
       // 验证是否出错
       if (JSON.stringify(error) !== '{}') {
-        ctx.body = { code: -1, error }
+        ctx.body = { ok: false, error }
         return
       }
 
@@ -424,13 +441,30 @@ export default function(router) {
       try {
         const avatar = await qiniuUpload(avatarBuffer, avatarKey)
         const newUser = await User.create({
-          username, 
-          avatar,
+          username, // 用户名就使用昵称
           password,
+          avatar,
           mobile,
-          identify: 1
+          identify: 1, // 区分用户是普通用户还是系统管理员
+          openid: null, // 小程序openid
+          amount: 0, //
+          setting: {
+            updateNotice: true,
+            autoBuy: true,
+            reader: {
+              fontSize: 36,
+              fontFamily: '使用系统字体',
+              bright: 1,
+              mode: '默认', // 模式,
+              overPage: 1 // 翻页模式
+            }
+          },
+          read_time: 0,
+          create_time: new Date(),
+          last_login_time: new Date(),
+          login_times: 0
         })
-    
+
         if (newUser && newUser.id) {
           // 生成token
           delete newUser.password
@@ -439,20 +473,12 @@ export default function(router) {
             code: 0,
             msg: `用户注册成功`,
             token,
-            user: {
-              _id: newUser._id,
-              username: newUser.username,
-              mobile: newUser.mobile,
-              openid: newUser.openid,
-              avatar: newUser.avatar,
-              identity: newUser.identity,
-              amount: newUser.amount
-            }
+            userInfo: formatUserOutput(newUser)
           }
         } else {
           ctx.body = { code: -2, msg: `用户注册失败` }
         }
-      } catch(err) {
+      } catch (err) {
         ctx.body = { code: -1, msg: '注册失败，' + err.toString() }
       }
     }
