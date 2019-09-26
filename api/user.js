@@ -260,11 +260,15 @@ export default function(router) {
         return
       }
       // 验证完毕，生成token
-      const token = await createToken(user, JWT_SECRET, '1d')
+      const token = await createToken(user, '1d')
       // 清除验证码记录
       redis.del(`phone_verify_${mobile}`)
-      delete user.password
-      ctx.body = { code: 0, token, user, msg: '登录成功' }
+      ctx.body = {
+        code: 0,
+        token,
+        user: formatUserOutput(user),
+        msg: '登录成功'
+      }
     } else {
       ctx.body = {
         ok: false,
@@ -366,31 +370,9 @@ export default function(router) {
       const newUser = await User.create(defautUserTemplate({
         username,
         avatar,
-        openid: wxdata.openid, // 小程序openid
-        identity: 1, // 区分用户是普通用户还是系统管理员
-      }) {
-        username, // 用户名就使用昵称
-        password: null,
-        avatar,
         identity: 1, // 区分用户是普通用户还是系统管理员
         openid: wxdata.openid, // 小程序openid
-        amount: 0, //
-        setting: {
-          updateNotice: true,
-          autoBuy: true,
-          reader: {
-            fontSize: 36,
-            fontFamily: '使用系统字体',
-            bright: 1,
-            mode: '默认', // 模式,
-            overPage: 1 // 翻页模式
-          }
-        },
-        read_time: 0,
-        create_time: new Date(),
-        last_login_time: new Date(),
-        login_times: 0
-      })
+      }))
 
       // 生成token签名 有效期为一天
       const token = createToken(newUser, '1d')
@@ -440,30 +422,14 @@ export default function(router) {
       const avatarKey = `mbook/avatar/${username}.png`
       try {
         const avatar = await qiniuUpload(avatarBuffer, avatarKey)
-        const newUser = await User.create({
+        const newUser = await User.create(defautUserTemplate({
           username, // 用户名就使用昵称
           password,
           avatar,
           mobile,
           identify: 1, // 区分用户是普通用户还是系统管理员
           openid: null, // 小程序openid
-          amount: 0, //
-          setting: {
-            updateNotice: true,
-            autoBuy: true,
-            reader: {
-              fontSize: 36,
-              fontFamily: '使用系统字体',
-              bright: 1,
-              mode: '默认', // 模式,
-              overPage: 1 // 翻页模式
-            }
-          },
-          read_time: 0,
-          create_time: new Date(),
-          last_login_time: new Date(),
-          login_times: 0
-        })
+        }))
 
         if (newUser && newUser.id) {
           // 生成token
