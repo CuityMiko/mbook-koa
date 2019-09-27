@@ -11,14 +11,20 @@ const noAuthPathArr = require('./config/noauth')
 const index = require('./routes/index')
 const schedule = require('./bin/shedule')
 const { debug, reportError } = require('./utils')
+const { initDatabase, jwtSecret } = require('./config')
+const initDatabaseFunc = require('./bin/initDatabase')
 // const createAdmin = require('./bin/createAdmin')
 // const addUserSetting = require('./bin/addUserSetting')
-const secret = 'mbook'
-// error handler
-onerror(app)
+
+// 是否清理数据库
+if (initDatabase) initDatabaseFunc()
+
 schedule.run()
 // createAdmin()
 // addUserSetting()
+
+// error handler
+onerror(app)
 
 app.use(
   bodyparser({
@@ -29,7 +35,7 @@ app.use(
   })
 )
 app.use(
-  jwtKoa({ secret }).unless({
+  jwtKoa({ jwtSecret }).unless({
     path: noAuthPathArr //数组中的路径不需要通过jwt验证
   })
 )
