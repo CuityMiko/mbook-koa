@@ -164,9 +164,9 @@ export default function(router) {
   })
 
   /**
-   * 小程序端登录
+   * 前端登录
    * @method post
-   * @parmas code 微信临时登录凭证
+   * @parmas wey 登录方式
    */
   router.post('/api/front/user/login', async (ctx, next) => {
     const { wey } = ctx.request.body
@@ -213,23 +213,51 @@ export default function(router) {
       // 验证参数
       const mobileReg = /^(13|15|17|18|14)[0-9]{9}$/
       if (!mobile || !mobileReg.test(mobile)) {
-        ctx.body = { code: -1, msg: '手机号码格式错误' }
+        ctx.body = { ok: false, error: { mobile: '手机号码格式错误' } }
         return
       }
       if (!password || !validator.isLength(password, { min: 7, max: 42 })) {
-        ctx.body = { code: -1, error: { password: '密码格式错误' } }
+        ctx.body = { ok: false, error: { password: '密码格式错误' } }
         return
       }
       // 查找数据库中是否存在指定邮箱和密码的记录
       const user = await User.findOne({ mobile, identify: { $ne: 2 } })
       if (!user) {
-        ctx.body = { code: -1, error: { mobile: '手机号码尚未注册' } }
+        ctx.body = { ok: false, error: { mobile: '手机号码尚未注册' } }
         return
       }
       // 校验密码
-      const isPasswordValid = await user.validatePassword(password)
+      const isPasswordValid = await user.checkPassword(password)
       if (!isPasswordValid) {
-        ctx.body = { code: -1, error: { password: '密码错误' } }
+        ctx.body = { ok: false, error: { password: '密码错误' } }
+        return
+      }
+
+      // 验证完毕，生成token
+      const token = await createToken(user, '1d')
+      ctx.body = {
+        ok: true,
+        msg: '登录成功',
+        token: token,
+        userinfo: formatUserOutput(user)
+      }
+    } else if (wey === 'username+password') {
+      const { username, password } = ctx.request.body
+      // 验证参数
+      if (!password || !validator.isLength(password, { min: 7, max: 42 })) {
+        ctx.body = { ok: false, error: { password: '密码格式错误' } }
+        return
+      }
+      // 查找数据库中是否存在指定邮箱和密码的记录
+      const user = await User.findOne({ username, identify: { $ne: 2 } })
+      if (!user) {
+        ctx.body = { ok: false, error: { username: '此用户名尚未注册' } }
+        return
+      }
+      // 校验密码
+      const isPasswordValid = await user.checkPassword(password)
+      if (!isPasswordValid) {
+        ctx.body = { ok: false, error: { password: '密码错误' } }
         return
       }
 
@@ -246,17 +274,17 @@ export default function(router) {
       // 手机号码是否注册过
       const user = await User.findOne({ mobile, identify: { $ne: 2 } })
       if (!user) {
-        ctx.body = { code: -1, msg: '手机号码尚未注册' }
+        ctx.body = { ok: false, error: { mobile: '手机号码尚未注册' } }
         return
       }
       // 验证码是否正确
       const verifyInRedis = await redis.get(`phone_verify_${mobile}`)
       if (!verifyInRedis) {
-        ctx.body = { code: -2, msg: '请先获取验证码' }
+        ctx.body = { ok: false, error: { verification: '请先获取验证码' } }
         return
       }
       if (verifyInRedis && verifyInRedis !== verification) {
-        ctx.body = { code: -2, msg: '验证码错误' }
+        ctx.body = { ok: false, error: { verification: '验证码错误' } }
         return
       }
       // 验证完毕，生成token
@@ -265,9 +293,9 @@ export default function(router) {
       redis.del(`phone_verify_${mobile}`)
       ctx.body = {
         code: 0,
+        msg: '登录成功',
         token,
-        user: formatUserOutput(user),
-        msg: '登录成功'
+        user: formatUserOutput(user)
       }
     } else {
       ctx.body = {
@@ -287,30 +315,30 @@ export default function(router) {
     // 校验合法性
     const mobileReg = /^(13|15|17|18|14)[0-9]{9}$/
     if (!mobile || !mobileReg.test(mobile)) {
-      ctx.body = { code: -1, msg: '手机号码格式错误' }
+      ctx.body = { ok: false, error: { mobile: '手机号码格式错误' } }
       return
     }
     if (usage === 'login') {
       const user = await User.findOne({ mobile, identify: { $ne: 2 } })
       if (!user) {
-        ctx.body = { code: -2, msg: '此号码尚未注册' }
+        ctx.body = { ok: false, error: { mobile: '此号码尚未注册' } }
         return
       }
     } else if (usage === 'registe') {
       const user = await User.findOne({ mobile, identify: { $ne: 2 } })
       if (user) {
-        ctx.body = { code: -2, msg: '此号码已经被注册过了，请前往登录' }
+        ctx.body = { ok: false, error: { mobile: '此号码已经被注册过了，请前往登录' } }
         return
       }
     } else {
-      ctx.body = { code: -1, msg: '请指明验证码用途' }
+      ctx.body = { ok: false, msg: '请指明验证码用途' }
       return
     }
 
     // 查询当前redis是已经存在这个手机的验证码
     const verifyInRedis = await redis.get(`phone_verify_${mobile}`)
     if (verifyInRedis) {
-      ctx.body = { code: -1, msg: '你请求太过频繁，请稍后再试' }
+      ctx.body = { ok: true, error: { verification: '你请求太过频繁，请稍后再试' } }
       return
     }
 
@@ -322,14 +350,14 @@ export default function(router) {
     if (fakeVertification) {
       console.log(`发送给手机 ${mobile} 验证码: 666666`)
       redis.set(`phone_verify_${mobile}`, 666666, 'EX', 60)
-      ctx.body = { code: 0, msg: '发送短信验证码成功' }
+      ctx.body = { ok: true, msg: '发送短信验证码成功' }
     } else {
       const sendResult = await sendMessage('loginOrRegiste', mobile, { '#app#': '钱贷大师', '#code#': code })
       if (sendResult && sendResult.success) {
         redis.set(`phone_verify_${mobile}`, code, 'EX', 60)
-        ctx.body = { code: 0, msg: '发送短信验证码成功' }
+        ctx.body = { ok: true, msg: '发送短信验证码成功' }
       } else {
-        ctx.body = { code: -3, msg: sendResult ? sendResult.message : '发送短信验证码失败' }
+        ctx.body = { ok: false, msg: sendResult ? sendResult.message : '发送短信验证码失败' }
       }
     }
   })
@@ -442,10 +470,10 @@ export default function(router) {
             userInfo: formatUserOutput(newUser)
           }
         } else {
-          ctx.body = { code: -2, msg: `用户注册失败` }
+          ctx.body = { ok: false, msg: `用户注册失败` }
         }
       } catch (err) {
-        ctx.body = { code: -1, msg: '注册失败，' + err.toString() }
+        ctx.body = { ok: false, msg: '注册失败，' + err.toString() }
       }
     }
   })
