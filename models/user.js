@@ -335,10 +335,12 @@ UserSchema.pre('save', function(next) {
 /**
  * 检验用户密码的合法性的实例方法
  */
-UserSchema.methods.checkPassword = function(candidatePassword, cb) {
-  bcrypt.compare(candidatePassword, this.password, function(err, isMatch) {
-    if (err) return cb(err)
-    cb(null, isMatch)
+UserSchema.methods.checkPassword = async function(candidatePassword) {
+  return new Promise((resolve, reject) => {
+    bcrypt.compare(candidatePassword, this.password, function(err, isMatch) {
+      if (err) return reject(err)
+      resolve(isMatch)
+    })
   })
 }
 
