@@ -2,10 +2,10 @@ import crypto from 'crypto'
 import fs from 'fs'
 import path from 'path'
 import config from '../config'
-import { tool, debug } from '../utils'
+import { tool, debug } from '..'
 
 // 初始化微信支付
-const WeiXinPay = require('./weixin-pay/index')
+const WeiXinPay = require('../weixin-pay/index')
 const weixinpay = new WeiXinPay({
   appid: config.wxMiniprogramAppId,
   mch_id: config.mch_id,

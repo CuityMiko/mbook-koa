@@ -3,8 +3,8 @@ const request = require('request')
 const qn = require('qn')
 const config = require('../config')
 const sign = require('./wxSign')
-const redis = require('../utils/redis')
-const qiniuUpload = require('../utils/qiniuUpload')
+const redis = require('../redis')
+const qiniuUpload = require('../qiniuUpload')
 
 async function getWxToken(noredis) {
   // 查看redis中是否存在token值

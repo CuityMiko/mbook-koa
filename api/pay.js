@@ -1,5 +1,5 @@
 import { Pay, Good, User, Charge } from '../models'
-import { createUnifiedOrder, weixinpay } from '../utils/weixin'
+import { createUnifiedOrder, weixinpay } from '../utils/weixin/wxPay'
 import { checkUserToken, tool } from '../utils'
 import moment from 'moment'
 

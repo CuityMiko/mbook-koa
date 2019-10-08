@@ -223,6 +223,14 @@ sudo mongorestore -h 118.24.94.40:27017 -d mbook-new -u mbook -p 121960425mbook 
 sudo tar -cvf mbook-new.tar.gz mbook-new/
 ```
 
+### redis备份和恢复
+```bash
+# 生成备份文件dump.db
+redis 127.0.0.1:6379> SAVE 
+# 如果需要恢复数据，只需将备份文件 (dump.rdb) 移动到 redis 安装目录并启动服务即可。获取 redis 目录可以使用 CONFIG 命令，如下所示：
+redis 127.0.0.1:6379> CONFIG GET dir
+```
+
 ### 导出为json或者csv
 ```bash
 # 导出为json
@@ -266,3 +274,10 @@ ps aux | grep node
 ps -ef|grep node|awk '{print $2}'|xargs kill -9
 ```
 
+### 日志清理
+```bash
+# 查找大小在1M以上的大文件
+find / -size +100M -exec ls -lh {} 
+# 显示目录占用空间总和
+du -h --max-depth=1 /var
+```
