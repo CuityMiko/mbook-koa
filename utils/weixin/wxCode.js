@@ -1,7 +1,6 @@
 // 下载小程序二维码的工具js
 const request = require('request')
-const qn = require('qn')
-const config = require('../config')
+const config = require('../../config')
 const sign = require('./wxSign')
 const redis = require('../redis')
 const qiniuUpload = require('../qiniuUpload')

@@ -1,8 +1,8 @@
 import crypto from 'crypto'
 import fs from 'fs'
 import path from 'path'
-import config from '../config'
-import { tool, debug } from '..'
+import config from '../../config'
+import { tool, debug } from '../index'
 
 // 初始化微信支付
 const WeiXinPay = require('../weixin-pay/index')

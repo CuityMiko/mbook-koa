@@ -11,7 +11,7 @@ import { exec } from 'child_process'
 import path from 'path'
 import { Book, Setting, User } from '../models'
 import { checkUserToken, checkAdminToken } from '../utils'
-import { requestWxCode } from '../utils/wxCode'
+import { requestWxCode } from '../utils/weixin/wxCode'
 import qiniuUpload from '../utils/qiniuUpload'
 import { mongosync } from '../bin/mongosync'
 
