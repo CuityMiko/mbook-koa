@@ -206,7 +206,7 @@ export default function(router) {
         ok: true,
         msg: '登录成功',
         token: token,
-        userinfo: formatUserOutput(user)
+        userInfo: formatUserOutput(user)
       }
     } else if (wey === 'mobile+password') {
       const { mobile, password } = ctx.request.body
@@ -216,7 +216,7 @@ export default function(router) {
         ctx.body = { ok: false, error: { mobile: '手机号码格式错误' } }
         return
       }
-      if (!password || !validator.isLength(password, { min: 7, max: 42 })) {
+      if (!password || !validator.isLength(password, { min: 6, max: 30 })) {
         ctx.body = { ok: false, error: { password: '密码格式错误' } }
         return
       }
@@ -239,12 +239,12 @@ export default function(router) {
         ok: true,
         msg: '登录成功',
         token: token,
-        userinfo: formatUserOutput(user)
+        userInfo: formatUserOutput(user)
       }
     } else if (wey === 'username+password') {
       const { username, password } = ctx.request.body
       // 验证参数
-      if (!password || !validator.isLength(password, { min: 7, max: 42 })) {
+      if (!password || !validator.isLength(password, { min: 6, max: 30 })) {
         ctx.body = { ok: false, error: { password: '密码格式错误' } }
         return
       }
@@ -267,7 +267,7 @@ export default function(router) {
         ok: true,
         msg: '登录成功',
         token: token,
-        userinfo: formatUserOutput(user)
+        userInfo: formatUserOutput(user)
       }
     } else if (wey === 'mobile+verification') {
       const { mobile, verification } = ctx.request.body
@@ -315,19 +315,19 @@ export default function(router) {
     // 校验合法性
     const mobileReg = /^(13|15|17|18|14)[0-9]{9}$/
     if (!mobile || !mobileReg.test(mobile)) {
-      ctx.body = { ok: false, error: { mobile: '手机号码格式错误' } }
+      ctx.body = { ok: false, msg: '手机号码格式错误' }
       return
     }
     if (usage === 'login') {
       const user = await User.findOne({ mobile, identify: { $ne: 2 } })
       if (!user) {
-        ctx.body = { ok: false, error: { mobile: '此号码尚未注册' } }
+        ctx.body = { ok: false, msg: '此号码尚未注册' }
         return
       }
     } else if (usage === 'registe') {
       const user = await User.findOne({ mobile, identify: { $ne: 2 } })
       if (user) {
-        ctx.body = { ok: false, error: { mobile: '此号码已经被注册过了，请前往登录' } }
+        ctx.body = { ok: false, msg: '此号码已经被注册过了，请前往登录' }
         return
       }
     } else {
@@ -338,7 +338,7 @@ export default function(router) {
     // 查询当前redis是已经存在这个手机的验证码
     const verifyInRedis = await redis.get(`phone_verify_${mobile}`)
     if (verifyInRedis) {
-      ctx.body = { ok: true, error: { verification: '你请求太过频繁，请稍后再试' } }
+      ctx.body = { ok: false, msg: '你请求太过频繁，请稍后再试' }
       return
     }
 
@@ -360,6 +360,33 @@ export default function(router) {
         ctx.body = { ok: false, msg: sendResult ? sendResult.message : '发送短信验证码失败' }
       }
     }
+  })
+
+  /**
+   * 验证短信验证码的正确性
+   * @method post
+   * @parmas code 短信验证码
+   */
+  router.post('/api/front/user/check_verify', async ctx => {
+    const { mobile, verification } = ctx.request.body
+    const mobileVerifyReg = /^\d{6}$/
+    if (!verification || !mobileVerifyReg.test(verification)) {
+      ctx.body = { ok: false, msg: '手机验证码格式错误' }
+      return
+    }
+
+    const verifyInRedis = await redis.get(`phone_verify_${mobile}`)
+    if (!verifyInRedis) {
+      ctx.body = { ok: false, msg: '验证码已经过期，请重新获取', goback: 1 }
+      return
+    }
+
+    if (verifyInRedis && verifyInRedis !== verification) {
+      ctx.body = { ok: false, msg: '手机验证码错误' }
+      return
+    }
+
+    ctx.body = { ok: true, msg: '验证ok' }
   })
 
   /**
@@ -415,7 +442,7 @@ export default function(router) {
         ok: true,
         msg: '注册成功',
         token: token,
-        userinfo: formatUserOutput(newUser)
+        userInfo: formatUserOutput(newUser)
       }
     } else if (wey === 'weixin') {
       // 使用微信注册
@@ -425,15 +452,15 @@ export default function(router) {
       let error = {}
       const mobileReg = /^(13|15|17|18|14)[0-9]{9}$/
       const mobileVerifyReg = /^\d{6}$/
-      if (!password || !validator.isLength(password, { min: 6, max: 40 })) error.password = '请输入6到16位的有效密码'
+      if (!password || !validator.isLength(password, { min: 6, max: 30 })) error.password = '请输入6到30位的有效密码'
 
       if (!mobile || !mobileReg.test(mobile)) error.mobile = '请输入正确手机号码'
       if (!verification || !mobileVerifyReg.test(verification)) error.verification = '手机验证码格式错误'
       if (await User.isRepeat('mobile', mobile)) error.mobile = '手机号码已经被注册'
 
       const verifyInRedis = await redis.get(`phone_verify_${mobile}`)
-      if (!verifyInRedis) error.verification = '请先获取验证码'
-      if (verifyInRedis && verifyInRedis !== verification) error.verification = '验证码错误'
+      if (!verifyInRedis) error.verification = '你还没有获取过验证码'
+      if (verifyInRedis && verifyInRedis !== verification) error.verification = '手机验证码错误'
 
       // 验证是否出错
       if (JSON.stringify(error) !== '{}') {
@@ -464,7 +491,7 @@ export default function(router) {
           delete newUser.password
           const token = createToken(newUser, '1d')
           ctx.body = {
-            code: 0,
+            ok: true,
             msg: `用户注册成功`,
             token,
             userInfo: formatUserOutput(newUser)
