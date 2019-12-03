@@ -258,7 +258,7 @@ runkoa bin/checkUserBookList.js
 
 ### POST 请求出现 413 错误
 
-![413错误](https://fs.andylistudio.com/1542121256941.png)
+![413错误](https://file.lantingshucheng.com/1542121256941.png)
 多半是由于 ngxin 对 http 请求 body 大小的限制，修改 nginx 配置文件 nginx.conf，在 http 的下面加上 `client_max_body_size 2`
 
 ### 安装python包
@@ -280,4 +280,16 @@ ps -ef|grep node|awk '{print $2}'|xargs kill -9
 find / -size +100M -exec ls -lh {} 
 # 显示目录占用空间总和
 du -h --max-depth=1 /var
+```
+
+### 正则替换mongo中的某个字段的一部分文案
+```js
+db.getCollection('books')
+  .find()
+  .forEach(function(book) {
+    a = book.img_url;
+    b = a.replace('fs.andylistudio.com', 'file.lantingshucheng.com');
+    db.getCollection('books')
+      .update({ _id: book._id }, { $set: { img_url: b } })
+  })
 ```
