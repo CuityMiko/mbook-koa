@@ -6,7 +6,7 @@ const client = qn.create({
   accessKey: qiniuAccessKey,
   secretKey: qiniuSecretKey,
   bucket: 'upload',
-  origin: 'https://fs.andylistudio.com',
+  origin: 'https://file.lantingshucheng.com',
 })
 
 export default function qiniuUpload(buffer, key) {
