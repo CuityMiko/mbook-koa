@@ -4,7 +4,6 @@ import shortid from 'shortid'
 import fs from 'fs'
 import path from 'path'
 import os from 'os'
-import sendfile from 'koa-sendfile'
 import Queue from 'p-queue'
 import uuid from 'uuid'
 

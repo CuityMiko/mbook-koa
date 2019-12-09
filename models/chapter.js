@@ -6,6 +6,7 @@ const ChapterSchema = new mongoose.Schema(
     name: String, // 章节名
     num: { type: Number, unique: true }, // 章节数
     content: String, // 内容
+    voices: Array,
     create_time: Date // 创建时间
   },
   { versionKey: false }
