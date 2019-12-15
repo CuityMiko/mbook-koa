@@ -1,5 +1,7 @@
 node_modules/
-config/
+config/index.js
+config/weixin_pay_cert.p12
+config/wechat.json
 .vscode/
 .push.settings.jsonc
 dump.rdb

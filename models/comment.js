@@ -8,6 +8,7 @@ const CommentSchema = new mongoose.Schema(
     userid: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 是否展示,
     content: String, // 展示时的布局方式
     like_persons: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    is_top: Boolean, // 是否置顶
     create_time: Date
   },
   { versionKey: false }

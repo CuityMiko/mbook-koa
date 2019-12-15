@@ -1,5 +1,5 @@
 import { speech as AipSpeechClient } from 'baidu-aip-sdk'
-import { baiduAiAppId, baiduAiAppKey, baiduAiSecretKey } from '../config'
+import { BAIDU_AI_APP_ID, BAIDU_AI_SECRET_KEY, BAIDU_AI_APP_KEY } from '../config'
 import qiniuUpload from '../utils/qiniuUpload'
 import uuid from 'uuid'
 import Queue from 'p-queue'
@@ -9,7 +9,7 @@ const MAX_TEXT_LENGTH = 200
 export default async function voiceTransMp3(data = {}) {
   const result = []
   const { content = '', split = false } = data
-  const client = new AipSpeechClient(baiduAiAppId, baiduAiAppKey, baiduAiSecretKey)
+  const client = new AipSpeechClient(BAIDU_AI_APP_ID, BAIDU_AI_APP_KEY, BAIDU_AI_SECRET_KEY)
 
   if (!content) return result
 

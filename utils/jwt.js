@@ -1,11 +1,11 @@
 import { User } from '../models'
-import { jwtSecret } from '../config'
+import { JWT_SECRET } from '../config'
 const jwt = require('jsonwebtoken')
 const Promise = require('bluebird')
 
 const jwtVerify = str => {
   return new Promise((resolve, reject) => {
-    jwt.verify(str, jwtSecret, function(err, decoded) {
+    jwt.verify(str, JWT_SECRET, function(err, decoded) {
       if (err) {
         reject(err)
         return
@@ -21,7 +21,7 @@ const checkUserToken = async (ctx, next) => {
     let token = ctx.header.authorization.split(' ')[1]
     if (token) {
       return new Promise((resolve, reject) => {
-        jwt.verify(token, jwtSecret, async function(err, decoded) {
+        jwt.verify(token, JWT_SECRET, async function(err, decoded) {
           if (err) {
             ctx.status = 401
             ctx.body = { ok: false, msg: '无效token', err: err, authfail: true }
@@ -62,7 +62,7 @@ const checkAdminToken = async (ctx, next, permission) => {
     let token = ctx.header.authorization.split(' ')[1]
     if (token) {
       return new Promise((resolve, reject) => {
-        jwt.verify(token, jwtSecret, async function(err, decoded) {
+        jwt.verify(token, JWT_SECRET, async function(err, decoded) {
           if (err) {
             console.log(err)
             ctx.status = 401

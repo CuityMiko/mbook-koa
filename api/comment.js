@@ -1,10 +1,14 @@
-import { Book, BookList, User, Comment } from '../models'
-import { checkUserToken, tool, checkAdminToken } from '../utils'
+import { Book, User, Comment } from '../models'
+import { checkUserToken, formatTime2, checkAdminToken } from '../utils'
 import moment from 'moment'
-import config from '../config'
+import { ADMIN_USERNAME } from '../config'
 
 export default function(router) {
-  router.post('/api/comment/add', async (ctx, next) => {
+  /**
+   * 前端接口
+   * 添加评论
+   */
+  router.post('/api/front/comment/add', async (ctx, next) => {
     // 解析jwt，取出userid查询booklist表，判断是否已经加入了书架
     let userid = await checkUserToken(ctx, next)
     if (userid) {
@@ -31,7 +35,7 @@ export default function(router) {
               is_like: false,
               like_num: 0,
               childs: [],
-              create_time: tool.formatTime2(thisComent.create_time)
+              create_time: formatTime2(thisComent.create_time)
             }
             ctx.body = { ok: true, msg: '发表书评成功!', data: result }
           } else {
@@ -46,7 +50,11 @@ export default function(router) {
     }
   })
 
-  router.get('/api/comment/like', async (ctx, next) => {
+  /**
+   * 前端接口
+   * 评论点赞
+   */
+  router.get('/api/front/comment/like', async (ctx, next) => {
     // 解析jwt，取出userid查询booklist表，判断是否已经加入了书架
     let userid = await checkUserToken(ctx, next)
     if (userid) {
@@ -81,7 +89,60 @@ export default function(router) {
     }
   })
 
-  router.get('/api/comment/list', async (ctx, next) => {
+  /**
+   * 前端接口
+   * 获取评论列表（简单版）
+   */
+  router.get('/api/front/comment/list', async (ctx, next) => {
+    const userid = 1
+    console.log(ctx.state);
+    const { bookid, page = 1 } = ctx.request.query
+    if (!bookid) {
+      ctx.body = { ok: false, msg: '缺少bookid参数' }
+      return false
+    }
+
+    /**
+     * 查询评论
+     * 置顶 > 点赞人数 > 创建时间
+     * 分页加载
+     */
+    const comments = await Comment.find({ bookid: bookid, father: null })
+      .populate({
+        path: 'userid',
+        options: {
+          select: 'username avatar'
+        }
+      })
+      .sort({ is_top: -1, like_persons: -1, create_time: -1 })
+      .skip(5 * (parseInt(page) - 1))
+      .limit(5)
+
+    ctx.body = {
+      ok: true,
+      msg: '获取评论成功',
+      list: comments.map(item => {
+        const user = item.userid || {};
+        const isLike = item.like_persons.some(person => person.toString() === userid)
+        return {
+          id: item._id,
+          userid: user._id,
+          avatar: user.avatar,
+          username: user.username,
+          content: item.content,
+          like_num: item.like_persons.length,
+          is_like: isLike,
+          create_time: item.create_time
+        }
+      })
+    }
+  })
+
+  /**
+   * 前端接口
+   * 获取评论列表（评论详情）
+   */
+  router.get('/api/front/comment/detail', async (ctx, next) => {
     // 解析jwt，取出userid查询booklist表，判断是否已经加入了书架
     let userid = await checkUserToken(ctx, next)
     if (userid) {
@@ -106,7 +167,7 @@ export default function(router) {
             like_num: rootComments[i].like_persons.length,
             is_like: isLike,
             childs: [],
-            create_time: tool.formatTime2(rootComments[i].create_time)
+            create_time: formatTime2(rootComments[i].create_time)
           })
         }
         // 对于每个根评论去获取他的子评论
@@ -128,7 +189,7 @@ export default function(router) {
                 },
                 content: childItem.content,
                 like_num: childItem.like_persons.length,
-                create_time: tool.formatTime2(childItem.create_time)
+                create_time: formatTime2(childItem.create_time)
               })
             })
             allChildComments = allChildComments.concat(childCommentsToSave)
@@ -149,7 +210,10 @@ export default function(router) {
     }
   })
 
-  // 小程序获取回复自己的评论
+  /**
+   * 前端接口
+   * 获取回复自己的评论
+   */
   router.get('/api/comment/my', async (ctx, next) => {
     let userid = await checkUserToken(ctx, next)
     if (userid) {
@@ -196,8 +260,11 @@ export default function(router) {
     }
   })
 
-  // 后台相关接口
-  router.get('/api/comment/admin', async (ctx, next) => {
+  /**
+   * 后台接口
+   * 获取评论列表
+   */
+  router.get('/api/admin/comment/admin', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'comment_admin_get')
     if (!userid) {
       return false
@@ -218,7 +285,7 @@ export default function(router) {
     if (bookid) {
       conf.bookid = bookid
     }
-    let total = await Comment.count(conf);
+    let total = await Comment.count(conf)
     let comments = await Comment.find(conf)
       .populate({
         path: 'bookid',
@@ -236,7 +303,11 @@ export default function(router) {
     ctx.body = { ok: true, msg: '获取评论成功', total, list: comments }
   })
 
-  router.post('/api/comment/reply', async (ctx, next) => {
+  /**
+   * 后台接口
+   * 管理员回复评论
+   */
+  router.post('/api/admin/comment/reply', async (ctx, next) => {
     let userid = await checkAdminToken(ctx, next, 'comment_admin_get')
     if (!userid) {
       return false
@@ -269,7 +340,7 @@ export default function(router) {
       return false
     }
     // 查找管理员
-    let adminUser = await User.findOne({ username: config.adminUserName })
+    let adminUser = await User.findOne({ username: ADMIN_USERNAME })
     if (!adminUser) {
       ctx.body = { ok: false, msg: '系统管理员未找到' }
       return false
@@ -300,7 +371,11 @@ export default function(router) {
     ctx.body = { ok: true, msg: '回复成功', data: newComment }
   })
 
-  router.post('/api/comment/delete', async (ctx, next) => {
+  /**
+   * 后台接口
+   * 评论删除
+   */
+  router.post('/api/admin/comment/delete', async (ctx, next) => {
     const userid = await checkAdminToken(ctx, next, 'comment_admin_get')
     if (!userid) {
       return false

@@ -3,23 +3,22 @@
  * 创建时间: 2019/09/25 10:53
  * 创建人: 李迪康(andyliwr@outlook.com)
  */
-import config from '../config'
+import { MONGO_AUTH, MONGO_URL, MONGO_DBNAME, MONGO_USER, MONGO_PASS } from '../config'
 import mongoose from 'mongoose'
-import { User } from '../models'
 
 async function initDatabse() {
   mongoose.Promise = global.Promise
   mongoose.connection.on('error', console.error.bind(console, 'Mongo connect failed'))
   let connectParams = { useMongoClient: true }
-  if (config.mongo_auth) {
+  if (MONGO_AUTH) {
     connectParams = {
-      user: config.mongo_user,
-      pass: config.mongo_pass,
-      auth: { authdb: config.mongo_dbname, authMechanism: 'MONGODB-CR' },
+      user: MONGO_USER,
+      pass: MONGO_PASS,
+      auth: { authdb: MONGO_DBNAME, authMechanism: 'MONGODB-CR' },
       useMongoClient: true
     }
   }
-  mongoose.connect(dbUri, function() {
+  mongoose.connect(MONGO_URL, function() {
     const db = mongoose.connection.db
     db.collections(function(err, collections) {
       const collectionsWithoutSystem = collections.filter(connecollectionction => collection.collectionName.split('.')[0] !== 'system')
@@ -41,7 +40,7 @@ async function initDatabse() {
       )
     })
   })
-  mongoose.connect(config.mongo_url, connectParams).then(async db => {
+  mongoose.connect(MONGO_URL, connectParams).then(async db => {
     console.log('开始清空数据...')
     try {
       console.log(db.collections)

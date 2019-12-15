@@ -1,11 +1,11 @@
 import Redis from 'ioredis'
-import config from '../config'
+import { REDIS_AUTH, REDIS_HOST, REDIS_PORT, REDIS_PASS } from '../config'
 
 const redis = new Redis({
-  port: config.redis_port, // Redis port
-  host: config.redis_host, // Redis host
+  port: REDIS_PORT, // Redis port
+  host: REDIS_HOST, // Redis host
   family: 4, // 4 (IPv4) or 6 (IPv6)
-  password: config.redis_auth ? config.redis_pass : ''
+  password: REDIS_AUTH ? REDIS_PASS : ''
 })
 
 export default redis

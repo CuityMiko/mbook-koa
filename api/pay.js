@@ -1,6 +1,6 @@
 import { Pay, Good, User, Charge } from '../models'
 import { createUnifiedOrder, weixinpay } from '../utils/weixin/wxPay'
-import { checkUserToken, tool } from '../utils'
+import { checkUserToken, isEmpty, xmlToJson } from '../utils'
 import moment from 'moment'
 
 export default function(router) {
@@ -82,8 +82,7 @@ export default function(router) {
         buf += chunk
       })
       ctx.req.on('end', () => {
-        tool
-          .xmlToJson(buf)
+        xmlToJson(buf)
           .then(resolve)
           .catch(reject)
       })
@@ -94,7 +93,7 @@ export default function(router) {
         // console.log(result)
         ctx.type = 'xml'
         // 判断result是否为空，为空则返回fail
-        if (tool.isEmpty(result)) {
+        if (isEmpty(result)) {
           ctx.body = `<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[支付失败]]></return_msg></xml>`
         } else {
           if (result.xml && result.xml.out_trade_no && result.xml.out_trade_no[0]) {

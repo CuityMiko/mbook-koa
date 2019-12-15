@@ -1,16 +1,16 @@
 import crypto from 'crypto'
 import fs from 'fs'
 import path from 'path'
-import config from '../../config'
-import { tool, debug } from '../index'
+import { WX_MINIPROGRAM_APP_ID, WX_PAY_MCH_ID, WX_PAY_NOTIFY_URL, WX_PAY_PARTNER_KEY, WX_PAY_PFX } from '../../config'
+import { md5 } from '../index'
 
 // 初始化微信支付
 const WeiXinPay = require('../weixin-pay/index')
 const weixinpay = new WeiXinPay({
-  appid: config.wxMiniprogramAppId,
-  mch_id: config.mch_id,
-  partner_key: config.partner_key,
-  pfx: fs.readFileSync(path.join(__dirname + '/' + config.pfx))
+  appid: WX_MINIPROGRAM_APP_ID,
+  mch_id: WX_PAY_MCH_ID,
+  partner_key: WX_PAY_PARTNER_KEY,
+  pfx: fs.readFileSync(path.join(__dirname + '/' + WX_PAY_PFX))
 })
 /**
  * 解析微信登录用户数据
@@ -58,7 +58,7 @@ function createUnifiedOrder(payInfo) {
         out_trade_no: payInfo.out_trade_no,
         total_fee: payInfo.pay_money,
         spbill_create_ip: payInfo.spbill_create_ip,
-        notify_url: config.notify_url,
+        notify_url: WX_PAY_NOTIFY_URL,
         trade_type: 'JSAPI',
         openid: payInfo.openid,
         product_id: payInfo.chargeids.join('|')
@@ -73,10 +73,8 @@ function createUnifiedOrder(payInfo) {
             package: 'prepay_id=' + result.prepay_id,
             signType: 'MD5'
           }
-          const paramStr =
-            `appId=${returnParams.appid}&nonceStr=${returnParams.nonceStr}&package=${returnParams.package}&signType=${returnParams.signType}&timeStamp=${returnParams.timeStamp}&key=` +
-            config.partner_key
-          returnParams.paySign = tool.md5(paramStr).toUpperCase()
+          const paramStr = `appId=${returnParams.appid}&nonceStr=${returnParams.nonceStr}&package=${returnParams.package}&signType=${returnParams.signType}&timeStamp=${returnParams.timeStamp}&key=${WX_PAY_PARTNER_KEY}`
+          returnParams.paySign = md5(paramStr).toUpperCase()
           resolve(returnParams)
         } else {
           console.log('生成微信支付订单失败：', JSON.stringify(result))
@@ -112,7 +110,7 @@ function buildQuery(queryObj) {
  */
 function signQuery(queryStr) {
   queryStr = queryStr + '&key=' + think.config('weixin.partner_key')
-  const md5Sign = tool.md5(queryStr)
+  const md5Sign = md5(queryStr)
   return md5Sign.toUpperCase()
 }
 

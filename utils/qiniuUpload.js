@@ -1,12 +1,12 @@
 import qn from 'qn'
-import { qiniuAccessKey, qiniuSecretKey } from '../config'
+import { QINIU_ACCESS_KEY, QINIU_SECRET_KEY, QINIU_BUCKET, QINIU_CDN_DOMAIN, QINIU_IS_USE_HTTPS } from '../config'
 
 // qiniu上传设置
 const client = qn.create({
-  accessKey: qiniuAccessKey,
-  secretKey: qiniuSecretKey,
-  bucket: 'upload',
-  origin: 'https://file.lantingshucheng.com',
+  accessKey: QINIU_ACCESS_KEY,
+  secretKey: QINIU_SECRET_KEY,
+  bucket: QINIU_BUCKET,
+  origin: QINIU_CDN_DOMAIN
 })
 
 export default function qiniuUpload(buffer, key) {

@@ -6,21 +6,21 @@ var http = require('http')
 var mongoose = require('mongoose')
 var config = require('../config/index')
 var server = null
-var port = normalizePort(config.port || '3000')
+var port = normalizePort(config.PORT || '3000')
 
 async function connectMongo() {
   mongoose.Promise = global.Promise
   mongoose.connection.on('error', console.error.bind(console, '连接数据库失败'))
   let connectParams = { useMongoClient: true }
-  if (config.mongo_auth) {
+  if (config.MONGO_AUTH) {
     connectParams = {
-      user: config.mongo_user,
-      pass: config.mongo_pass,
-      auth: { authdb: config.mongo_dbname, authMechanism: 'MONGODB-CR' },
+      user: config.MONGO_USER,
+      pass: config.MONGO_PASS,
+      auth: { authdb: config.MONGO_DBNAME, authMechanism: 'MONGODB-CR' },
       useMongoClient: true
     }
   }
-  return await mongoose.connect(config.mongo_url, connectParams)
+  return await mongoose.connect(config.MONGO_URL, connectParams)
 }
 
 connectMongo().then(() => {

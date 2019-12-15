@@ -1,4 +1,4 @@
-import config from '../config'
+import { DEBUG_MODE } from '../config'
 import Redmine from 'node-redmine'
 import jsonifyError from 'jsonify-error'
 
@@ -10,7 +10,7 @@ const redmine = new Redmine('http://118.24.94.40:8080', { apiKey: 'b9e6bfb5cad06
  * @param {*} value 调试信息主体
  */
 const debug = (names, value) => {
-  if (config.debug) {
+  if (DEBUG_MODE) {
     if (names instanceof Array) {
       for (let i = 0; i < names; i++) {
         console.log(names[i].name + ': ' + names[i].value)

@@ -14,7 +14,7 @@ import puppeteer from 'puppeteer'
 import yargs from 'yargs'
 import { exec } from 'child_process'
 import path from 'path'
-import config from '../config'
+import { MONGO_AUTH, MONGO_URL, MONGO_DBNAME, MONGO_USER, MONGO_PASS, USE_PROXY_IP } from '../config'
 import { Book, Chapter } from '../models'
 import { getRandomProxyIp, getProxyIpAddress, removeProxyIpFromRedis } from './proxy'
 import chinese2number from '../utils/chineseToNum'
@@ -41,7 +41,7 @@ function doGetRequest(url) {
   return new Promise(async (resolve, reject) => {
     logger.debug(`请求地址 ${url}`)
     const proxyIp = await getRandomProxyIp()
-    if (proxyIp && config.useProxyIp) {
+    if (proxyIp && USE_PROXY_IP) {
       logger.debug('proxyIp: ' + proxyIp)
       try {
         let response = await request
@@ -305,7 +305,7 @@ function updateEveryBook(index, book, total) {
 
 async function updateBook() {
   try {
-    if (config.useProxyIp) {
+    if (USE_PROXY_IP) {
       let getProxyIpSuccess = await getProxyIpAddress()
       timer = setInterval(async () => {
         await getProxyIpAddress()
@@ -363,15 +363,15 @@ async function connectMongo() {
   mongoose.Promise = global.Promise
   mongoose.connection.on('error', console.error.bind(console, '连接数据库失败'))
   let connectParams = { useMongoClient: true }
-  if (config.mongo_auth) {
+  if (MONGO_AUTH) {
     connectParams = {
-      user: config.mongo_user,
-      pass: config.mongo_pass,
-      auth: { authdb: config.mongo_dbname, authMechanism: 'MONGODB-CR' },
+      user: MONGO_USER,
+      pass: MONGO_PASS,
+      auth: { authdb: MONGO_DBNAME, authMechanism: 'MONGODB-CR' },
       useMongoClient: true
     }
   }
-  return await mongoose.connect(config.mongo_url, connectParams)
+  return await mongoose.connect(MONGO_URL, connectParams)
 }
 
 // 执行爬虫

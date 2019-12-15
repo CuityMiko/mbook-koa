@@ -1,9 +1,9 @@
 // 下载小程序二维码的工具js
-const request = require('request')
-const config = require('../../config')
-const sign = require('./wxSign')
-const redis = require('../redis')
-const qiniuUpload = require('../qiniuUpload')
+import request from 'request'
+import { WX_MINIPROGRAM_APP_ID, WX_MINIPROGRAM_SECRET } from '../../config'
+import sign from './wxSign'
+import redis from '../redis'
+import qiniuUpload from '../qiniuUpload'
 
 async function getWxToken(noredis) {
   // 查看redis中是否存在token值
@@ -35,8 +35,8 @@ async function requestWxToken() {
         url: 'https://api.weixin.qq.com/cgi-bin/token',
         qs: {
           grant_type: 'client_credential',
-          appid: config.wxMiniprogramAppId,
-          secret: config.wxMiniprogramSecret
+          appid: WX_MINIPROGRAM_APP_ID,
+          secret:WX_MINIPROGRAM_SECRET
         }
       },
       (error, response, body) => {
@@ -46,8 +46,8 @@ async function requestWxToken() {
             '接口请求参数',
             JSON.stringify({
               grant_type: 'client_credential',
-              appid: config.wxMiniprogramAppId,
-              secret: config.wxMiniprogramSecret
+              appid: WX_MINIPROGRAM_APP_ID,
+              secret:WX_MINIPROGRAM_SECRET
             })
           )
           console.log('微信接口请求失败', error)

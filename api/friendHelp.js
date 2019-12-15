@@ -1,5 +1,5 @@
 import { FriendHelp, FriendHelpBook, User, Secret } from '../models'
-import { checkUserToken, checkAdminToken, tool } from '../utils'
+import { checkUserToken, checkAdminToken, formatDuring, formatTime2 } from '../utils'
 import shortid from 'shortid'
 
 export default function(router) {
@@ -156,7 +156,7 @@ export default function(router) {
         success: friendHelp.success,
         has_finished: friendHelp.records.length,
         create_time: friendHelp.create_time.getTime(),
-        left_time: tool.formatDuring(endDate.getTime() - now.getTime()),
+        left_time: formatDuring(endDate.getTime() - now.getTime()),
         book: {
           id: friendHelpBook.bookid._id,
           need_num: friendHelpBook.need_num,
@@ -189,7 +189,7 @@ export default function(router) {
       arr.push({
         name: item.name,
         avatar: item.avatar,
-        time: tool.formatTime2(item.time)
+        time: formatTime2(item.time)
       })
     })
     ctx.body = {

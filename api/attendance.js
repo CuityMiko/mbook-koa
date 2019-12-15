@@ -1,6 +1,6 @@
 import moment from 'moment'
 import { Attendance, User } from '../models'
-import { checkUserToken, tool } from '../utils'
+import { checkUserToken, continueDays } from '../utils'
 
 export default function(router) {
   router.get('/api/attendance', async (ctx, next) => {
@@ -12,11 +12,11 @@ export default function(router) {
       let nowDate = moment().format('YYYY/MM/DD')
       if (hisAttendance) {
         // 计算连续签到次数
-        let keep_times = tool.continueDays(hisAttendance.records)
+        let keep_times = continueDays(hisAttendance.records)
         let updateResult = await Attendance.update({ userid: userid }, { $addToSet: { records: moment().format('YYYY/MM/DD') }, keep_times: keep_times })
         if (updateResult.ok == 1 && updateResult.nModified == 1) {
           hisAttendance = await Attendance.findOne({ userid: userid })
-          keep_times = tool.continueDays(hisAttendance.records)
+          keep_times = continueDays(hisAttendance.records)
           /**
            * 发放奖励
            * 每天签到成功可以领取50书币

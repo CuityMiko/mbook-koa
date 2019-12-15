@@ -1,5 +1,5 @@
 import { Theme, Book, BookList } from '../models'
-import { tool, checkAdminToken } from '../utils'
+import { checkAdminToken } from '../utils'
 
 export default function(router) {
   /**
@@ -358,7 +358,7 @@ export default function(router) {
     //   allbooks.push(typeof item.bookid === 'string' ? item.bookid : item.bookid.toString())
     // })
     // allbooks = allbooks.concat(books ? books.split('|') : [])
-    // allbooks = tool.unique(allbooks)
+    // allbooks = unique(allbooks)
     let finalBooks = []
     let count = 1
     for (let i = 0; i < allbooks.length; i++) {

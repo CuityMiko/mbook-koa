@@ -3,23 +3,23 @@
  * 创建时间: 2018/12/26 10:53
  * 创建人: 李迪康(andyliwr@outlook.com)
  */
-import config from '../config'
+import { MONGO_AUTH, MONGO_URL, MONGO_DBNAME, MONGO_USER, MONGO_PASS } from '../config'
 import mongoose from 'mongoose'
 import { Book, Chapter } from '../models'
 
 mongoose.Promise = global.Promise
 mongoose.connection.on('error', console.error.bind(console, 'Mongo connect failed'))
 let connectParams = { useMongoClient: true }
-if (config.mongo_auth) {
+if (MONGO_AUTH) {
   connectParams = {
-    user: config.mongo_user,
-    pass: config.mongo_pass,
-    auth: { authdb: config.mongo_dbname, authMechanism: 'MONGODB-CR' },
+    user: MONGO_USER,
+    pass: MONGO_PASS,
+    auth: { authdb: MONGO_DBNAME, authMechanism: 'MONGODB-CR' },
     useMongoClient: true
   }
 }
 mongoose
-  .connect(config.mongo_url, connectParams)
+  .connect(MONGO_URL, connectParams)
   .then(async db => {
     try {
       console.log('mongodb connect success!')

@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken'
 import request from 'request'
 import querystring from 'querystring'
 import Promise from 'bluebird'
-import { wxMiniprogramAppId, wxMiniprogramSecret, jwtSecret, fakeVertification } from '../config'
+import { WX_MINIPROGRAM_APP_ID, WX_MINIPROGRAM_SECRET, JWT_SECRET, FAKE_VERTIFICATION } from '../config'
 import shortid from 'shortid'
 import moment from 'moment'
 import crypto from 'crypto'
@@ -15,7 +15,7 @@ import qiniuUpload from '../utils/qiniuUpload'
 
 const createToken = (user, expiresIn) => {
   const { _id, identify } = user
-  return jwt.sign({ userid: _id, identify }, jwtSecret, {
+  return jwt.sign({ userid: _id, identify }, JWT_SECRET, {
     expiresIn
   })
 }
@@ -178,8 +178,8 @@ export default function(router) {
       // 向微信服务器发送请求，使用code换取openid和session_key
       const qsdata = {
         grant_type: 'authorization_code',
-        appid: wxMiniprogramAppId,
-        secret: wxMiniprogramSecret,
+        appid: WX_MINIPROGRAM_APP_ID,
+        secret: WX_MINIPROGRAM_SECRET,
         js_code: code
       }
       const wxdata = await doRequest('https://api.weixin.qq.com/sns/jscode2session?' + querystring.stringify(qsdata))
@@ -347,7 +347,7 @@ export default function(router) {
       .toString()
       .slice(-6)
     // 跳过短信验证，默认验证码666666
-    if (fakeVertification) {
+    if (FAKE_VERTIFICATION) {
       console.log(`发送给手机 ${mobile} 验证码: 666666`)
       redis.set(`phone_verify_${mobile}`, 666666, 'EX', 60)
       ctx.body = { ok: true, msg: '发送短信验证码成功' }
@@ -404,8 +404,8 @@ export default function(router) {
       // 向微信服务器发送请求，使用code换取openid和session_key
       const content = querystring.stringify({
         grant_type: 'authorization_code',
-        appid: wxMiniprogramAppId,
-        secret: wxMiniprogramSecret,
+        appid: WX_MINIPROGRAM_APP_ID,
+        secret: WX_MINIPROGRAM_SECRET,
         js_code: code
       })
       const wxdata = await doRequest('https://api.weixin.qq.com/sns/jscode2session?' + content)

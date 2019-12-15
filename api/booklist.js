@@ -1,5 +1,5 @@
 import { BookList, Book, User } from '../models'
-import { checkUserToken, tool } from '../utils'
+import { checkUserToken } from '../utils'
 
 export default function(router) {
   router.get('/api/booklist/remove_book', async (ctx, next) => {

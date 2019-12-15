@@ -1,5 +1,5 @@
 import { Book, BookList, Good, Setting, Chapter, Theme, Secret, Comment } from '../models'
-import { checkAdminToken, checkUserToken, tool } from '../utils'
+import { checkAdminToken, checkUserToken, formatTime } from '../utils'
 import shortid from 'shortid'
 import fs from 'fs'
 import path from 'path'
@@ -36,8 +36,8 @@ export default function(router) {
         good.type = 'free'
       } else if (thisGood.type === 2) {
         good.type = 'limit_date'
-        good.limit_start_time = tool.formatTime(thisGood.limit_start_time)
-        good.limit_end_time = tool.formatTime(thisGood.limit_end_time)
+        good.limit_start_time = formatTime(thisGood.limit_start_time)
+        good.limit_end_time = formatTime(thisGood.limit_end_time)
         good.prise = thisGood.prise
       } else if (thisGood.type === 3) {
         good.type = 'limit_chapter'
@@ -72,7 +72,7 @@ export default function(router) {
       rss: hasRssTheBook ? 1 : 0,
       total_words: book.total_words,
       hot_value: book.hot_value,
-      update_time: tool.formatTime(book.update_time),
+      update_time: formatTime(book.update_time),
       good,
       hasUnLock: !!hasUnLock
     }

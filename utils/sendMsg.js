@@ -6,7 +6,7 @@
  * @param {Object} data 模板数据 { "#app#": "贷款小助手", "#code#": 123456 }
  * @returns {Object} { success: true, msg: '发送成功' }
  */
-import { pianYunSecret } from '../config'
+import { PIAN_YUN_SECRET } from '../config'
 import qs from 'querystring'
 import request from 'request'
 
@@ -33,7 +33,7 @@ export function sendMessage(template, mobile, data) {
         method: 'POST',
         url: 'http://sms.yunpian.com/v2/sms/tpl_single_send.json',
         body: qs.stringify({
-          apikey: pianYunSecret,
+          apikey: PIAN_YUN_SECRET,
           mobile,
           tpl_id: templateMap[template],
           tpl_value: qs.stringify(data)

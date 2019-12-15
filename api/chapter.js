@@ -1,5 +1,5 @@
 import { Book, Chapter, BookList, Good, User, Buy, Secret } from '../models'
-import { checkAdminToken, checkUserToken, tool } from '../utils'
+import { checkAdminToken, checkUserToken, chineseParseInt } from '../utils'
 import { readUpdateNotice } from '../bin/readUpdateNotice'
 // TEST
 // readUpdateNotice('5bf94fad7510f918441f0ef0', '5bf94fec2f5aa418a58f2486')
@@ -630,7 +630,7 @@ export default function(router) {
                           }
                         )
                        }
-                      const num = tool.chineseParseInt(result[0].match(/第?[零一二两三叁四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰0-9]+章/)[0])
+                      const num = chineseParseInt(result[0].match(/第?[零一二两三叁四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰0-9]+章/)[0])
                       const name = result[0]
                         .match(/(?<=章).*$/)[0]
                         .replace(/^(、*)(\.*)(：)/, '')

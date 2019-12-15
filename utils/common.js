@@ -290,7 +290,7 @@ const chineseParseInt = (function() {
  * @param {String} str
  * @returns {Boolean} true或者false
  */
-const isJsonString = (str) => {
+const isJsonString = str => {
   try {
     str = JSON.parse(str)
     return true
@@ -301,20 +301,20 @@ const isJsonString = (str) => {
 }
 
 const formatDuring = function(mss) {
-  let days = parseInt((mss % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60 * 24));
-  let hours = parseInt((mss % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  let minutes = parseInt((mss % (1000 * 60 * 60)) / (1000 * 60));
-  let seconds = (mss % (1000 * 60)) / 1000;
-  days = days < 0 ? '0' : days;
-  days = days < 10 ? ('0' + days) : days;
-  hours = hours < 0 ? '0' : hours;
-  hours = hours < 10 ? ('0' + hours) : hours;
-  minutes = minutes < 0 ? '0' : minutes;
-  minutes = minutes < 10 ? ('0' + minutes) : minutes;
-  seconds = seconds < 0 ? '0' : seconds;
-  seconds = seconds < 10 && seconds >= 1 ? ('0' + seconds) : seconds;
+  let days = parseInt((mss % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60 * 24))
+  let hours = parseInt((mss % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+  let minutes = parseInt((mss % (1000 * 60 * 60)) / (1000 * 60))
+  let seconds = (mss % (1000 * 60)) / 1000
+  days = days < 0 ? '0' : days
+  days = days < 10 ? '0' + days : days
+  hours = hours < 0 ? '0' : hours
+  hours = hours < 10 ? '0' + hours : hours
+  minutes = minutes < 0 ? '0' : minutes
+  minutes = minutes < 10 ? '0' + minutes : minutes
+  seconds = seconds < 0 ? '0' : seconds
+  seconds = seconds < 10 && seconds >= 1 ? '0' + seconds : seconds
   console.log(days, hours, minutes)
-  return  days + '天 ' + hours + "小时 " + minutes + "分";
+  return days + '天 ' + hours + '小时 ' + minutes + '分'
 }
 
 /**
@@ -332,28 +332,26 @@ export async function generatePasswordHash(password) {
  * @param {String} currentPath 当前路径
  * @returns {Boolean} true或者false
  */
- export function pathMatch(rulePath, currentPath) {
+export function pathMatch(rulePath, currentPath) {
   const ruleMethod = rulePath.split(' ')[0] || ''
   const rulePathStr = rulePath.split(' ')[1] || ''
   const currentMethod = currentPath.split(' ')[0] || ''
   const currentPathStr = currentPath.split(' ')[1] || ''
-  return (
-    ruleMethod.toLowerCase() === currentMethod.toLowerCase() &&
-    !!pathToRegexp(rulePathStr).exec(currentPathStr)
-  )
+  return ruleMethod.toLowerCase() === currentMethod.toLowerCase() && !!pathToRegexp(rulePathStr).exec(currentPathStr)
 }
 
 
 module.exports = {
-  formatTime: formatTime,
-  formatTime2: formatTime2,
-  unique: unique,
-  md5: md5,
-  xmlToJson: xmlToJson,
-  jsonToXml: jsonToXml,
-  isEmpty: isEmpty,
-  continueDays: continueDays,
-  formatDuring: formatDuring,
-  chineseParseInt: chineseParseInt,
-  isJsonString: isJsonString
+  formatTime,
+  formatTime2,
+  unique,
+  md5,
+  xmlToJson,
+  jsonToXml,
+  isEmpty,
+  continueDays,
+  formatDuring,
+  chineseParseInt,
+  isJsonString,
+  pathMatch
 }
