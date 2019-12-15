@@ -21,6 +21,7 @@ import friendHelp from './friendHelp'
 import dialog from './dialog'
 import notice from './notice'
 import voiceTrans from './voiceTrans'
+import recommend from './recommend'
 import other from './other'
 
 export default function(router) {
@@ -47,5 +48,6 @@ export default function(router) {
   dialog(router)
   notice(router)
   voiceTrans(router)
+  recommend(router)
   other(router)
 }

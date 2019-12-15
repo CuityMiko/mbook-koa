@@ -4,7 +4,7 @@ async function createAdmin() {
   User.create(
     {
       username: 'mbookLidikang',
-      avatar: 'https://wx.qlogo.cn/mmopen/vi_32/SWkKED0AiblN0sGZT4zBUXxncnZ3fslHDcNDzIdv8bc8ibmfmGjEbyvnUgLOUggNs0fgF2RSNAicm4CpK5o7kDJXQ/0',
+      avatar: 'https://img.vim-cn.com/78/0c4e9ce5eda33bd90fec6174818b859c7d7928.jpg',
       identity: 2,
       create_time: new Date(),
       last_login_time: new Date('1997-01-01'),

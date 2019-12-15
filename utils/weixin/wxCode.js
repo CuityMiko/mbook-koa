@@ -99,8 +99,7 @@ async function requestWxCode(shareId) {
         }
         const image = Buffer.from(body, 'binary')
         // 上传到七牛云
-        qiniuUpload()
-        client.upload(image, 'mbook/share/' + shareId + '.jpeg')
+        qiniuUpload.upload(image, 'mbook/share/' + shareId + '.jpeg')
           .then(result => {
             resolve(result.url)
           })
