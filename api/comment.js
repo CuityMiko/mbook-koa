@@ -93,7 +93,7 @@ export default function(router) {
    * 前端接口
    * 获取评论列表（简单版）
    */
-  router.get('/api/front/comment/list', async (ctx, next) => {
+  router.get('/api/front/comments', async (ctx, next) => {
     const userid = 1
     console.log(ctx.state);
     const { bookid, page = 1 } = ctx.request.query
@@ -107,6 +107,7 @@ export default function(router) {
      * 置顶 > 点赞人数 > 创建时间
      * 分页加载
      */
+    const total = await Comment.count({ bookid: bookid, father: null })
     const comments = await Comment.find({ bookid: bookid, father: null })
       .populate({
         path: 'userid',
@@ -121,6 +122,7 @@ export default function(router) {
     ctx.body = {
       ok: true,
       msg: '获取评论成功',
+      hasMore: 5 * (parseInt(page) - 1) < total,
       list: comments.map(item => {
         const user = item.userid || {};
         const isLike = item.like_persons.some(person => person.toString() === userid)

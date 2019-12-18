@@ -11,6 +11,7 @@ export default function(router) {
     ctx.body = {
       ok: true,
       msg: '获取语音成功',
+      hasMore: true,
       list: [
         {
           _id: '5b13ed1491883d2704fd847b',
