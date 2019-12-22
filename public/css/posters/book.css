@@ -1,0 +1,70 @@
+.container {
+  width: 604px;
+  border-radius: 16px;
+  overflow: hidden;
+  font-family: PingFangSC-Medium, PingFang SC;
+  font-weight: 400;
+}
+
+.header {
+  font-size: 28px;
+  color: #ffffff;
+  width: 604px;
+  height: 120px;
+  line-height: 120px;
+  text-align: center;
+  background: linear-gradient(315deg, rgba(239, 66, 66, 1) 0%, rgba(255, 93, 93, 1) 100%);
+}
+
+.image {
+  display: block;
+  margin: 32px auto 0;
+  width: 500px;
+  height: 500px;
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.info {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28px 48px;
+}
+
+.info-qrcode > img {
+  width: 160px;
+  height: 160px;
+}
+
+.info-qrcode > p {
+  font-size: 20px;
+  color: #9d9d9d;
+  line-height: 1;
+  margin-top: 12px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.info-text {
+  margin-right: 28px;
+}
+
+.info-text-des {
+  font-size: 28px;
+  color: #4a4a4a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  text-align: justify;
+}
+
+.info-text-author {
+  color: #666;
+  font-size: 22px;
+  margin-top: 20px;
+}

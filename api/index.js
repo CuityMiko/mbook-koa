@@ -22,6 +22,7 @@ import dialog from './dialog'
 import notice from './notice'
 import voiceTrans from './voiceTrans'
 import recommend from './recommend'
+import poster from './poster'
 import other from './other'
 
 export default function(router) {
@@ -49,5 +50,6 @@ export default function(router) {
   notice(router)
   voiceTrans(router)
   recommend(router)
+  poster(router)
   other(router)
 }

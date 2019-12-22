@@ -13,7 +13,9 @@ const everyBodyCanAccess = [
   'POST /api/front/user/registe',
   'GET /api/front/bookdetail',
   'POST /api/front/user/send_verify',
-  'POST /api/front/user/check_verify'
+  'POST /api/front/user/check_verify',
+  'GET /api/front/poster/book_preview',
+  'GET /api/front/poster/book',
 ]
 
 /**

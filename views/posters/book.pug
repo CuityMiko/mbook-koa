@@ -1,0 +1,14 @@
+extends ../layout.pug
+block link
+  link(rel='stylesheet', href='/css/posters/book.css')
+block content
+  .header 我正在阅读《#{ name }》
+  .content
+    .image(style={ 'background-image': `url('${imgUrl}')` })
+    .info
+      .info-text
+        p.info-text-des #{ des }
+        p.info-text-author #{ author }
+      .info-qrcode
+        image(src=qrCode)
+        p 长按识别二维码
