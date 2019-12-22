@@ -11,7 +11,6 @@ const validator = require('validator')
 const index = require('./routes/index')
 const schedule = require('./bin/shedule')
 const { reportError, pathMatch, jwtVerify } = require('./utils')
-console.log(reportError, pathMatch)
 const { INIt_DATABASE, DOMAIN_WHITE_LIST } = require('./config')
 const { everyBodyCanAccess, authenticatedAccess } = require('./config/auth')
 const initDatabaseFunc = require('./bin/initDatabase')
@@ -33,6 +32,8 @@ app.use(
     textLimit: '10mb'
   })
 )
+
+app.use(require('koa-static')(__dirname + '/public'))
 
 // JWT解析
 app.use(async (ctx, next) => {
@@ -91,7 +92,6 @@ app.use(async (ctx, next) => {
 
 app.use(json())
 app.use(logger())
-app.use(require('koa-static')(__dirname + '/public'))
 app.use(
   views(__dirname + '/views', {
     extension: 'pug'

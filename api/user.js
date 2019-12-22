@@ -20,7 +20,10 @@ const createToken = (user, expiresIn) => {
   })
 }
 
-const formatUserOutput = user => {
+const formatUserOutput = async user => {
+  // 获取用户分享唯一标识
+  const shareCode = await Share.getUserShareCode(user._id);
+
   return {
     userid: user._id,
     username: user.username,
@@ -28,7 +31,8 @@ const formatUserOutput = user => {
     avatar: user.avatar,
     identity: user.identity,
     amount: user.amount,
-    last_login_time: user.last_login_time
+    lastLoginTime: user.last_login_time,
+    shareCode
   }
 }
 
@@ -206,7 +210,7 @@ export default function(router) {
         ok: true,
         msg: '登录成功',
         token: token,
-        userInfo: formatUserOutput(user)
+        userInfo: await formatUserOutput(user)
       }
     } else if (wey === 'mobile+password') {
       const { mobile, password } = ctx.request.body
@@ -239,7 +243,7 @@ export default function(router) {
         ok: true,
         msg: '登录成功',
         token: token,
-        userInfo: formatUserOutput(user)
+        userInfo: await formatUserOutput(user)
       }
     } else if (wey === 'username+password') {
       const { username, password } = ctx.request.body
@@ -267,7 +271,7 @@ export default function(router) {
         ok: true,
         msg: '登录成功',
         token: token,
-        userInfo: formatUserOutput(user)
+        userInfo: await formatUserOutput(user)
       }
     } else if (wey === 'mobile+verification') {
       const { mobile, verification } = ctx.request.body
@@ -295,7 +299,7 @@ export default function(router) {
         code: 0,
         msg: '登录成功',
         token,
-        user: formatUserOutput(user)
+        user: await formatUserOutput(user)
       }
     } else {
       ctx.body = {
@@ -442,7 +446,7 @@ export default function(router) {
         ok: true,
         msg: '注册成功',
         token: token,
-        userInfo: formatUserOutput(newUser)
+        userInfo: await formatUserOutput(newUser)
       }
     } else if (wey === 'weixin') {
       // 使用微信注册
@@ -494,7 +498,7 @@ export default function(router) {
             ok: true,
             msg: `用户注册成功`,
             token,
-            userInfo: formatUserOutput(newUser)
+            userInfo: await formatUserOutput(newUser)
           }
         } else {
           ctx.body = { ok: false, msg: `用户注册失败` }

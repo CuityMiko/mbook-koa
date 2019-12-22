@@ -1,5 +1,5 @@
 import { Book, BookList, Good, Setting, Chapter, Theme, Secret, Comment } from '../models'
-import { checkAdminToken, checkUserToken, formatTime } from '../utils'
+import { checkAdminToken, formatBoolean } from '../utils'
 import shortid from 'shortid'
 import fs from 'fs'
 import path from 'path'
@@ -12,71 +12,39 @@ export default function(router) {
    * 小程序端获取书籍详情
    * @method get
    */
-  router.get('/api/book/get_detail', async (ctx, next) => {
-    // 解析jwt，取出userid查询booklist表，判断是否已经加入了书架
-    let userid = await checkUserToken(ctx, next)
-    let result = null
-    let id = ctx.request.query.id
+  router.get('/api/front/bookdetail', async ctx => {
+    const userid = ctx.state.user ? ctx.state.user.id : ''
+    const id = ctx.request.query.id
     if (!id) {
       ctx.body = { ok: false, msg: '缺少id参数' }
       return false
     }
-    let book = await Book.findById(id)
+    const book = await Book.findById(id, '-source -classify_order -create_time -secret')
     if (!book) {
       ctx.body = { ok: false, msg: '获取书籍详情失败' }
       return false
     }
-    let isInList = userid ? await BookList.findOne({ userid, 'books.bookid': id }, '_id') : false
-    let hasRssTheBook = userid ? await BookList.findOne({ userid, 'books.bookid': id, 'books.rss': 1 }, '_id') : false
-    // 获取书籍的商品属性
-    let good = {}
-    let thisGood = await Good.findOne({ bookid: book._id })
-    if (thisGood) {
-      if (thisGood.type === 4) {
-        good.type = 'free'
-      } else if (thisGood.type === 2) {
-        good.type = 'limit_date'
-        good.limit_start_time = formatTime(thisGood.limit_start_time)
-        good.limit_end_time = formatTime(thisGood.limit_end_time)
-        good.prise = thisGood.prise
-      } else if (thisGood.type === 3) {
-        good.type = 'limit_chapter'
-        good.limit_chapter = thisGood.limit_chapter
-        good.prise = thisGood.prise
-      } else if (thisGood.type === 1) {
-        good.type = 'normal'
-        good.prise = thisGood.prise
-      } else {
-        good.type = 'free'
-      }
-    } else {
-      // 非商品默认免费
-      good.type = 'free'
-    }
+
+    // 是否将书籍加入了书架
+    const isInList = formatBoolean(userid ? await BookList.findOne({ userid, 'books.bookid': id }, '_id') : false)
+    // 是否订阅过该书籍
+    const rss = formatBoolean(userid ? await BookList.findOne({ userid, 'books.bookid': id, 'books.rss': 1 }, '_id') : false)
     // 用户是否已经解锁过该书籍
-    // 首先检测是否解锁书籍
-    const hasUnLock = userid ? await Secret.findOne({ userid, bookid: id, active: true }) : false
-    // 格式化时间
-    result = {
-      _id: book._id,
-      name: book.name,
-      img_url: book.img_url,
-      author: book.author,
-      des: book.des
-        .replace(/\n/g, '')
-        .replace(/\r/g, '')
-        .replace(/\s/g, ''),
-      classification: book.classification,
-      update_status: book.update_status === '已完结' ? '已完结' : '第' + book.newest_chapter + '章', // 这里日后最好加上章节名
-      newest_chapter: book.newest_chapter,
-      rss: hasRssTheBook ? 1 : 0,
-      total_words: book.total_words,
-      hot_value: book.hot_value,
-      update_time: formatTime(book.update_time),
-      good,
-      hasUnLock: !!hasUnLock
+    const unlocked = formatBoolean(userid ? await Secret.findOne({ userid, bookid: id, active: true }) : false)
+    // 获取商品信息
+    const good = await Good.getFormatInfo(id)
+
+    ctx.body = {
+      ok: true,
+      msg: 'success',
+      data: {
+        ...book._doc,
+        rss,
+        good,
+        unlocked,
+        isInList
+      }
     }
-    ctx.body = { ok: true, msg: '获取书籍详情成功', data: result, isInList: !!isInList }
   })
 
   // 获取书籍分类列表的接口
@@ -450,7 +418,7 @@ export default function(router) {
       // 获取书籍的所有章节
       const chapters = await Chapter.find({ bookid: bookId })
       // 创建一个临时的txt文件
-      const tmpdir = fs.mkdtempSync(path.join(os.tmpdir(), `./${uuid.v1()}`));
+      const tmpdir = fs.mkdtempSync(path.join(os.tmpdir(), `./${uuid.v1()}`))
       const filePath = path.join(tmpdir, `${thisBook.name}.txt`)
       fs.appendFileSync(filePath, `书籍信息:\n书籍名称: ${thisBook.name}\n作者: ${thisBook.author}\n简介: ${thisBook.des}\n更新状态: ${thisBook.update_status}\n最新更新时间: ${thisBook.update_time}\n`)
 

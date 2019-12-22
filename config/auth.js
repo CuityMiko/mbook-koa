@@ -4,12 +4,16 @@
 const everyBodyCanAccess = [
   'GET /',
   'OPTIONS *',
+  'GET *.*',
   'GET /api/front/banner',
   'GET /api/front/theme',
   'POST /api/front/recommend',
   'GET /api/front/comments',
   'POST /api/front/user/login',
   'POST /api/front/user/registe',
+  'GET /api/front/bookdetail',
+  'POST /api/front/user/send_verify',
+  'POST /api/front/user/check_verify'
 ]
 
 /**

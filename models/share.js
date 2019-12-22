@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import shortid from 'shortid'
 
 const ShareSchema = new mongoose.Schema(
   {
@@ -32,6 +33,26 @@ ShareSchema.statics.transId = async function(id) {
   return mongoose.Types.ObjectId(id)
 }
 
-let Share = mongoose.model('Share', ShareSchema)
+/**
+ * 获取用户分享码
+ */
+ShareSchema.statics.getUserShareCode = async function(userid) {
+  const thisShare = await Share.findOne({ userid })
+  if (thisShare) {
+    return thisShare.code
+  } else {
+    // 不存在则创建一个
+    const newShare = await Share.create({
+      userid: await Share.transId(userid),
+      code: shortid.generate(),
+      award_records: [],
+      accept_records: [],
+      create_time: new Date()
+    })
+    return newShare.code
+  }
+}
+
+const Share = mongoose.model('Share', ShareSchema)
 
 export { Share }

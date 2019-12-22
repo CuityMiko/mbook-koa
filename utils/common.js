@@ -5,6 +5,14 @@ import bcrypt from 'bcrypt'
 import pathToRegexp from 'path-to-regexp'
 
 /**
+ * 格式化true和false
+ * @param {*} n 
+ */
+const formatBoolean = value => {
+  return value ? 1 : 0;
+}
+
+/**
  * 格式化日期，转变成'2017/11/19 00:00:00'
  */
 const formatNumber = n => {
@@ -342,6 +350,7 @@ export function pathMatch(rulePath, currentPath) {
 
 
 module.exports = {
+  formatBoolean,
   formatTime,
   formatTime2,
   unique,
