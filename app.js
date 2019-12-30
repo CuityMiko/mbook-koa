@@ -37,13 +37,13 @@ app.use(require('koa-static')(__dirname + '/public'))
 
 // JWT解析
 app.use(async (ctx, next) => {
-  const token = ctx.header.authorization
+  const token = ctx.header.authorization || ''
   if (token && validator.isJWT(token)) {
     try {
       const tokenInfo = await jwtVerify(token)
       ctx.state.user = tokenInfo
     } catch(err) {
-      // 上报cuowu
+      // 上报错误
       reportError('JWT解析错误--' + err.toString(), err, {
         priority: '紧急',
         category: '服务器500',
@@ -80,8 +80,7 @@ app.use(async (ctx, next) => {
   const isAuthenticatedAccess = authenticatedAccess.some(item => {
     return pathMatch(item, currentPath)
   })
-  if (isAuthenticatedAccess) {
-    ctx.state.user = tokenInfo
+  if (isAuthenticatedAccess && ctx.state.user) {
     await next() // 200放行
     return
   } else {

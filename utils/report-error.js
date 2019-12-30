@@ -2,7 +2,7 @@ import { DEBUG_MODE } from '../config'
 import Redmine from 'node-redmine'
 import jsonifyError from 'jsonify-error'
 
-const redmine = new Redmine('http://118.24.94.40:8080', { apiKey: 'b9e6bfb5cad06de72d1f49162de83a69eae569ba' })
+// const redmine = new Redmine('http://118.24.94.40:8080', { apiKey: 'b9e6bfb5cad06de72d1f49162de83a69eae569ba' })
 
 /**
  * 打印调试信息，方便错误跟踪
@@ -90,13 +90,13 @@ const reportError = (title, error, options) => {
     }
   }
 
-  redmine.create_issue(issue, function(err, data) {
-    if (err) throw err;
-    if (error) {
-      console.log(error)
-      console.log('已上传该错误')
-    }
-  });
+  // redmine.create_issue(issue, function(err, data) {
+  //   if (err) throw err;
+  //   if (error) {
+  //     console.log(error)
+  //     console.log('已上传该错误')
+  //   }
+  // });
 }
 
 export { debug, reportError }

@@ -22,7 +22,8 @@ const everyBodyCanAccess = [
  * 已认证用户可以访问的接口，用户必须已经登录
  */
 const authenticatedAccess = [
-  'GET /api/current_user',
+  'POST /api/front/booklist/rss',
+  'GET /api/front/comment/like',
   'GET /api/user',
   'GET /api/stat/real_time',
   'GET /api/stat/area',

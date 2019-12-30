@@ -7,7 +7,7 @@ export default function(router) {
     if (userid) {
       const id = ctx.request.query.id
       if (id) {
-        const updateResult = await BookList.update({ userid: userid }, { $pull: { 'books': { bookid: id } } })
+        const updateResult = await BookList.update({ userid: userid }, { $pull: { books: { bookid: id } } })
         if (updateResult.ok === 1) {
           ctx.body = { ok: true, msg: '删除书籍成功' }
         } else {
@@ -63,22 +63,25 @@ export default function(router) {
   })
 
   // 订阅书籍
-  router.post('/api/booklist/rss', async (ctx, next) => {
-    let userid = await checkUserToken(ctx, next)
-    if (userid) {
-      let { bookid, rss } = ctx.request.body
-      rss = !!rss ? 1 : 0
-      let thisBook = await Book.findById(bookid, '_id')
-      if (!thisBook) {
-        ctx.body = { ok: false, msg: '找不到此书籍' }
-        return false
-      }
-      let updateResult = await BookList.update({ userid: userid, 'books.bookid': bookid }, { $set: { 'books.$.rss': rss } })
-      if (updateResult.ok === 1) {
-        ctx.body = { ok: true, msg: '修改书籍订阅状态成功' }
-      } else {
-        ctx.body = { ok: false, msg: '修改书籍订阅状态失败' }
-      }
+  router.post('/api/front/booklist/rss', async ctx => {
+    const { bookid, rss } = ctx.request.body
+    const userid = ctx.state.user.userid;
+    const thisBook = await Book.findById(bookid, '_id')
+    if (!thisBook) {
+      ctx.body = { ok: false, msg: '找不到此书籍' }
+      return false
+    }
+    const updateResult = await BookList.update(
+      {
+        userid: userid,
+        'books.bookid': bookid
+      },
+      { $set: { 'books.$.rss': !!rss ? 1 : 0 } }
+    )
+    if (updateResult.ok === 1) {
+      ctx.body = { ok: true, msg: '修改书籍订阅状态成功' }
+    } else {
+      ctx.body = { ok: false, msg: '修改书籍订阅状态失败' }
     }
   })
 
@@ -115,7 +118,7 @@ export default function(router) {
           }
         }
       )
-      let updateReadTime = await User.update({ _id: userid }, { $inc: { read_time: parseInt(read_time) }})
+      let updateReadTime = await User.update({ _id: userid }, { $inc: { read_time: parseInt(read_time) } })
       if (updateResult.ok === 1 && updateReadTime.ok === 1) {
         if (updateResult.nModified === 1) {
           ctx.body = { ok: true, msg: '更新阅读进度成功，最新进度第' + chapter_num + '章，第' + chapter_page_index + '页' }
@@ -131,13 +134,12 @@ export default function(router) {
   router.get('/api/booklist/mylist', async (ctx, next) => {
     const userid = await checkUserToken(ctx, next)
     if (userid) {
-      const thisBookList = await BookList.findOne({ userid })
-        .populate({
-          path: 'books.bookid',
-          options: {
-            select: 'name img_url update_status update_time newest_chapter',
-          }
-        })
+      const thisBookList = await BookList.findOne({ userid }).populate({
+        path: 'books.bookid',
+        options: {
+          select: 'name img_url update_status update_time newest_chapter'
+        }
+      })
       if (!thisBookList) {
         ctx.body = { ok: true, msg: '获取书单信息成功', list: [] }
         return false
@@ -158,10 +160,10 @@ export default function(router) {
           time: item.time,
           name: item.bookid.name,
           img_url: item.bookid.img_url,
-          sign,
+          sign
         }
       })
-      // 根据time排序 
+      // 根据time排序
       result.sort((book1, book2) => {
         if (book2.time instanceof Date && book1.time instanceof Date) {
           return book2.time.getTime() - book1.time.getTime()

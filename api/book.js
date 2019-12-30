@@ -13,7 +13,7 @@ export default function(router) {
    * @method get
    */
   router.get('/api/front/bookdetail', async ctx => {
-    const userid = ctx.state.user ? ctx.state.user.id : ''
+    const userid = ctx.state.user ? ctx.state.user.userid : ''
     const id = ctx.request.query.id
     if (!id) {
       ctx.body = { ok: false, msg: '缺少id参数' }

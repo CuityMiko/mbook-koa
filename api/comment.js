@@ -55,37 +55,35 @@ export default function(router) {
    * 评论点赞
    */
   router.get('/api/front/comment/like', async (ctx, next) => {
-    // 解析jwt，取出userid查询booklist表，判断是否已经加入了书架
-    let userid = await checkUserToken(ctx, next)
-    if (userid) {
-      let { commentid, op } = ctx.request.query
-      if (op == 'add') {
-        let updateResult = await Comment.update({ _id: commentid }, { $addToSet: { like_persons: await Comment.transId(userid) } })
-        let currentComment = await Comment.findById(commentid)
+    const userid = ctx.state.user.userid
+    const { commentid, op } = ctx.request.query
+    if (op == 'add') {
+      const updateResult = await Comment.update({ _id: commentid }, { $addToSet: { like_persons: await Comment.transId(userid) } })
+      console.log(userid, updateResult)
+      const currentComment = await Comment.findById(commentid)
+      if (updateResult.ok == 1 && updateResult.nModified == 1) {
+        ctx.body = { ok: true, msg: '点赞成功', current: currentComment.like_persons.length }
+      } else {
+        ctx.body = { ok: false, msg: '点赞失败', current: currentComment.like_persons.length }
+      }
+    } else if (op == 'remove') {
+      const oldComment = await Comment.findById(commentid)
+      const comments = oldComment.like_persons.filter(item => {
+        return item.toString() != userid
+      })
+      if (comments.length < oldComment.like_persons.length) {
+        const updateResult = await Comment.update({ _id: commentid }, { $set: { like_persons: comments } })
+        const currentComment = await Comment.findById(commentid)
         if (updateResult.ok == 1 && updateResult.nModified == 1) {
-          ctx.body = { ok: true, msg: '点赞成功', current: currentComment.like_persons.length }
+          ctx.body = { ok: true, msg: '取消点赞成功', current: currentComment.like_persons.length }
         } else {
-          ctx.body = { ok: false, msg: '点赞失败~', current: currentComment.like_persons.length }
-        }
-      } else if (op == 'remove') {
-        let oldComment = await Comment.findById(commentid)
-        let comments = oldComment.like_persons.filter(item => {
-          return item.toString() != userid
-        })
-        if (comments.length < oldComment.like_persons.length) {
-          let updateResult = await Comment.update({ _id: commentid }, { $set: { like_persons: comments } })
-          let currentComment = await Comment.findById(commentid)
-          if (updateResult.ok == 1 && updateResult.nModified == 1) {
-            ctx.body = { ok: true, msg: '取消点赞成功', current: currentComment.like_persons.length }
-          } else {
-            ctx.body = { ok: false, msg: '取消点赞失败~', current: currentComment.like_persons.length }
-          }
-        } else {
-          ctx.body = { ok: false, msg: '取消点赞失败~' }
+          ctx.body = { ok: false, msg: '取消点赞失败', current: currentComment.like_persons.length }
         }
       } else {
-        ctx.body = { ok: false, msg: '点赞失败, 缺少op参数~' }
+        ctx.body = { ok: false, msg: '取消点赞失败~' }
       }
+    } else {
+      ctx.body = { ok: false, msg: '点赞失败, 缺少op参数~' }
     }
   })
 
@@ -94,8 +92,7 @@ export default function(router) {
    * 获取评论列表（简单版）
    */
   router.get('/api/front/comments', async (ctx, next) => {
-    const userid = 1
-    console.log(ctx.state);
+    const userid = ctx.state.user ? ctx.state.user.userid : ''
     const { bookid, page = 1 } = ctx.request.query
     if (!bookid) {
       ctx.body = { ok: false, msg: '缺少bookid参数' }
@@ -122,9 +119,9 @@ export default function(router) {
     ctx.body = {
       ok: true,
       msg: '获取评论成功',
-      hasMore: 5 * (parseInt(page) - 1) < total,
+      hasMore: 5 * parseInt(page) < total,
       list: comments.map(item => {
-        const user = item.userid || {};
+        const user = item.userid || {}
         const isLike = item.like_persons.some(person => person.toString() === userid)
         return {
           id: item._id,
