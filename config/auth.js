@@ -24,6 +24,7 @@ const everyBodyCanAccess = [
 const authenticatedAccess = [
   'POST /api/front/booklist/rss',
   'GET /api/front/comment/like',
+  'GET /api/front/chapter/detail',
   'GET /api/user',
   'GET /api/stat/real_time',
   'GET /api/stat/area',

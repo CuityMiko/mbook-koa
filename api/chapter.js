@@ -112,7 +112,7 @@ export default function(router) {
       .sort({ num: 1 })
       .skip((pageid - 1) * limit)
       .limit(limit)
-    
+
     ctx.body = { ok: true, msg: '获取章节列表成功', list: lists, total }
   })
 
@@ -123,200 +123,198 @@ export default function(router) {
    * @param {String} chapter_id 章节id，可选值
    * @param {String} chapter_num 章节序号，可选值
    */
-  router.get('/api/chapter/detail', async (ctx, next) => {
-    let userid = await checkUserToken(ctx, next)
-    if (userid) {
-      // url参数
-      let { bookid, chapter_id, chapter_num } = ctx.request.query
-      // 章节号转化成数据
-      chapter_num = parseInt(chapter_num)
-      // 用户是否有权限查看该章节
-      const canReadFunc = async function(num) {
-        let canRead = false
-        let doAutoBuy = false
-        // 获取书籍的商品信息
-        const goodInfo = await Good.findOne({ bookid })
-        if (!goodInfo) {
+  router.get('/api/front/chapter/detail', async (ctx, next) => {
+    const userid = ctx.state.user.userid
+    // url参数
+    let { bookid, chapter_id, chapter_num } = ctx.request.query
+    // 章节号转化成数据
+    chapter_num = parseInt(chapter_num)
+    // 用户是否有权限查看该章节
+    const canReadFunc = async function(num) {
+      let canRead = false
+      let doAutoBuy = false
+      // 获取书籍的商品信息
+      const goodInfo = await Good.findOne({ bookid })
+      if (!goodInfo) {
+        canRead = true
+      }
+      // 获取用户是否设置了自动购买
+      let autoBuy = false
+      const thisUser = await User.findById(userid)
+      if (thisUser && thisUser.setting.autoBuy) {
+        autoBuy = true
+      }
+      const hasBuyHistory = async function() {
+        // 首先检测是否解锁书籍
+        const thisSecret = await Secret.findOne({ userid, bookid, active: true })
+        if (thisSecret) {
+          // 用户已经解锁该书籍
           canRead = true
-        }
-        // 获取用户是否设置了自动购买
-        let autoBuy = false
-        const thisUser = await User.findById(userid)
-        if (thisUser && thisUser.setting.autoBuy) {
-          autoBuy = true
-        }
-        const hasBuyHistory = async function() {
-          // 首先检测是否解锁书籍
-          const thisSecret = await Secret.findOne({ userid, bookid, active: true })
-          if (thisSecret) {
-            // 用户已经解锁该书籍
-            canRead = true
-          } else {
-            const thisBuy = await Buy.findOne({ goodid: goodInfo._id, userid, chapter: num })
-            if (!thisBuy) {
-              if (autoBuy) {
-                // 检验余额是否充足
-                if (parseInt(thisUser.amount) >= parseInt(goodInfo.prise)) {
-                  const newBuy = await Buy.create({
-                    goodid: await Buy.transId(goodInfo._id),
-                    userid: await Buy.transId(userid),
-                    amount: goodInfo.prise,
-                    chapter: num,
-                    des: moment().format('YYYY-MM-DD HH:mm:ss') + ' 自动购买章节 ' + num,
-                    create_time: new Date()
-                  })
-                  // 扣除用户书币
-                  const reduceResult = await User.reduceAmount(userid, parseInt(goodInfo.prise))
-                  if (reduceResult) {
-                    canRead = true
-                    doAutoBuy = true
-                  } else {
-                    canRead = false
-                    doAutoBuy = false
-                    await Buy.remove({ _id: newBuy._id })
-                  }
+        } else {
+          const thisBuy = await Buy.findOne({ goodid: goodInfo._id, userid, chapter: num })
+          if (!thisBuy) {
+            if (autoBuy) {
+              // 检验余额是否充足
+              if (parseInt(thisUser.amount) >= parseInt(goodInfo.prise)) {
+                const newBuy = await Buy.create({
+                  goodid: await Buy.transId(goodInfo._id),
+                  userid: await Buy.transId(userid),
+                  amount: goodInfo.prise,
+                  chapter: num,
+                  des: moment().format('YYYY-MM-DD HH:mm:ss') + ' 自动购买章节 ' + num,
+                  create_time: new Date()
+                })
+                // 扣除用户书币
+                const reduceResult = await User.reduceAmount(userid, parseInt(goodInfo.prise))
+                if (reduceResult) {
+                  canRead = true
+                  doAutoBuy = true
                 } else {
                   canRead = false
+                  doAutoBuy = false
+                  await Buy.remove({ _id: newBuy._id })
                 }
               } else {
                 canRead = false
               }
             } else {
-              canRead = true
-            }
-          }
-        }
-        if (goodInfo) {
-          switch (goodInfo.type) {
-            case 4: // 全书免费
-              canRead = true
-              break
-            case 3: // 限章免费
-              // 判断当前章节是否在免费章节内
-              if (num <= goodInfo.limit_chapter) {
-                canRead = true
-              } else {
-                await hasBuyHistory()
-              }
-              break
-            case 2: // 限时免费
-              // 判断当前是否在免费时间段内
-              const now = new Date().getTime()
-              if (now >= goodInfo.limit_start_time.getTime() && now <= goodInfo.limit_end_time.getTime()) {
-                canRead = true
-              } else {
-                await hasBuyHistory()
-              }
-              break
-            case 1:
-              await hasBuyHistory()
-              break
-            default:
               canRead = false
-              break
-          }
-          return {
-            canRead,
-            autoBuy,
-            doAutoBuy
-          }
-        } else {
-          return {
-            canRead: true,
-            autoBuy: false,
-            doAutoBuy: false
+            }
+          } else {
+            canRead = true
           }
         }
       }
-      // 判断canRead结束，开始查询本书的具体内容
-      if (chapter_id) {
-        // 通过传递章节id获取章节内容
-        const thisChapter = await Chapter.findById(chapter_id)
-        const thisBook = await Book.findById(bookid, 'name img_url author newest_chapter update_status')
-        if (thisChapter._id) {
-          const canReadResult = await canReadFunc(thisChapter.num)
-          ctx.body = {
-            ok: true,
-            msg: '获取章节详情成功',
-            canRead: canReadResult.canRead,
-            autoBuy: canReadResult.autoBuy,
-            doAutoBuy: canReadResult.doAutoBuy,
-            bookname: thisBook.name,
-            headimg: thisBook.img_url,
-            author: thisBook.author,
-            newest: thisBook.newest_chapter,
-            update_status: thisBook.update_status,
-            top: 0,
-            scroll: 0,
-            data: thisChapter
-          }
-        } else {
-          ctx.body = { ok: false, msg: '获取章节详情失败' }
+      if (goodInfo) {
+        switch (goodInfo.type) {
+          case 4: // 全书免费
+            canRead = true
+            break
+          case 3: // 限章免费
+            // 判断当前章节是否在免费章节内
+            if (num <= goodInfo.limit_chapter) {
+              canRead = true
+            } else {
+              await hasBuyHistory()
+            }
+            break
+          case 2: // 限时免费
+            // 判断当前是否在免费时间段内
+            const now = new Date().getTime()
+            if (now >= goodInfo.limit_start_time.getTime() && now <= goodInfo.limit_end_time.getTime()) {
+              canRead = true
+            } else {
+              await hasBuyHistory()
+            }
+            break
+          case 1:
+            await hasBuyHistory()
+            break
+          default:
+            canRead = false
+            break
         }
-      } else if (chapter_num) {
-        // 通过传递章节数获取章节内容
-        const thisChapter = await Chapter.findOne({ bookid, num: chapter_num })
-        const thisBook = await Book.findById(bookid, 'name img_url author newest_chapter update_status')
-        if (thisChapter) {
-          const canReadResult = await canReadFunc(thisChapter.num)
-          ctx.body = {
-            ok: true,
-            msg: '获取章节详情成功',
-            canRead: canReadResult.canRead,
-            autoBuy: canReadResult.autoBuy,
-            doAutoBuy: canReadResult.doAutoBuy,
-            top: 0,
-            scroll: 0,
-            bookname: thisBook.name,
-            headimg: thisBook.img_url,
-            author: thisBook.author,
-            newest: thisBook.newest_chapter,
-            update_status: thisBook.update_status,
-            data: thisChapter
-          }
-        } else {
-          ctx.body = { ok: false, msg: '获取章节详情失败' }
+        return {
+          canRead,
+          autoBuy,
+          doAutoBuy
         }
       } else {
-        // 去booklist里读取用户阅读进度
-        const thisBookList = await BookList.findOne({ userid })
-        let readChapterNum = 1
-        let readChapterScrollTop = 0
-        let readChapterScroll = 0
-        let hasRssTheBook = false
-        if (thisBookList) {
-          thisBookList.books.forEach(item => {
-            if (item.bookid.toString() == bookid) {
-              readChapterNum = item.read.num
-              readChapterScrollTop = item.read.top
-              readChapterScroll = item.read.scroll || 0
-              hasRssTheBook = item.rss
-            }
-          })
+        return {
+          canRead: true,
+          autoBuy: false,
+          doAutoBuy: false
         }
-        const thisChapter = await Chapter.findOne({ bookid, num: readChapterNum })
-        const thisBook = await Book.findById(bookid, 'name img_url author newest_chapter update_status')
-        if (thisChapter) {
-          const canReadResult = await canReadFunc(thisChapter.num)
-          ctx.body = {
-            ok: true,
-            msg: '获取章节详情成功',
-            canRead: canReadResult.canRead,
-            autoBuy: canReadResult.autoBuy,
-            doAutoBuy: canReadResult.doAutoBuy,
-            top: readChapterScrollTop,
-            scroll: readChapterScroll,
-            bookname: thisBook.name,
-            headimg: thisBook.img_url,
-            author: thisBook.author,
-            newest: thisBook.newest_chapter,
-            update_status: thisBook.update_status,
-            rss: hasRssTheBook,
-            data: thisChapter
+      }
+    }
+    // 判断canRead结束，开始查询本书的具体内容
+    if (chapter_id) {
+      // 通过传递章节id获取章节内容
+      const thisChapter = await Chapter.findById(chapter_id)
+      const thisBook = await Book.findById(bookid, 'name img_url author newest_chapter update_status')
+      if (thisChapter._id) {
+        const canReadResult = await canReadFunc(thisChapter.num)
+        ctx.body = {
+          ok: true,
+          msg: '获取章节详情成功',
+          canRead: canReadResult.canRead,
+          autoBuy: canReadResult.autoBuy,
+          doAutoBuy: canReadResult.doAutoBuy,
+          bookname: thisBook.name,
+          headimg: thisBook.img_url,
+          author: thisBook.author,
+          newest: thisBook.newest_chapter,
+          update_status: thisBook.update_status,
+          top: 0,
+          scroll: 0,
+          data: thisChapter
+        }
+      } else {
+        ctx.body = { ok: false, msg: '获取章节详情失败' }
+      }
+    } else if (chapter_num) {
+      // 通过传递章节数获取章节内容
+      const thisChapter = await Chapter.findOne({ bookid, num: chapter_num })
+      const thisBook = await Book.findById(bookid, 'name img_url author newest_chapter update_status')
+      if (thisChapter) {
+        const canReadResult = await canReadFunc(thisChapter.num)
+        ctx.body = {
+          ok: true,
+          msg: '获取章节详情成功',
+          canRead: canReadResult.canRead,
+          autoBuy: canReadResult.autoBuy,
+          doAutoBuy: canReadResult.doAutoBuy,
+          top: 0,
+          scroll: 0,
+          bookname: thisBook.name,
+          headimg: thisBook.img_url,
+          author: thisBook.author,
+          newest: thisBook.newest_chapter,
+          update_status: thisBook.update_status,
+          data: thisChapter
+        }
+      } else {
+        ctx.body = { ok: false, msg: '获取章节详情失败' }
+      }
+    } else {
+      // 去booklist里读取用户阅读进度
+      const thisBookList = await BookList.findOne({ userid })
+      let readChapterNum = 1
+      let readChapterScrollTop = 0
+      let readChapterScroll = 0
+      let hasRssTheBook = false
+      if (thisBookList) {
+        thisBookList.books.forEach(item => {
+          if (item.bookid.toString() == bookid) {
+            readChapterNum = item.read.num
+            readChapterScrollTop = item.read.top
+            readChapterScroll = item.read.scroll || 0
+            hasRssTheBook = item.rss
           }
-        } else {
-          ctx.body = { ok: false, msg: '获取章节详情失败' }
+        })
+      }
+      const thisChapter = await Chapter.findOne({ bookid, num: readChapterNum })
+      const thisBook = await Book.findById(bookid, 'name img_url author newest_chapter update_status')
+      if (thisChapter) {
+        const canReadResult = await canReadFunc(thisChapter.num)
+        ctx.body = {
+          ok: true,
+          msg: '获取章节详情成功',
+          canRead: canReadResult.canRead,
+          autoBuy: canReadResult.autoBuy,
+          doAutoBuy: canReadResult.doAutoBuy,
+          top: readChapterScrollTop,
+          scroll: readChapterScroll,
+          bookname: thisBook.name,
+          headimg: thisBook.img_url,
+          author: thisBook.author,
+          newest: thisBook.newest_chapter,
+          update_status: thisBook.update_status,
+          rss: hasRssTheBook,
+          data: thisChapter
         }
+      } else {
+        ctx.body = { ok: false, msg: '获取章节详情失败' }
       }
     }
   })
@@ -337,10 +335,14 @@ export default function(router) {
     }
     if (bookid) {
       if (str) {
-        let thisChapter = await Chapter.find({ bookid, '$or': queryArr }, 'name num').sort({ num: 1 }).limit(50)
+        let thisChapter = await Chapter.find({ bookid, $or: queryArr }, 'name num')
+          .sort({ num: 1 })
+          .limit(50)
         ctx.body = { ok: true, msg: '搜索目录成功', data: thisChapter }
       } else {
-        let thisChapter = await Chapter.find({ bookid }, 'name num').sort({ num: 1 }).limit(50)
+        let thisChapter = await Chapter.find({ bookid }, 'name num')
+          .sort({ num: 1 })
+          .limit(50)
         ctx.body = { ok: true, msg: '搜索目录成功', data: thisChapter }
       }
     } else {
@@ -375,13 +377,13 @@ export default function(router) {
         .sort({ num: 1 })
         .skip((page - 1) * limit)
         .limit(limit)
-      
+
       let thisBook = await Book.findById(id, 'name newest_chapter')
-      
+
       ctx.body = { ok: true, msg: '获取章节成功', total: total, lists: thisChapter, bookInfo: thisBook }
     }
   })
-  
+
   /**
    * 后台管理新增章节
    * @method post
@@ -448,12 +450,14 @@ export default function(router) {
         return false
       }
       await Chapter.remove({ _id: chapter_id })
-      let newestChapter = await Chapter.findOne({ bookid: thisChapter.bookid }, 'num').sort({ num: -1 }).limit(1)
+      let newestChapter = await Chapter.findOne({ bookid: thisChapter.bookid }, 'num')
+        .sort({ num: -1 })
+        .limit(1)
       let updateResult = await Book.update(
         { _id: thisChapter.bookid.toString() },
         {
           $set: {
-            newest_chapter: newestChapter.num,
+            newest_chapter: newestChapter.num
           }
         }
       )
@@ -536,7 +540,7 @@ export default function(router) {
                 // 更新book.chapters
                 if (addResult._id) {
                   rightNum++
-                  console.log(addResult._id);
+                  console.log(addResult._id)
                   return addResult._id
                 } else {
                   addErrors.push('第' + ++index + '行新增章节失败')
@@ -629,7 +633,7 @@ export default function(router) {
                             }
                           }
                         )
-                       }
+                      }
                       const num = chineseParseInt(result[0].match(/第?[零一二两三叁四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰0-9]+章/)[0])
                       const name = result[0]
                         .match(/(?<=章).*$/)[0]
